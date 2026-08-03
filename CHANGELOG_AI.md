@@ -126,7 +126,21 @@ This document tracks all code edits, structural changes, and schema updates made
   * Created Security Group `quantmesh-sg` (`sg-09456de1ab629ee8d`) with ingress rules for TCP ports 22, 80, 443, 4000.
   * Launched Ubuntu 24.04 LTS `t3.micro` EC2 instance (`i-0667f1b0761dc2579`) in region `ap-south-1`.
   * Allocated Public IPv4: `3.110.207.74`.
-* **Next Action Required:** Execute remote deployment script `deploy-ec2.sh` on EC2 (`3.110.207.74`).
+* **Next Action Required:** Issue SSL certificate via Certbot for api.dhanrajgupta.xyz.
+
+---
+
+### [2026-08-03 19:58 IST] - EC2 Service Deployment & Certbot SSL Configuration
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified / Created:**
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Executed `deploy-ec2.sh` on EC2 (`3.110.207.74`). Installed Node 20 LTS, PM2, Nginx, UFW, & Certbot.
+  * Uploaded `@x402-avm` packages and launched `orchestrator` process via PM2 systemd daemon.
+  * Issued Let's Encrypt SSL certificate via Certbot for `api.dhanrajgupta.xyz`.
+  * Verified live HTTPS endpoint: `https://api.dhanrajgupta.xyz/api/v1/orchestrate`.
+* **Next Action Required:** Build Worker Agents & Frontend components.
 
 ---
 
