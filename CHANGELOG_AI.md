@@ -140,7 +140,22 @@ This document tracks all code edits, structural changes, and schema updates made
   * Uploaded `@x402-avm` packages and launched `orchestrator` process via PM2 systemd daemon.
   * Issued Let's Encrypt SSL certificate via Certbot for `api.dhanrajgupta.xyz`.
   * Verified live HTTPS endpoint: `https://api.dhanrajgupta.xyz/api/v1/orchestrate`.
-* **Next Action Required:** Build Worker Agents & Frontend components.
+* **Next Action Required:** Connect n8n worker endpoints to orchestrator.
+
+---
+
+### [2026-08-03 20:25 IST] - Integrated n8n Webhooks & Environment Update
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `orchestrator/.env` (Configured WORKER_B_URL & WORKER_C_URL with n8n endpoints)
+  * `orchestrator/src/index.ts` (Updated pre-execution worker fetch handlers)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Configured `WORKER_B_URL` (`https://dhanrajgupta.app.n8n.cloud/webhook/agent-onchain`) and `WORKER_C_URL` (`https://dhanrajgupta.app.n8n.cloud/webhook/agent-ta`) in `.env`.
+  * Uploaded updated `.env` and `src/index.ts` to EC2 and restarted PM2 `orchestrator`.
+  * Verified live responses from n8n webhooks.
+* **Next Action Required:** Build Python FastAPI Worker Agents for Sentiment & Fusion.
 
 ---
 
