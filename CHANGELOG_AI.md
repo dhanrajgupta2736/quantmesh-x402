@@ -229,7 +229,22 @@ This document tracks all code edits, structural changes, and schema updates made
 * **Summary of Changes:**
   * Replaced deprecated `AlgoExplorer` URLs with active **Lora (Algonode Testnet Explorer)** (`https://lora.algonode.cloud/testnet`).
   * Updated orchestrator production instance on EC2.
-* **Next Action Required:** Commit and push to GitHub.
+* **Next Action Required:** Push changes to GitHub.
+
+---
+
+### [2026-08-03 21:21 IST] - Hydration Mismatch Fix & Verified AlgoScan Explorer
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `orchestrator/src/index.ts` (Configured explorerUrl to verified active AlgoScan Testnet: https://testnet.algoscan.app/tx/${paymentTxId})
+  * `frontend/src/app/page.tsx` (Fixed React hydration mismatch via mounted state check and updated explorer link to AlgoScan)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Resolved `Hydration failed because the server rendered HTML didn't match the client` error on the wallet connection button.
+  * Verified and set active block explorer to **AlgoScan Testnet** (`https://testnet.algoscan.app`).
+  * Updated orchestrator production instance on EC2.
+* **Next Action Required:** Push changes to GitHub.
 
 ---
 

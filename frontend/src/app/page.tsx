@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWallet } from '@txnlab/use-wallet-react';
 import { fetchQuantMeshSignal } from '@/lib/x402Client';
 import { 
@@ -18,12 +18,17 @@ import {
 
 export default function TerminalPage() {
   const { activeAddress, wallets, signTransactions } = useWallet();
+  const [mounted, setMounted] = useState(false);
   const [tokenSymbol, setTokenSymbol] = useState('ALGO');
   const [loading, setLoading] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
   const [signalData, setSignalData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [showFaucetGuide, setShowFaucetGuide] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const luteWallet = wallets.find((w) => w.id === 'lute');
 
@@ -60,7 +65,7 @@ export default function TerminalPage() {
             technicalIndicator: 'RSI 62 - Bullish Crossover',
           },
           onChainReceipt: {
-            explorerUrl: `https://lora.algonode.cloud/testnet/tx/${demoTxId}`,
+            explorerUrl: `https://testnet.algoscan.app/tx/${demoTxId}`,
             boxStorageHash: '0x' + Math.random().toString(16).substring(2, 34),
           },
         });
@@ -193,7 +198,7 @@ export default function TerminalPage() {
             className="flex items-center gap-2.5 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 border border-cyan-500/30 text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-lg text-slate-200"
           >
             <Wallet className="w-4 h-4 text-cyan-400" />
-            {activeAddress ? (
+            {mounted && activeAddress ? (
               <span className="text-cyan-300 font-mono">
                 {activeAddress.slice(0, 6)}...{activeAddress.slice(-4)}
               </span>
@@ -370,7 +375,7 @@ export default function TerminalPage() {
                 rel="noreferrer"
                 className="flex items-center gap-2 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors"
               >
-                <span>View Transaction on Lora Algonode Explorer</span>
+                <span>View Transaction on AlgoScan Explorer</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>

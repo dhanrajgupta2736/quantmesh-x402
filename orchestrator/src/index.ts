@@ -103,7 +103,7 @@ app.post('/api/v1/orchestrate', async (c) => {
         technicalIndicator: resC.taSignal || 'RSI 58 - Bullish Crossover',
       },
       onChainReceipt: {
-        explorerUrl: `https://lora.algonode.cloud/testnet/tx/${paymentTxId}`,
+        explorerUrl: `https://testnet.algoscan.app/tx/${paymentTxId}`,
         boxStorageHash: 'a3f9b2c4e5f67890123456789abcdef0',
       },
     });
