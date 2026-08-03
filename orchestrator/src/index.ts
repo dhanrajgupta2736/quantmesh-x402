@@ -14,6 +14,30 @@ const facilitatorClient = new HTTPFacilitatorClient({
   url: process.env.FACILITATOR_URL || 'https://facilitator.goplausible.xyz',
 });
 
+// Ensure facilitatorClient implements getSupported for X402ResourceServer compatibility
+if (typeof (facilitatorClient as any).getSupported !== 'function') {
+  (facilitatorClient as any).getSupported = async function () {
+    try {
+      const url = process.env.FACILITATOR_URL || 'https://facilitator.goplausible.xyz';
+      const res = await fetch(`${url}/supported`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (err) {
+      console.warn('[x402 Router] Facilitator fetch warning, using fallback:', err);
+    }
+    return {
+      kinds: [
+        {
+          scheme: 'exact',
+          network: ALGORAND_TESTNET_CAIP2,
+          extra: { asset: process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID },
+        },
+      ],
+    };
+  };
+}
+
 // Route Configuration
 const routesConfig = {
   'POST /api/v1/orchestrate': {

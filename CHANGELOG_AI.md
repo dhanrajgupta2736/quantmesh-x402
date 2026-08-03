@@ -63,3 +63,16 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-03 19:05 IST] - Facilitator Client getSupported Fix & Fallback
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `orchestrator/src/index.ts` (Ensured getSupported method availability on facilitatorClient)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Added dynamic `getSupported()` method initialization to `facilitatorClient` in `orchestrator/src/index.ts`.
+  * Prevents `TypeError: facilitatorClient.getSupported is not a function` and provides fallback supported payment kinds if the remote facilitator endpoint is unreachable.
+* **Next Action Required:** Push updated codebase to GitHub.
+
+---
+
