@@ -97,7 +97,20 @@ This document tracks all code edits, structural changes, and schema updates made
   * `CHANGELOG_AI.md` (Updated audit log)
 * **Summary of Changes:**
   * Resolved `RouteConfigurationError` by explicitly instantiating `x402ResourceServer` and registering `ExactAvmScheme` for both exact CAIP-2 network string and `algorand:*` wildcard.
-* **Next Action Required:** Push changes to GitHub and pull in Replit.
+* **Next Action Required:** Push changes to GitHub and execute EC2 deployment.
+
+---
+
+### [2026-08-03 19:32 IST] - Automated AWS EC2 Deployment Setup
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified / Created:**
+  * `deploy-ec2.sh` (Automated remote Ubuntu 24.04 setup script for Node 20, PM2, Nginx, UFW, & Certbot)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Created `deploy-ec2.sh` script for zero-downtime EC2 orchestrator deployment.
+  * Prepared AWS CLI commands for Security Group creation (`quantmesh-sg`) and Ubuntu EC2 provisioning.
+* **Next Action Required:** Prompt user for AWS Key Pair details and execute CLI launch commands.
 
 ---
 
