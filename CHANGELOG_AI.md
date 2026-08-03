@@ -190,3 +190,15 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-03 20:55 IST] - Installed Wallet Connector Adapter Packages
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `frontend/package.json` (Added @blockshake/defly-connect, @perawallet/connect, @walletconnect/sign-client, @walletconnect/modal)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Resolved `Module not found: Can't resolve '@blockshake/defly-connect'` by installing all wallet connector peer dependencies required by `@txnlab/use-wallet`.
+* **Next Action Required:** Push frontend codebase to GitHub and run local dev server (`http://localhost:3000`).
+
+---
+

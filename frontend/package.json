@@ -10,7 +10,11 @@
   },
   "dependencies": {
     "@agoralabs-sh/avm-web-provider": "^1.7.0",
+    "@blockshake/defly-connect": "^1.2.1",
+    "@perawallet/connect": "^1.6.0",
     "@txnlab/use-wallet-react": "^4.6.0",
+    "@walletconnect/modal": "^2.7.0",
+    "@walletconnect/sign-client": "^2.23.10",
     "algosdk": "^3.6.0",
     "clsx": "^2.1.1",
     "lucide-react": "^1.28.0",
