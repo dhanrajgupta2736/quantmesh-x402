@@ -89,3 +89,15 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-03 19:14 IST] - Register CAIP-2 Network Scheme on x402ResourceServer
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `orchestrator/src/index.ts` (Registered ExactAvmScheme for ALGORAND_TESTNET_CAIP2 and algorand:*)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Resolved `RouteConfigurationError` by explicitly instantiating `x402ResourceServer` and registering `ExactAvmScheme` for both exact CAIP-2 network string and `algorand:*` wildcard.
+* **Next Action Required:** Push changes to GitHub and pull in Replit.
+
+---
+
