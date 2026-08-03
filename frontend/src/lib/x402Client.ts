@@ -15,10 +15,11 @@ export async function fetchQuantMeshSignal(
     body: JSON.stringify({ tokenSymbol }),
   });
 
-  // If worker pipeline failed pre-execution
-  if (initialRes.status === 502) {
-    const errorData = await initialRes.json();
-    throw new Error(errorData.message || 'Worker agents failed to respond.');
+  const initialData = await initialRes.json().catch(() => ({}));
+
+  // If worker pipeline failed pre-execution (502) or error returned
+  if (initialRes.status === 502 || initialData.status === 'error') {
+    throw new Error(initialData.message || 'Worker agents failed to respond.');
   }
 
   // 2. Parse x402 Payment Required headers
@@ -44,6 +45,10 @@ export async function fetchQuantMeshSignal(
 
     // 4. Prompt user to sign via Lute Wallet
     const signedTxns = await signTransactions([txn.toByte()]);
+    if (!signedTxns || signedTxns.length === 0) {
+      throw new Error('Transaction signing was cancelled by user.');
+    }
+
     const stx = algosdk.decodeSignedTransaction(signedTxns[0]);
     const paymentTxId = stx.txn.txID();
 
@@ -57,12 +62,14 @@ export async function fetchQuantMeshSignal(
       body: JSON.stringify({ tokenSymbol }),
     });
 
-    if (!paidRes.ok) {
-      throw new Error(`Payment verification failed: ${paidRes.statusText}`);
+    const paidData = await paidRes.json().catch(() => ({}));
+
+    if (!paidRes.ok || paidData.status === 'error') {
+      throw new Error(paidData.message || `Payment verification failed: ${paidRes.statusText}`);
     }
 
-    return await paidRes.json();
+    return paidData;
   }
 
-  return await initialRes.json();
+  return initialData;
 }

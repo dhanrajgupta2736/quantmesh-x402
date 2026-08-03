@@ -55,6 +55,11 @@ export default function TerminalPage() {
         const signed = await signTransactions(txns);
         return signed.filter((t): t is Uint8Array => t !== null);
       });
+
+      if (!data || data.status === 'error' || !data.signalFusion) {
+        throw new Error(data?.message || 'Received invalid signal data structure.');
+      }
+
       setSignalData(data);
     } catch (err: any) {
       setError(err.message || 'Execution failed.');
@@ -193,7 +198,7 @@ export default function TerminalPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 py-4">
               <div className="space-y-2">
                 <div className="text-6xl md:text-7xl font-black tracking-tight text-white font-mono">
-                  {signalData ? (
+                  {signalData?.signalFusion?.compositeScore !== undefined ? (
                     <span className="bg-gradient-to-r from-white via-cyan-200 to-cyan-400 bg-clip-text text-transparent">
                       {signalData.signalFusion.compositeScore}
                     </span>
@@ -203,11 +208,11 @@ export default function TerminalPage() {
                   <span className="text-2xl text-slate-500 font-sans font-normal">/100</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`inline-block w-2.5 h-2.5 rounded-full ${signalData ? 'bg-emerald-400' : 'bg-slate-600'}`}></span>
+                  <span className={`inline-block w-2.5 h-2.5 rounded-full ${signalData?.signalFusion ? 'bg-emerald-400' : 'bg-slate-600'}`}></span>
                   <p className="text-base font-bold text-emerald-400 tracking-wide">
-                    {signalData ? signalData.signalFusion.verdict : 'Awaiting Strategy Execution'}
+                    {signalData?.signalFusion?.verdict || 'Awaiting Strategy Execution'}
                   </p>
-                  {signalData && (
+                  {signalData?.signalFusion?.confidencePct !== undefined && (
                     <span className="text-xs text-slate-400 font-mono">
                       ({signalData.signalFusion.confidencePct}% confidence)
                     </span>
@@ -239,8 +244,8 @@ export default function TerminalPage() {
             {error && (
               <div className="p-4 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl flex items-start gap-3 animate-in fade-in duration-200">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
-                <div className="space-y-1">
-                  <div className="font-bold">{error}</div>
+                <div className="space-y-1 font-bold">
+                  {error}
                 </div>
               </div>
             )}
@@ -269,7 +274,7 @@ export default function TerminalPage() {
                 <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded">FastAPI</span>
               </div>
               <div className="text-xl font-bold text-white font-mono">
-                {signalData ? `${signalData.breakdown.sentimentScore}% Bullish` : '--'}
+                {signalData?.breakdown?.sentimentScore !== undefined ? `${signalData.breakdown.sentimentScore}% Bullish` : '--'}
               </div>
             </div>
 
@@ -280,7 +285,7 @@ export default function TerminalPage() {
                 <span className="text-[10px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded">n8n Cloud</span>
               </div>
               <div className="text-xl font-bold text-white font-mono">
-                {signalData ? signalData.breakdown.onChainWhaleFlow : '--'}
+                {signalData?.breakdown?.onChainWhaleFlow || '--'}
               </div>
             </div>
 
@@ -291,14 +296,14 @@ export default function TerminalPage() {
                 <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">n8n Cloud</span>
               </div>
               <div className="text-xl font-bold text-white font-mono">
-                {signalData ? signalData.breakdown.technicalIndicator : '--'}
+                {signalData?.breakdown?.technicalIndicator || '--'}
               </div>
             </div>
           </div>
         </div>
 
         {/* Verified On-Chain Receipt Card */}
-        {signalData && (
+        {signalData?.onChainReceipt && (
           <div className="glass-card rounded-3xl p-6 md:p-8 space-y-4 animate-in slide-in-from-bottom-4 duration-300 border-cyan-500/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
