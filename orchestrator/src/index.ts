@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { paymentMiddlewareFromConfig } from '@x402-avm/hono';
+import { HTTPFacilitatorClient } from '@x402-avm/core/server';
 import { ALGORAND_TESTNET_CAIP2, USDC_TESTNET_ASA_ID } from '@x402-avm/avm';
 import dotenv from 'dotenv';
 
@@ -8,14 +9,19 @@ dotenv.config();
 
 const app = new Hono();
 
-// Configure x402 Payment Challenge for the main orchestrator route
+// Create Facilitator Client Instance
+const facilitatorClient = new HTTPFacilitatorClient({
+  url: process.env.FACILITATOR_URL || 'https://facilitator.goplausible.xyz',
+});
+
+// Route Configuration
 const routesConfig = {
   'POST /api/v1/orchestrate': {
     accepts: {
       scheme: 'exact',
       network: ALGORAND_TESTNET_CAIP2,
       payTo: process.env.ROUTER_WALLET_ADDRESS || '',
-      price: '$0.007', // Total micro-cost
+      price: '$0.007',
       extra: {
         asset: process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID,
       },
@@ -24,12 +30,8 @@ const routesConfig = {
   },
 };
 
-// Apply x402 Middleware to protect the orchestrator endpoint
-app.use(
-  paymentMiddlewareFromConfig(routesConfig, {
-    facilitatorUrl: process.env.FACILITATOR_URL || 'https://facilitator.goplausible.xyz',
-  })
-);
+// Apply x402 Middleware
+app.use(paymentMiddlewareFromConfig(routesConfig, facilitatorClient));
 
 app.post('/api/v1/orchestrate', async (c) => {
   try {
