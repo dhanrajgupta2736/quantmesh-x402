@@ -288,3 +288,18 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-03 21:31 IST] - Fixed Malformed Algorand Recipient Address
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `orchestrator/.env` (Configured ROUTER_WALLET_ADDRESS to valid 58-char Algorand address HXT5Z6DKIVYOIZB7WHVOGEQVYNGXVMQRMS43WXSGIDYORLE3ZUN63Q36MI)
+  * `orchestrator/src/index.ts` (Added sanitization guard ensuring routerAddress is always valid 58-character string)
+  * `frontend/src/lib/x402Client.ts` (Added fallback guard for payTo recipient address in client)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Fixed `address seems to be malformed: expected length 58, got 27: YOUR_ROUTER_TESTNET_ADDRESS` error by providing valid Algorand testnet address `HXT5Z6DKIVYOIZB7WHVOGEQVYNGXVMQRMS43WXSGIDYORLE3ZUN63Q36MI`.
+  * Updated orchestrator production instance on EC2.
+* **Next Action Required:** Push changes to GitHub.
+
+---
+

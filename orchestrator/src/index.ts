@@ -23,6 +23,12 @@ app.use('*', cors({
 const rawFacilitatorUrl = process.env.FACILITATOR_URL || 'https://facilitator.goplausible.xyz';
 const cleanFacilitatorUrl = rawFacilitatorUrl.replace(/[\[\]]/g, '').trim();
 
+// Ensure valid 58-character Algorand recipient address
+const DEFAULT_ROUTER_ADDRESS = 'HXT5Z6DKIVYOIZB7WHVOGEQVYNGXVMQRMS43WXSGIDYORLE3ZUN63Q36MI';
+const routerAddress = (process.env.ROUTER_WALLET_ADDRESS && process.env.ROUTER_WALLET_ADDRESS.length === 58) 
+  ? process.env.ROUTER_WALLET_ADDRESS 
+  : DEFAULT_ROUTER_ADDRESS;
+
 // 1. Initialize Facilitator Client
 const facilitatorClient = new HTTPFacilitatorClient({
   url: cleanFacilitatorUrl,
@@ -39,7 +45,7 @@ const routesConfig = {
     accepts: {
       scheme: 'exact',
       network: ALGORAND_TESTNET_CAIP2,
-      payTo: process.env.ROUTER_WALLET_ADDRESS || 'HXT5Z6DKIVYOIZB7WHVOGEQVYNGXVMQRMS43WXSGIDYORLE3ZUN63Q36MI',
+      payTo: routerAddress,
       price: '$0.007',
       extra: {
         asset: process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID,
@@ -89,7 +95,7 @@ app.post('/api/v1/orchestrate', async (c) => {
 
     // If no payment proof header, return HTTP 402 Payment Required Challenge
     if (!paymentTxId) {
-      c.header('x-payment-pay-to', process.env.ROUTER_WALLET_ADDRESS || 'HXT5Z6DKIVYOIZB7WHVOGEQVYNGXVMQRMS43WXSGIDYORLE3ZUN63Q36MI');
+      c.header('x-payment-pay-to', routerAddress);
       c.header('x-payment-price', '0.007');
       c.header('x-payment-network', ALGORAND_TESTNET_CAIP2);
       c.header('x-payment-scheme', 'exact');

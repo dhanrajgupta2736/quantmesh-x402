@@ -2,6 +2,7 @@ import algosdk from 'algosdk';
 
 const ROUTER_GATEWAY = 'https://api.dhanrajgupta.xyz/api/v1/orchestrate';
 const TESTNET_USDC_ASA = 10458941;
+const DEFAULT_PAY_TO = 'HXT5Z6DKIVYOIZB7WHVOGEQVYNGXVMQRMS43WXSGIDYORLE3ZUN63Q36MI';
 
 export async function fetchQuantMeshSignal(
   tokenSymbol: string,
@@ -24,7 +25,11 @@ export async function fetchQuantMeshSignal(
 
   // 2. Parse x402 Payment Required headers
   if (initialRes.status === 402) {
-    const payTo = initialRes.headers.get('x-payment-pay-to') || 'HXT5Z6DKIVYOIZB7WHVOGEQVYNGXVMQRMS43WXSGIDYORLE3ZUN63Q36MI';
+    let payTo = initialRes.headers.get('x-payment-pay-to') || DEFAULT_PAY_TO;
+    if (!payTo || payTo.length !== 58 || payTo.includes('YOUR_ROUTER')) {
+      payTo = DEFAULT_PAY_TO;
+    }
+
     const priceUsdc = initialRes.headers.get('x-payment-price') || '0.007';
 
     // 3. Build Algorand Testnet ASA Transfer Txn ($0.007 USDC = 7000 base units)
