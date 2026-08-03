@@ -276,3 +276,15 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-03 21:28 IST] - Fixed HTTP 402 Payment Challenge Flow
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `orchestrator/src/index.ts` (Configured orchestrator to return HTTP 402 with x-payment-pay-to and x-payment-price headers when x-payment-txn-id is absent)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Fixed HTTP 402 challenge negotiation flow so client gets payment headers (`x-payment-pay-to` and `x-payment-price`), prompting Lute Wallet to sign the ASA transfer before sending proof header.
+* **Next Action Required:** Push changes to GitHub.
+
+---
+

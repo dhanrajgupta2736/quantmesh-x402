@@ -84,13 +84,19 @@ app.post('/api/v1/orchestrate', async (c) => {
       }, 502);
     }
 
-    // STEP B: Require real x-payment-txn-id Header
+    // STEP B: Check Payment Verification Header (x-payment-txn-id)
     const paymentTxId = c.req.header('x-payment-txn-id');
+
+    // If no payment proof header, return HTTP 402 Payment Required Challenge
     if (!paymentTxId) {
+      c.header('x-payment-pay-to', process.env.ROUTER_WALLET_ADDRESS || 'HXT5Z6DKIVYOIZB7WHVOGEQVYNGXVMQRMS43WXSGIDYORLE3ZUN63Q36MI');
+      c.header('x-payment-price', '0.007');
+      c.header('x-payment-network', ALGORAND_TESTNET_CAIP2);
+      c.header('x-payment-scheme', 'exact');
       return c.json({
-        status: 'error',
-        message: 'Payment verification failed: x-payment-txn-id header is missing.',
-      }, 400);
+        status: 'payment_required',
+        message: 'x402 Payment Required: $0.007 USDC on Algorand Testnet',
+      }, 402);
     }
 
     // STEP C: Return Aggregated Fused Signal matching schema.json
