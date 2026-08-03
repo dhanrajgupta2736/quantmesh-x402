@@ -10,14 +10,10 @@ import {
   Wallet, 
   ExternalLink, 
   Coins, 
-  Sparkles, 
   Layers, 
-  TrendingUp, 
-  Cpu, 
   Activity, 
   CheckCircle2, 
-  AlertCircle,
-  HelpCircle
+  AlertCircle
 } from 'lucide-react';
 
 export default function TerminalPage() {
@@ -47,10 +43,11 @@ export default function TerminalPage() {
 
     // DEMO / SANDBOX MODE (For testing without testnet USDC faucet)
     if (demoMode) {
+      const demoTxId = 'DEMO_TX_' + Math.random().toString(36).substring(2, 10).toUpperCase();
       setTimeout(() => {
         setSignalData({
           status: 'success',
-          groupTxId: 'DEMO_TX_' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+          groupTxId: demoTxId,
           totalCostUsdc: '0.0070',
           signalFusion: {
             compositeScore: 84,
@@ -63,7 +60,7 @@ export default function TerminalPage() {
             technicalIndicator: 'RSI 62 - Bullish Crossover',
           },
           onChainReceipt: {
-            explorerUrl: 'https://testnet.algoexplorer.io',
+            explorerUrl: `https://lora.algonode.cloud/testnet/tx/${demoTxId}`,
             boxStorageHash: '0x' + Math.random().toString(16).substring(2, 34),
           },
         });
@@ -373,7 +370,7 @@ export default function TerminalPage() {
                 rel="noreferrer"
                 className="flex items-center gap-2 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors"
               >
-                <span>View Transaction on AlgoExplorer</span>
+                <span>View Transaction on Lora Algonode Explorer</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>

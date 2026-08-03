@@ -215,6 +215,20 @@ This document tracks all code edits, structural changes, and schema updates made
   * Overhauled UI styling to a premium Cyberpunk / DeFi Terminal aesthetic with deep slate 950 backgrounds, glowing cyan/purple radial spotlights, and glassmorphism.
   * Added **Demo / Sandbox Mode** toggle allowing instant testing of signal fusion visualizations without requiring testnet USDC funds.
   * Added Testnet Faucet quick helper drawer for obtaining free Testnet ALGO & USDC.
+* **Next Action Required:** Push changes to GitHub.
+
+---
+
+### [2026-08-03 21:18 IST] - Migrated Algorand Explorer Link to Lora (Algonode)
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `orchestrator/src/index.ts` (Updated onChainReceipt explorer URL to https://lora.algonode.cloud/testnet/tx/${paymentTxId})
+  * `frontend/src/app/page.tsx` (Updated receipt drawer link to Lora Algonode Explorer)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Replaced deprecated `AlgoExplorer` URLs with active **Lora (Algonode Testnet Explorer)** (`https://lora.algonode.cloud/testnet`).
+  * Updated orchestrator production instance on EC2.
 * **Next Action Required:** Commit and push to GitHub.
 
 ---
