@@ -9,6 +9,8 @@ export async function fetchQuantMeshSignal(
   userAddress: string,
   signTransactions: (txns: Uint8Array[]) => Promise<Uint8Array[]>
 ) {
+  const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
+
   // 1. Initial request to gateway (Triggers HTTP 402 Payment Challenge)
   const initialRes = await fetch(ROUTER_GATEWAY, {
     method: 'POST',
@@ -33,9 +35,7 @@ export async function fetchQuantMeshSignal(
     const priceUsdc = initialRes.headers.get('x-payment-price') || '0.007';
 
     // 3. Build Algorand Testnet ASA Transfer Txn ($0.007 USDC = 7000 base units)
-    const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
     const params = await algodClient.getTransactionParams().do();
-
     const amountInBaseUnits = Math.round(parseFloat(priceUsdc) * 1_000_000); // 6 decimals
 
     const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
@@ -54,10 +54,18 @@ export async function fetchQuantMeshSignal(
       throw new Error('Transaction signing was cancelled by user.');
     }
 
-    const stx = algosdk.decodeSignedTransaction(signedTxns[0]);
-    const paymentTxId = stx.txn.txID();
+    // 5. Broadcast signed transaction to Algorand Testnet node
+    let paymentTxId = '';
+    try {
+      const sendRes = await algodClient.sendRawTransaction(signedTxns).do();
+      paymentTxId = sendRes.txid;
+      console.log(`[x402] On-chain payment broadcasted to Algorand: ${paymentTxId}`);
+    } catch (broadcastErr: any) {
+      const stx = algosdk.decodeSignedTransaction(signedTxns[0]);
+      paymentTxId = stx.txn.txID();
+    }
 
-    // 5. Re-send request with proof of transaction header
+    // 6. Re-send request with proof of transaction header
     const paidRes = await fetch(ROUTER_GATEWAY, {
       method: 'POST',
       headers: {

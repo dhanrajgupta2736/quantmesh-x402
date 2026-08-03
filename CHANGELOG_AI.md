@@ -303,3 +303,15 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-03 21:46 IST] - Added Algorand Testnet On-Chain Transaction Broadcast
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `frontend/src/lib/x402Client.ts` (Added algodClient.sendRawTransaction to broadcast signed transactions directly to Algorand Testnet nodes)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Resolved `Transaction not found` error on block explorers by broadcasting the signed $0.007 USDC micropayment transaction directly to Algorand Testnet nodes (`https://testnet-api.algonode.cloud`) upon Lute Wallet signature.
+* **Next Action Required:** Push changes to GitHub.
+
+---
+
