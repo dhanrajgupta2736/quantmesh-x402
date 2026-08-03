@@ -76,3 +76,16 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-03 19:08 IST] - URL Sanitization & Robust Facilitator Fallback
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `orchestrator/src/index.ts` (Added URL sanitizer & dual array/object iterable fallback for getSupported)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Added `sanitizeUrl()` helper to clean markdown links or quote characters from `FACILITATOR_URL`.
+  * Updated `getSupported()` fallback to be dual-compatible as an object and iterable for `X402ResourceServer`.
+* **Next Action Required:** Push updated codebase to GitHub.
+
+---
+

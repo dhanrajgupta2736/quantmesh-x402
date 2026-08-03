@@ -9,32 +9,44 @@ dotenv.config();
 
 const app = new Hono();
 
+// Helper to sanitize URL inputs against markdown formatting or quotes
+const sanitizeUrl = (rawUrl?: string): string => {
+  if (!rawUrl) return 'https://facilitator.goplausible.xyz';
+  const match = rawUrl.match(/https?:\/\/[^\s\)\]\"\']+/);
+  return match ? match[0] : 'https://facilitator.goplausible.xyz';
+};
+
+const facilitatorUrl = sanitizeUrl(process.env.FACILITATOR_URL);
+
 // Create Facilitator Client Instance
 const facilitatorClient = new HTTPFacilitatorClient({
-  url: process.env.FACILITATOR_URL || 'https://facilitator.goplausible.xyz',
+  url: facilitatorUrl,
 });
+
+const defaultSupportedKinds = [
+  {
+    scheme: 'exact',
+    network: ALGORAND_TESTNET_CAIP2,
+    extra: { asset: process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID },
+  },
+];
 
 // Ensure facilitatorClient implements getSupported for X402ResourceServer compatibility
 if (typeof (facilitatorClient as any).getSupported !== 'function') {
   (facilitatorClient as any).getSupported = async function () {
     try {
-      const url = process.env.FACILITATOR_URL || 'https://facilitator.goplausible.xyz';
-      const res = await fetch(`${url}/supported`);
+      const res = await fetch(`${facilitatorUrl.replace(/\/$/, '')}/supported`);
       if (res.ok) {
         return await res.json();
       }
     } catch (err) {
-      console.warn('[x402 Router] Facilitator fetch warning, using fallback:', err);
+      console.warn('[x402 Router] Facilitator fetch warning, using default kinds:', err);
     }
-    return {
-      kinds: [
-        {
-          scheme: 'exact',
-          network: ALGORAND_TESTNET_CAIP2,
-          extra: { asset: process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID },
-        },
-      ],
+    const fallbackObj: any = { kinds: defaultSupportedKinds };
+    fallbackObj[Symbol.iterator] = function* () {
+      yield* defaultSupportedKinds;
     };
+    return fallbackObj;
   };
 }
 
