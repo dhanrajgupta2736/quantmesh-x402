@@ -84,8 +84,14 @@ app.post('/api/v1/orchestrate', async (c) => {
       }, 502);
     }
 
-    // STEP B: Payment Verification Header attached by x402 middleware
-    const paymentTxId = c.req.header('x-payment-txn-id') || 'MOCK_GROUP_TX_ID_TESTNET';
+    // STEP B: Require real x-payment-txn-id Header
+    const paymentTxId = c.req.header('x-payment-txn-id');
+    if (!paymentTxId) {
+      return c.json({
+        status: 'error',
+        message: 'Payment verification failed: x-payment-txn-id header is missing.',
+      }, 400);
+    }
 
     // STEP C: Return Aggregated Fused Signal matching schema.json
     return c.json({
@@ -103,7 +109,7 @@ app.post('/api/v1/orchestrate', async (c) => {
         technicalIndicator: resC.taSignal || 'RSI 58 - Bullish Crossover',
       },
       onChainReceipt: {
-        explorerUrl: `https://testnet.algoscan.app/tx/${paymentTxId}`,
+        explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
         boxStorageHash: 'a3f9b2c4e5f67890123456789abcdef0',
       },
     });

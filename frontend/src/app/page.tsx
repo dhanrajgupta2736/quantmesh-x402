@@ -21,7 +21,6 @@ export default function TerminalPage() {
   const [mounted, setMounted] = useState(false);
   const [tokenSymbol, setTokenSymbol] = useState('ALGO');
   const [loading, setLoading] = useState(false);
-  const [demoMode, setDemoMode] = useState(false);
   const [signalData, setSignalData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [showFaucetGuide, setShowFaucetGuide] = useState(false);
@@ -43,43 +42,13 @@ export default function TerminalPage() {
   };
 
   const handleExecuteStrategy = async () => {
+    if (!activeAddress || !luteWallet) {
+      setError('Please connect your Lute Wallet to execute strategy on Algorand Testnet.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
-
-    // DEMO / SANDBOX MODE (For testing without testnet USDC faucet)
-    if (demoMode) {
-      const demoTxId = 'DEMO_TX_' + Math.random().toString(36).substring(2, 10).toUpperCase();
-      setTimeout(() => {
-        setSignalData({
-          status: 'success',
-          groupTxId: demoTxId,
-          totalCostUsdc: '0.0070',
-          signalFusion: {
-            compositeScore: 84,
-            verdict: 'STRONG BUY',
-            confidencePct: 89,
-          },
-          breakdown: {
-            sentimentScore: 82,
-            onChainWhaleFlow: '+24% Net Inflow',
-            technicalIndicator: 'RSI 62 - Bullish Crossover',
-          },
-          onChainReceipt: {
-            explorerUrl: `https://testnet.algoscan.app/tx/${demoTxId}`,
-            boxStorageHash: '0x' + Math.random().toString(16).substring(2, 34),
-          },
-        });
-        setLoading(false);
-      }, 1200);
-      return;
-    }
-
-    // LIVE ON-CHAIN X402 MICROPAYMENT MODE
-    if (!activeAddress || !luteWallet) {
-      setError('Please connect your Lute Wallet or enable Demo Mode to test without funds.');
-      setLoading(false);
-      return;
-    }
 
     try {
       const data = await fetchQuantMeshSignal(tokenSymbol, activeAddress, async (txns: Uint8Array[]) => {
@@ -115,19 +84,8 @@ export default function TerminalPage() {
               className="flex items-center gap-1.5 text-amber-400 hover:text-amber-300 font-medium transition-colors"
             >
               <Coins className="w-3.5 h-3.5" />
-              Need Testnet Faucet?
+              Testnet Faucet Info
             </button>
-            <span className="text-slate-700">|</span>
-            <label className="flex items-center gap-2 cursor-pointer bg-slate-900/80 border border-slate-700 px-2.5 py-1 rounded-full text-xs font-semibold text-slate-300 hover:border-cyan-500/50 transition-all">
-              <input 
-                type="checkbox" 
-                checked={demoMode} 
-                onChange={(e) => setDemoMode(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-cyan-500 relative"></div>
-              <span>{demoMode ? '⚡ Demo Mode (No Wallet Needed)' : '🔗 Live x402 Mode'}</span>
-            </label>
           </div>
         </div>
       </div>
@@ -139,20 +97,19 @@ export default function TerminalPage() {
             <div className="space-y-1">
               <h4 className="font-bold text-amber-300 flex items-center gap-2 text-sm">
                 <Coins className="w-4 h-4 text-amber-400" />
-                How to get Free Algorand Testnet ALGO & USDC:
+                Algorand Testnet Setup:
               </h4>
               <p className="text-slate-300">
-                1. Copy your Lute Wallet address <br />
-                2. Get free Testnet ALGO from <a href="https://dispenser.testnet.aws.algodev.network/" target="_blank" rel="noreferrer" className="text-cyan-400 underline font-semibold">Algorand Dispenser</a> <br />
-                3. Opt-in to ASA ID <strong>10458941</strong> (USDC Testnet) in your wallet <br />
-                <em>Or simply toggle <strong>"Demo Mode"</strong> above to test the terminal instantly!</em>
+                1. Connect Lute Wallet <br />
+                2. Fund your address with Testnet ALGO & USDC (ASA ID <strong>10458941</strong>) <br />
+                3. Click <strong>Execute Strategy ($0.007 USDC)</strong> to submit real on-chain transaction!
               </p>
             </div>
             <button 
               onClick={() => setShowFaucetGuide(false)}
               className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3 py-1.5 rounded-lg font-semibold"
             >
-              Got it
+              Close
             </button>
           </div>
         </div>
@@ -267,7 +224,7 @@ export default function TerminalPage() {
                 {loading ? (
                   <>
                     <RefreshCw className="w-5 h-5 animate-spin text-slate-950" />
-                    <span>Verifying Workers...</span>
+                    <span>Signing Transaction...</span>
                   </>
                 ) : (
                   <>
@@ -284,9 +241,6 @@ export default function TerminalPage() {
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
                 <div className="space-y-1">
                   <div className="font-bold">{error}</div>
-                  <p className="text-slate-400">
-                    Need to test without wallet funds? Turn on <strong>"Demo Mode"</strong> in the top header.
-                  </p>
                 </div>
               </div>
             )}
@@ -375,7 +329,7 @@ export default function TerminalPage() {
                 rel="noreferrer"
                 className="flex items-center gap-2 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors"
               >
-                <span>View Transaction on AlgoScan Explorer</span>
+                <span>View Transaction on AlgoKit Lora Explorer</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>

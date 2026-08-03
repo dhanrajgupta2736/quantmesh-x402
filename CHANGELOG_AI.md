@@ -248,3 +248,18 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-03 21:25 IST] - Removed Mock Mode & Enforced Real On-Chain x402 Micropayments
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `orchestrator/src/index.ts` (Enforced requirement for x-payment-txn-id header and set AlgoKit Lora Explorer: https://lora.algokit.io/testnet/transaction/${paymentTxId})
+  * `frontend/src/app/page.tsx` (Removed demo mode toggle and mock fallback, requiring real Lute Wallet transaction signing)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Removed mock toggle and mock data generators from UI.
+  * Required real Algorand Testnet transaction ID (`txId`) signed via Lute Wallet.
+  * Updated orchestrator production instance on EC2 and verified AlgoKit Lora Explorer links (`https://lora.algokit.io/testnet/transaction/${txId}`).
+* **Next Action Required:** Push changes to GitHub.
+
+---
+
