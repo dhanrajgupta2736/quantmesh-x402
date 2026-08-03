@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QuantMeshOrchestrationContract",
+  "type": "object",
+  "properties": {
+    "request": {
+      "type": "object",
+      "properties": {
+        "tokenSymbol": { "type": "string", "example": "ALGO" },
+        "timeframe": { "type": "string", "example": "1h" }
+      },
+      "required": ["tokenSymbol", "timeframe"]
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "status": { "type": "string", "example": "success" },
+        "groupTxId": { "type": "string", "example": "ALGORAND_ATOMIC_GROUP_TX_ID_HERE" },
+        "totalCostUsdc": { "type": "string", "example": "0.0070" },
+        "signalFusion": {
+          "type": "object",
+          "properties": {
+            "compositeScore": { "type": "number", "example": 82 },
+            "verdict": { "type": "string", "example": "STRONG BUY" },
+            "confidencePct": { "type": "number", "example": 88 }
+          }
+        },
+        "breakdown": {
+          "type": "object",
+          "properties": {
+            "sentimentScore": { "type": "number", "example": 78 },
+            "onChainWhaleFlow": { "type": "string", "example": "+18% Net Inflow" },
+            "technicalIndicator": { "type": "string", "example": "RSI 58 - Bullish Crossover" }
+          }
+        },
+        "onChainReceipt": {
+          "type": "object",
+          "properties": {
+            "explorerUrl": { "type": "string", "example": "https://testnet.algoexplorer.io/tx/..." },
+            "boxStorageHash": { "type": "string", "example": "a3f9b2c4..." }
+          }
+        }
+      },
+      "required": ["status", "groupTxId", "signalFusion", "breakdown", "onChainReceipt"]
+    }
+  }
+}
