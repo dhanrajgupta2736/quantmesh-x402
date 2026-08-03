@@ -174,7 +174,19 @@ This document tracks all code edits, structural changes, and schema updates made
   * Installed wallet and UI dependencies (`@txnlab/use-wallet-react`, `algosdk`, `lucide-react`).
   * Implemented `fetchQuantMeshSignal` x402 client to handle HTTP 402 challenge, build $0.007 USDC ASA transfer transaction, request user signature via Lute Wallet, and submit proof.
   * Created Stitch dark-mode terminal dashboard UI matching the QuantMesh design system.
-* **Next Action Required:** Push frontend codebase to GitHub and run local dev server (`http://localhost:3000`).
+* **Next Action Required:** Push frontend codebase to GitHub.
+
+---
+
+### [2026-08-03 20:49 IST] - Installed @agoralabs-sh/avm-web-provider Dependency
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `frontend/package.json` (Added @agoralabs-sh/avm-web-provider dependency)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Resolved `Module not found: Can't resolve '@agoralabs-sh/avm-web-provider'` build error required by `@txnlab/use-wallet` for Lute Wallet integration.
+* **Next Action Required:** Push frontend codebase to GitHub.
 
 ---
 
