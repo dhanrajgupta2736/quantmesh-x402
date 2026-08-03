@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { serve } from '@hono/node-server';
 import { paymentMiddleware, x402ResourceServer } from '@x402-avm/hono';
 import { HTTPFacilitatorClient } from '@x402-avm/core/server';
@@ -9,6 +10,14 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = new Hono();
+
+// Enable CORS for all frontend browser requests
+app.use('*', cors({
+  origin: '*',
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization', 'x-payment-txn-id', 'x-payment-pay-to', 'x-payment-price'],
+  exposeHeaders: ['x-payment-pay-to', 'x-payment-price', 'x-payment-network', 'x-payment-scheme', 'x-payment-txn-id'],
+}));
 
 // Clean environment variables
 const rawFacilitatorUrl = process.env.FACILITATOR_URL || 'https://facilitator.goplausible.xyz';
