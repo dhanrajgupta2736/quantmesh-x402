@@ -54,15 +54,26 @@ export async function fetchQuantMeshSignal(
       throw new Error('Transaction signing was cancelled by user.');
     }
 
-    // 5. Broadcast signed transaction to Algorand Testnet node
+    // 5. Broadcast signed transaction to Algorand Testnet node & wait for confirmation
     let paymentTxId = '';
     try {
-      const sendRes = await algodClient.sendRawTransaction(signedTxns).do();
+      const sendRes = await algodClient.sendRawTransaction(signedTxns[0]).do();
       paymentTxId = sendRes.txid;
-      console.log(`[x402] On-chain payment broadcasted to Algorand: ${paymentTxId}`);
+      console.log(`[x402] On-chain payment broadcasted: ${paymentTxId}. Waiting for block confirmation...`);
+
+      // Wait up to 4 rounds for block confirmation on-chain (~3s)
+      await algosdk.waitForConfirmation(algodClient, paymentTxId, 4);
+      console.log(`[x402] Transaction confirmed on-chain!`);
     } catch (broadcastErr: any) {
-      const stx = algosdk.decodeSignedTransaction(signedTxns[0]);
-      paymentTxId = stx.txn.txID();
+      console.error('[x402] Algod Broadcast Error:', broadcastErr);
+      const rawMsg = broadcastErr?.response?.body?.message || broadcastErr?.message || '';
+      if (rawMsg.includes('overspending') || rawMsg.includes('balance')) {
+        throw new Error('Insufficient USDC Testnet balance in your Lute Wallet. Please request Testnet USDC ASA (10458941) from faucet.');
+      }
+      if (rawMsg.includes('asset') || rawMsg.includes('opt-in')) {
+        throw new Error('USDC Asset (10458941) not opted-in in your Lute Wallet. Please opt-in to ASA 10458941.');
+      }
+      throw new Error(`Algorand Node Error: ${rawMsg || 'Failed to submit transaction to blockchain.'}`);
     }
 
     // 6. Re-send request with proof of transaction header

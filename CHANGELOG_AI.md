@@ -315,3 +315,16 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-03 21:49 IST] - Added waitForConfirmation Block Confirmation & Explicit Algod Diagnostics
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `frontend/src/lib/x402Client.ts` (Added algosdk.waitForConfirmation to block until transaction is mined on-chain, and surfaced explicit Algod broadcast error diagnostics for balance/opt-in issues)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Enforced block confirmation (`waitForConfirmation(algodClient, txId, 4)`) so explorer URLs open confirmed on-chain transactions (~2.8s block round).
+  * Surfaced explicit user-friendly error messages if Lute Wallet lacks USDC Testnet ASA 10458941 opt-in or balance.
+* **Next Action Required:** Push changes to GitHub.
+
+---
+
