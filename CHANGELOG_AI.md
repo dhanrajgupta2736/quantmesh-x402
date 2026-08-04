@@ -328,3 +328,16 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-04 18:24 IST] - Added 1-Click Inline USDC ASA (10458941) Opt-In Helper
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `frontend/src/lib/x402Client.ts` (Implemented optInToUSDCAssest function to build & submit 0-amount self ASA opt-in transaction)
+  * `frontend/src/app/page.tsx` (Added inline "Opt-In to USDC ASA 10458941 Now" button directly in error banner)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Added 1-click ASA 10458941 Opt-In button in UI when account has not yet opted-in, building 0-amount transfer transaction to self, prompting Lute Wallet, and waiting for on-chain block confirmation.
+* **Next Action Required:** Push changes to GitHub.
+
+---
+

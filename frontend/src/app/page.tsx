@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@txnlab/use-wallet-react';
-import { fetchQuantMeshSignal } from '@/lib/x402Client';
+import { fetchQuantMeshSignal, optInToUSDCAssest } from '@/lib/x402Client';
 import { 
   Zap, 
   ShieldCheck, 
@@ -13,7 +13,8 @@ import {
   Layers, 
   Activity, 
   CheckCircle2, 
-  AlertCircle
+  AlertCircle,
+  PlusCircle
 } from 'lucide-react';
 
 export default function TerminalPage() {
@@ -21,8 +22,10 @@ export default function TerminalPage() {
   const [mounted, setMounted] = useState(false);
   const [tokenSymbol, setTokenSymbol] = useState('ALGO');
   const [loading, setLoading] = useState(false);
+  const [optInLoading, setOptInLoading] = useState(false);
   const [signalData, setSignalData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [showFaucetGuide, setShowFaucetGuide] = useState(false);
 
   useEffect(() => {
@@ -41,6 +44,25 @@ export default function TerminalPage() {
     }
   };
 
+  const handleOptInUSDC = async () => {
+    if (!activeAddress || !luteWallet) return;
+    setOptInLoading(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    try {
+      const txId = await optInToUSDCAssest(activeAddress, async (txns: Uint8Array[]) => {
+        const signed = await signTransactions(txns);
+        return signed.filter((t): t is Uint8Array => t !== null);
+      });
+      setSuccessMsg(`Opt-In Successful! Confirmed Tx: ${txId.slice(0, 8)}... Now you can execute strategy.`);
+    } catch (err: any) {
+      setError(err.message || 'Opt-In failed.');
+    } finally {
+      setOptInLoading(false);
+    }
+  };
+
   const handleExecuteStrategy = async () => {
     if (!activeAddress || !luteWallet) {
       setError('Please connect your Lute Wallet to execute strategy on Algorand Testnet.');
@@ -49,6 +71,7 @@ export default function TerminalPage() {
 
     setLoading(true);
     setError(null);
+    setSuccessMsg(null);
 
     try {
       const data = await fetchQuantMeshSignal(tokenSymbol, activeAddress, async (txns: Uint8Array[]) => {
@@ -107,7 +130,8 @@ export default function TerminalPage() {
               <p className="text-slate-300">
                 1. Connect Lute Wallet <br />
                 2. Fund your address with Testnet ALGO & USDC (ASA ID <strong>10458941</strong>) <br />
-                3. Click <strong>Execute Strategy ($0.007 USDC)</strong> to submit real on-chain transaction!
+                3. Click <strong>Opt-In to USDC ASA 10458941</strong> below <br />
+                4. Click <strong>Execute Strategy ($0.007 USDC)</strong> to submit real on-chain transaction!
               </p>
             </div>
             <button 
@@ -240,13 +264,42 @@ export default function TerminalPage() {
               </button>
             </div>
 
+            {/* Success Message Display */}
+            {successMsg && (
+              <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-xl flex items-center gap-3 animate-in fade-in duration-200">
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                <div className="font-bold">{successMsg}</div>
+              </div>
+            )}
+
             {/* Error Display */}
             {error && (
-              <div className="p-4 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl flex items-start gap-3 animate-in fade-in duration-200">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
-                <div className="space-y-1 font-bold">
-                  {error}
+              <div className="p-4 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl flex flex-col gap-3 animate-in fade-in duration-200">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
+                  <div className="font-bold">{error}</div>
                 </div>
+
+                {/* Inline Opt-In Button when ASA 10458941 is not opted-in */}
+                {error.includes('opted-in') && (
+                  <button
+                    onClick={handleOptInUSDC}
+                    disabled={optInLoading}
+                    className="self-start flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-4 py-2 rounded-xl transition-all text-xs shadow-md shadow-amber-500/20 disabled:opacity-50 cursor-pointer"
+                  >
+                    {optInLoading ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        <span>Opting-in via Lute Wallet...</span>
+                      </>
+                    ) : (
+                      <>
+                        <PlusCircle className="w-3.5 h-3.5" />
+                        <span>Opt-In to USDC ASA 10458941 Now</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             )}
 

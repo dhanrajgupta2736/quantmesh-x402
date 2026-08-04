@@ -4,6 +4,33 @@ const ROUTER_GATEWAY = 'https://api.dhanrajgupta.xyz/api/v1/orchestrate';
 const TESTNET_USDC_ASA = 10458941;
 const DEFAULT_PAY_TO = 'HXT5Z6DKIVYOIZB7WHVOGEQVYNGXVMQRMS43WXSGIDYORLE3ZUN63Q36MI';
 
+export async function optInToUSDCAssest(
+  userAddress: string,
+  signTransactions: (txns: Uint8Array[]) => Promise<Uint8Array[]>
+) {
+  const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
+  const params = await algodClient.getTransactionParams().do();
+
+  const optInTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+    from: userAddress,
+    sender: userAddress,
+    to: userAddress,
+    receiver: userAddress,
+    assetIndex: TESTNET_USDC_ASA,
+    amount: 0,
+    suggestedParams: params,
+  } as any);
+
+  const signedTxns = await signTransactions([optInTxn.toByte()]);
+  if (!signedTxns || signedTxns.length === 0) {
+    throw new Error('Opt-in transaction cancelled by user.');
+  }
+
+  const sendRes = await algodClient.sendRawTransaction(signedTxns[0]).do();
+  await algosdk.waitForConfirmation(algodClient, sendRes.txid, 4);
+  return sendRes.txid;
+}
+
 export async function fetchQuantMeshSignal(
   tokenSymbol: string,
   userAddress: string,
@@ -71,7 +98,7 @@ export async function fetchQuantMeshSignal(
         throw new Error('Insufficient USDC Testnet balance in your Lute Wallet. Please request Testnet USDC ASA (10458941) from faucet.');
       }
       if (rawMsg.includes('asset') || rawMsg.includes('opt-in')) {
-        throw new Error('USDC Asset (10458941) not opted-in in your Lute Wallet. Please opt-in to ASA 10458941.');
+        throw new Error('USDC Asset (10458941) not opted-in in your Lute Wallet. Please click the Opt-In button below to enable USDC.');
       }
       throw new Error(`Algorand Node Error: ${rawMsg || 'Failed to submit transaction to blockchain.'}`);
     }
