@@ -1,0 +1,69 @@
+#pragma version 8
+txn ApplicationID
+int 0
+==
+bnz main_l8
+txn OnCompletion
+int NoOp
+==
+bnz main_l7
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l6
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l5
+err
+main_l5:
+txn Sender
+byte "creator"
+app_global_get
+==
+return
+main_l6:
+txn Sender
+byte "creator"
+app_global_get
+==
+return
+main_l7:
+txna ApplicationArgs 1
+byte "_"
+concat
+txna ApplicationArgs 3
+concat
+store 0
+load 0
+int 64
+box_create
+pop
+load 0
+int 0
+txna ApplicationArgs 2
+btoi
+itob
+global LatestTimestamp
+itob
+concat
+txna ApplicationArgs 3
+concat
+box_write
+byte "total_attestations"
+byte "total_attestations"
+app_global_get
+int 1
++
+app_global_put
+int 1
+return
+main_l8:
+byte "creator"
+txn Sender
+app_global_put
+byte "total_attestations"
+int 0
+app_global_put
+int 1
+return

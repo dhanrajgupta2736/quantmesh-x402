@@ -431,3 +431,27 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-04 20:18 IST] - Built On-Chain TA Worker Agent, PyTeal Box Storage Contract & Architecture Page
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified / Created:**
+  * `agent-onchain-ta/main.py` [NEW] (Real Python FastAPI microservice using CoinGecko Pro/Demo API & RSI/SMA/EMA/MACD indicators for live whale flow and technical analysis)
+  * `agent-onchain-ta/requirements.txt` [NEW] (Python dependencies: fastapi, uvicorn, httpx, pydantic, python-dotenv)
+  * `agent-onchain-ta/.env.example` [NEW] (CoinGecko & CoinMarketCap API key placeholders)
+  * `contracts/signal_attestation.py` [NEW] (ARC-4 PyTeal smart contract for on-chain signal attestation in Algorand Box Storage)
+  * `contracts/approval.teal` [NEW] (Compiled TEAL approval program version 8 for Box Storage)
+  * `contracts/clear.teal` [NEW] (Compiled TEAL clear program version 8)
+  * `orchestrator/src/attestation.ts` [NEW] (SHA-256 cryptographic box storage hash generator)
+  * `orchestrator/src/index.ts` (Integrated `computeBoxStorageHash` into STEP D response)
+  * `frontend/src/app/architecture/page.tsx` [NEW] (Interactive System Architecture Diagram & Component Flow Page)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * **On-Chain TA Agent:** Replaced mock n8n fallbacks with live Python FastAPI microservice (`agent-onchain-ta`) running on port 5002 on EC2. Integrates CoinGecko API for real market data, 24h/7d price changes, volume-to-market-cap whale flow heuristics, and calculated RSI, SMA, EMA, MACD indicators from 1-day OHLC candles.
+  * **Smart Contract:** Developed ARC-4 PyTeal smart contract (`signal_attestation.py`) that writes signal score, timestamp, and transaction ID to Algorand Box Storage (`token_txId`). Compiled to TEAL v8 (`approval.teal` & `clear.teal`).
+  * **Cryptographic Attestation:** Implemented `computeBoxStorageHash` in `orchestrator/src/attestation.ts` returning deterministic SHA-256 digests (`sha256(token:score:verdict:txId:timestamp)`) in API response receipts.
+  * **Architecture Page:** Built interactive `/architecture` route in Next.js showcasing the 4-step execution flow, Hono orchestrator pre-execution logic, sub-agent network breakdown, and Algorand Box Storage specifications.
+  * **EC2 Deployment:** Deployed `onchain-ta-worker` process via PM2 on port 5002 with live CoinGecko API keys, updated `orchestrator/.env` (`WORKER_B_URL` & `WORKER_C_URL`), and verified 4-worker health (`status: healthy`, latency 19ms-33ms).
+* **Next Action Required:** Push changes to GitHub.
+
+---
+

@@ -6,6 +6,7 @@ import { HTTPFacilitatorClient } from '@x402-avm/core/server';
 import { ExactAvmScheme } from '@x402-avm/avm/exact/server';
 import { ALGORAND_TESTNET_CAIP2, USDC_TESTNET_ASA_ID } from '@x402-avm/avm';
 import dotenv from 'dotenv';
+import { computeBoxStorageHash } from './attestation.js';
 
 dotenv.config();
 
@@ -217,7 +218,14 @@ app.post('/api/v1/orchestrate', async (c) => {
       }, 402);
     }
 
-    // STEP D: Return Aggregated Fused Signal matching schema.json
+    // STEP D: Compute Cryptographic Box Storage Hash & Return Fused Signal matching schema.json
+    const { boxStorageHash } = computeBoxStorageHash(
+      tokenSymbol,
+      resD.compositeScore,
+      resD.verdict,
+      paymentTxId
+    );
+
     return c.json({
       status: 'success',
       groupTxId: paymentTxId,
@@ -234,7 +242,7 @@ app.post('/api/v1/orchestrate', async (c) => {
       },
       onChainReceipt: {
         explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
-        boxStorageHash: 'a3f9b2c4e5f67890123456789abcdef0',
+        boxStorageHash,
       },
     });
   } catch (error: any) {
