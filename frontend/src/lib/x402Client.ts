@@ -60,50 +60,64 @@ export async function fetchQuantMeshSignal(
     }
 
     const priceUsdc = initialRes.headers.get('x-payment-price') || '0.007';
-
-    // 3. Build Algorand Testnet ASA Transfer Txn ($0.007 USDC = 7000 base units)
     const params = await algodClient.getTransactionParams().do();
-    const amountInBaseUnits = Math.round(parseFloat(priceUsdc) * 1_000_000); // 6 decimals
+    const amountInBaseUnits = Math.round(parseFloat(priceUsdc) * 1_000_000); // 7000 base units
 
-    const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-      from: userAddress,
-      sender: userAddress,
-      to: payTo,
-      receiver: payTo,
-      assetIndex: TESTNET_USDC_ASA,
-      amount: amountInBaseUnits,
-      suggestedParams: params,
-    } as any);
-
-    // 4. Prompt user to sign via Lute Wallet
-    const signedTxns = await signTransactions([txn.toByte()]);
-    if (!signedTxns || signedTxns.length === 0) {
-      throw new Error('Transaction signing was cancelled by user.');
-    }
-
-    // 5. Broadcast signed transaction to Algorand Testnet node & wait for confirmation
+    // 3. Try USDC ASA Transfer Txn first, fallback to ALGO Micropayment if balance/opt-in error occurs
     let paymentTxId = '';
+
     try {
+      // Build USDC ASA Transfer Txn
+      const usdcTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+        from: userAddress,
+        sender: userAddress,
+        to: payTo,
+        receiver: payTo,
+        assetIndex: TESTNET_USDC_ASA,
+        amount: amountInBaseUnits,
+        suggestedParams: params,
+      } as any);
+
+      const signedTxns = await signTransactions([usdcTxn.toByte()]);
+      if (!signedTxns || signedTxns.length === 0) {
+        throw new Error('Transaction signing was cancelled by user.');
+      }
+
       const sendRes = await algodClient.sendRawTransaction(signedTxns[0]).do();
       paymentTxId = sendRes.txid;
-      console.log(`[x402] On-chain payment broadcasted: ${paymentTxId}. Waiting for block confirmation...`);
-
-      // Wait up to 4 rounds for block confirmation on-chain (~3s)
+      console.log(`[x402] USDC ASA micropayment broadcasted: ${paymentTxId}. Waiting for block confirmation...`);
       await algosdk.waitForConfirmation(algodClient, paymentTxId, 4);
-      console.log(`[x402] Transaction confirmed on-chain!`);
-    } catch (broadcastErr: any) {
-      console.error('[x402] Algod Broadcast Error:', broadcastErr);
-      const rawMsg = broadcastErr?.response?.body?.message || broadcastErr?.message || '';
-      if (rawMsg.includes('overspending') || rawMsg.includes('balance')) {
-        throw new Error('Insufficient USDC Testnet balance in your Lute Wallet. Please request Testnet USDC ASA (10458941) from faucet.');
+    } catch (usdcErr: any) {
+      const rawMsg = usdcErr?.response?.body?.message || usdcErr?.message || '';
+      
+      // If USDC transfer failed due to 0 USDC balance or missing ASA opt-in, switch seamlessly to ALGO Payment
+      if (rawMsg.includes('underflow') || rawMsg.includes('missing') || rawMsg.includes('asset') || rawMsg.includes('USDC')) {
+        console.log('[x402] Switching to Native ALGO Micropayment Txn (0.007 ALGO)...');
+
+        const algoTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+          from: userAddress,
+          sender: userAddress,
+          to: payTo,
+          receiver: payTo,
+          amount: amountInBaseUnits, // 7000 microAlgos = 0.007 ALGO
+          suggestedParams: params,
+        } as any);
+
+        const signedAlgoTxns = await signTransactions([algoTxn.toByte()]);
+        if (!signedAlgoTxns || signedAlgoTxns.length === 0) {
+          throw new Error('Transaction signing was cancelled by user.');
+        }
+
+        const sendAlgoRes = await algodClient.sendRawTransaction(signedAlgoTxns[0]).do();
+        paymentTxId = sendAlgoRes.txid;
+        console.log(`[x402] Native ALGO micropayment broadcasted: ${paymentTxId}. Waiting for block confirmation...`);
+        await algosdk.waitForConfirmation(algodClient, paymentTxId, 4);
+      } else {
+        throw usdcErr;
       }
-      if (rawMsg.includes('asset') || rawMsg.includes('opt-in')) {
-        throw new Error('USDC Asset (10458941) not opted-in in your Lute Wallet. Please click the Opt-In button below to enable USDC.');
-      }
-      throw new Error(`Algorand Node Error: ${rawMsg || 'Failed to submit transaction to blockchain.'}`);
     }
 
-    // 6. Re-send request with proof of transaction header
+    // 4. Re-send request to orchestrator with proof of transaction header
     const paidRes = await fetch(ROUTER_GATEWAY, {
       method: 'POST',
       headers: {
