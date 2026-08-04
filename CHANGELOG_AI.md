@@ -395,3 +395,26 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-04 19:40 IST] - Hackathon-Grade Project Improvements (12-Item Sprint)
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified / Created:**
+  * `README.md` (Complete overhaul: architecture Mermaid diagram, badges, tech stack table, API docs, setup instructions, x402 protocol flow, deployment info)
+  * `orchestrator/src/index.ts` (Added GET /api/v1/health endpoint with worker ping + latency, in-memory rate limiter at 10 req/min/IP, uptime tracking)
+  * `frontend/src/app/globals.css` (Inter + JetBrains Mono fonts, 7 new animations: fade-up, slide-in, shimmer, score-fill, float; step-card borders, custom scrollbar)
+  * `frontend/src/app/page.tsx` (Complete UI rewrite: animated SVG score gauge, How It Works 4-step section, live Worker health polling with status dots + latency, localStorage-persisted transaction history table, tech stack grid, footer with GitHub/API links)
+  * `orchestrator/.env.example` [NEW] (Template with placeholder values and comments)
+  * `agent-sentiment-fusion/.env.example` [NEW] (HuggingFace token placeholder template)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * **README:** Upgraded from 28-line skeleton to full hackathon-grade documentation with Mermaid architecture diagram, badges, API documentation with sample request/response, local dev setup guide, tech stack justifications, and deployment table.
+  * **Health Endpoint:** New `GET /api/v1/health` on orchestrator pings all 4 workers in parallel and returns status (online/degraded/offline) with latency measurements and server uptime.
+  * **Rate Limiting:** In-memory rate limiter (10 requests/minute/IP) with HTTP 429 response on the orchestrate endpoint.
+  * **UI Overhaul:** Animated SVG radial score gauge with color transitions (red→yellow→cyan→green based on score), collapsible "How It Works" 4-step flow, live worker health dots with latency display (polled every 30s), scrollable transaction history persisted to localStorage (up to 50 entries), architecture tech stack grid, and full footer with GitHub/API links.
+  * **CSS:** Added Inter & JetBrains Mono Google Fonts, 7 custom CSS animations, glassmorphism polish, custom scrollbar styling, and step card gradient border effect.
+  * **.env.example:** Created environment variable templates for both orchestrator and sentiment-fusion agent for developer onboarding.
+  * **EC2:** Deployed updated orchestrator with health endpoint and rate limiting to production.
+* **Next Action Required:** Push changes to GitHub.
+
+---
+

@@ -10,6 +10,24 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = new Hono();
+const startTime = Date.now();
+
+// Simple in-memory rate limiter (10 requests per minute per IP)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 10;
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count++;
+  return true;
+}
 
 // Enable CORS for all frontend browser requests
 app.use('*', cors({
@@ -58,8 +76,73 @@ const routesConfig = {
 // 4. Apply x402 Payment Middleware (Set syncFacilitatorOnStart = false)
 app.use(paymentMiddleware(routesConfig as any, resourceServer, undefined, undefined, false));
 
-// 5. Main Orchestrator Endpoint Execution
+// ─── Health Check Endpoint ───────────────────────────────────────────
+app.get('/api/v1/health', async (c) => {
+  const uptimeMs = Date.now() - startTime;
+  const hours = Math.floor(uptimeMs / 3_600_000);
+  const minutes = Math.floor((uptimeMs % 3_600_000) / 60_000);
+
+  const workerUrls = {
+    sentiment: process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment',
+    onchain: process.env.WORKER_B_URL || 'https://dhanrajgupta.app.n8n.cloud/webhook/agent-onchain',
+    ta: process.env.WORKER_C_URL || 'https://dhanrajgupta.app.n8n.cloud/webhook/agent-ta',
+    fusion: process.env.WORKER_D_URL || 'http://localhost:5001/agent/fusion',
+  };
+
+  const pingWorker = async (name: string, url: string) => {
+    const start = Date.now();
+    try {
+      // Use a lightweight GET/HEAD to check if the worker is alive
+      const healthUrl = url.replace(/\/agent\/.*$/, '/health');
+      const res = await fetch(healthUrl, { signal: AbortSignal.timeout(5000) });
+      return {
+        status: res.ok ? 'online' as const : 'degraded' as const,
+        latencyMs: Date.now() - start,
+      };
+    } catch {
+      // Try the actual worker URL as fallback
+      try {
+        const res = await fetch(`${url}?token=ALGO`, { signal: AbortSignal.timeout(5000) });
+        return {
+          status: res.ok ? 'online' as const : 'degraded' as const,
+          latencyMs: Date.now() - start,
+        };
+      } catch {
+        return {
+          status: 'offline' as const,
+          latencyMs: Date.now() - start,
+        };
+      }
+    }
+  };
+
+  const [sentiment, onchain, ta, fusion] = await Promise.all([
+    pingWorker('sentiment', workerUrls.sentiment),
+    pingWorker('onchain', workerUrls.onchain),
+    pingWorker('ta', workerUrls.ta),
+    pingWorker('fusion', workerUrls.fusion),
+  ]);
+
+  const allOnline = [sentiment, onchain, ta, fusion].every(w => w.status === 'online');
+
+  return c.json({
+    status: allOnline ? 'healthy' : 'degraded',
+    uptime: `${hours}h ${minutes}m`,
+    workers: { sentiment, onchain, ta, fusion },
+  });
+});
+
+// ─── Main Orchestrator Endpoint Execution ────────────────────────────
 app.post('/api/v1/orchestrate', async (c) => {
+  // Rate limit check
+  const clientIp = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
+  if (!checkRateLimit(clientIp)) {
+    return c.json({
+      status: 'error',
+      message: 'Rate limit exceeded. Maximum 10 requests per minute.',
+    }, 429);
+  }
+
   try {
     const body = await c.req.json().catch(() => ({}));
     const tokenSymbol = body?.tokenSymbol || 'ALGO';
