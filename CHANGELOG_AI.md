@@ -369,3 +369,15 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-04 19:17 IST] - Pre-Sign On-Chain Account Asset Inspection
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `frontend/src/lib/x402Client.ts` (Inspect user account information via algodClient before prompting Lute Wallet signature to construct valid transaction directly)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Fixed hanging `Signing Transaction...` issue caused by attempting to sign un-opted ASA transactions by querying account assets on-chain beforehand and constructing Native ALGO Micropayment Txn (7000 microAlgos) directly if USDC ASA balance is absent.
+* **Next Action Required:** Push changes to GitHub.
+
+---
+

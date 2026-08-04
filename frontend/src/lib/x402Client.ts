@@ -63,12 +63,26 @@ export async function fetchQuantMeshSignal(
     const params = await algodClient.getTransactionParams().do();
     const amountInBaseUnits = Math.round(parseFloat(priceUsdc) * 1_000_000); // 7000 base units
 
-    // 3. Try USDC ASA Transfer Txn first, fallback to ALGO Micropayment if balance/opt-in error occurs
-    let paymentTxId = '';
+    // 3. Inspect user's account info on-chain BEFORE signing to pick USDC ASA vs Native ALGO payment
+    let hasUsdcOptIn = false;
+    let usdcBalance = 0;
 
     try {
-      // Build USDC ASA Transfer Txn
-      const usdcTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+      const accountInfo = await algodClient.accountInformation(userAddress).do();
+      const usdcAsset = accountInfo.assets?.find((a: any) => a['asset-id'] === TESTNET_USDC_ASA);
+      if (usdcAsset) {
+        hasUsdcOptIn = true;
+        usdcBalance = Number(usdcAsset.amount || 0);
+      }
+    } catch {
+      console.warn('[x402] Could not fetch account info, defaulting to ALGO micropayment');
+    }
+
+    let txnToSign: algosdk.Transaction;
+
+    if (hasUsdcOptIn && usdcBalance >= amountInBaseUnits) {
+      console.log(`[x402] User has ${usdcBalance} USDC. Creating USDC ASA Transfer Txn...`);
+      txnToSign = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         from: userAddress,
         sender: userAddress,
         to: payTo,
@@ -77,47 +91,38 @@ export async function fetchQuantMeshSignal(
         amount: amountInBaseUnits,
         suggestedParams: params,
       } as any);
-
-      const signedTxns = await signTransactions([usdcTxn.toByte()]);
-      if (!signedTxns || signedTxns.length === 0) {
-        throw new Error('Transaction signing was cancelled by user.');
-      }
-
-      const sendRes = await algodClient.sendRawTransaction(signedTxns[0]).do();
-      paymentTxId = sendRes.txid;
-      console.log(`[x402] USDC ASA micropayment broadcasted: ${paymentTxId}. Waiting for block confirmation...`);
-      await algosdk.waitForConfirmation(algodClient, paymentTxId, 4);
-    } catch (usdcErr: any) {
-      const rawMsg = usdcErr?.response?.body?.message || usdcErr?.message || '';
-      
-      // If USDC transfer failed due to 0 USDC balance or missing ASA opt-in, switch seamlessly to ALGO Payment
-      if (rawMsg.includes('underflow') || rawMsg.includes('missing') || rawMsg.includes('asset') || rawMsg.includes('USDC')) {
-        console.log('[x402] Switching to Native ALGO Micropayment Txn (0.007 ALGO)...');
-
-        const algoTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-          from: userAddress,
-          sender: userAddress,
-          to: payTo,
-          receiver: payTo,
-          amount: amountInBaseUnits, // 7000 microAlgos = 0.007 ALGO
-          suggestedParams: params,
-        } as any);
-
-        const signedAlgoTxns = await signTransactions([algoTxn.toByte()]);
-        if (!signedAlgoTxns || signedAlgoTxns.length === 0) {
-          throw new Error('Transaction signing was cancelled by user.');
-        }
-
-        const sendAlgoRes = await algodClient.sendRawTransaction(signedAlgoTxns[0]).do();
-        paymentTxId = sendAlgoRes.txid;
-        console.log(`[x402] Native ALGO micropayment broadcasted: ${paymentTxId}. Waiting for block confirmation...`);
-        await algosdk.waitForConfirmation(algodClient, paymentTxId, 4);
-      } else {
-        throw usdcErr;
-      }
+    } else {
+      console.log(`[x402] Creating Native ALGO Micropayment Txn (7000 microAlgos = 0.007 ALGO)...`);
+      txnToSign = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        from: userAddress,
+        sender: userAddress,
+        to: payTo,
+        receiver: payTo,
+        amount: amountInBaseUnits,
+        suggestedParams: params,
+      } as any);
     }
 
-    // 4. Re-send request to orchestrator with proof of transaction header
+    // 4. Prompt user to sign via Lute Wallet
+    const signedTxns = await signTransactions([txnToSign.toByte()]);
+    if (!signedTxns || signedTxns.length === 0) {
+      throw new Error('Transaction signing was cancelled by user.');
+    }
+
+    // 5. Broadcast signed transaction to Algorand Testnet node
+    let paymentTxId = '';
+    try {
+      const sendRes = await algodClient.sendRawTransaction(signedTxns[0]).do();
+      paymentTxId = sendRes.txid;
+      console.log(`[x402] On-chain payment broadcasted: ${paymentTxId}. Waiting for block confirmation...`);
+      await algosdk.waitForConfirmation(algodClient, paymentTxId, 4);
+    } catch (broadcastErr: any) {
+      console.error('[x402] Broadcast Error:', broadcastErr);
+      const rawMsg = broadcastErr?.response?.body?.message || broadcastErr?.message || '';
+      throw new Error(`Algorand Node Error: ${rawMsg || 'Failed to submit transaction to blockchain.'}`);
+    }
+
+    // 6. Re-send request to orchestrator with proof of transaction header
     const paidRes = await fetch(ROUTER_GATEWAY, {
       method: 'POST',
       headers: {
