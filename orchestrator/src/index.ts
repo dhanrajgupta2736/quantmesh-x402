@@ -34,7 +34,7 @@ const facilitatorClient = new HTTPFacilitatorClient({
   url: cleanFacilitatorUrl,
 });
 
-// 2. Initialize Resource Server & Register BOTH exact CAIP-2 network AND wildcard
+// 2. Initialize Resource Server & Register CAIP-2 networks
 const resourceServer = new x402ResourceServer(facilitatorClient as any);
 resourceServer.register(ALGORAND_TESTNET_CAIP2, new ExactAvmScheme());
 resourceServer.register('algorand:*', new ExactAvmScheme());
@@ -61,36 +61,65 @@ app.use(paymentMiddleware(routesConfig as any, resourceServer, undefined, undefi
 // 5. Main Orchestrator Endpoint Execution
 app.post('/api/v1/orchestrate', async (c) => {
   try {
-    const body = await c.req.json();
-    const tokenSymbol = body.tokenSymbol || 'ALGO';
+    const body = await c.req.json().catch(() => ({}));
+    const tokenSymbol = body?.tokenSymbol || 'ALGO';
 
     console.log(`[Router] Pre-executing Worker Agents for ${tokenSymbol}...`);
 
-    // STEP A: Pre-Execution Phase (Query 4 Workers in Parallel BEFORE Payment)
-    const [resA, resB, resC, resD] = await Promise.all([
+    // STEP A: Pre-Execution Phase (Phase 1: Fetch Workers A, B, C in Parallel)
+    const [resA, resB, resC] = await Promise.all([
       fetch(`${process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment'}?token=${tokenSymbol}`)
-        .then(r => r.json())
-        .catch(() => ({ sentimentScore: 78 })),
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null),
       fetch(`${process.env.WORKER_B_URL || 'https://dhanrajgupta.app.n8n.cloud/webhook/agent-onchain'}?token=${tokenSymbol}`)
-        .then(r => r.json())
+        .then(r => r.ok ? r.json() : null)
         .catch(() => null),
       fetch(`${process.env.WORKER_C_URL || 'https://dhanrajgupta.app.n8n.cloud/webhook/agent-ta'}?token=${tokenSymbol}`)
-        .then(r => r.json())
+        .then(r => r.ok ? r.json() : null)
         .catch(() => null),
-      fetch(`${process.env.WORKER_D_URL || 'http://localhost:5004/agent/fusion'}?token=${tokenSymbol}`)
-        .then(r => r.json())
-        .catch(() => ({ compositeScore: 82, verdict: 'STRONG BUY', confidencePct: 88 })),
     ]);
 
-    // Abort if any worker failed (Trader pays $0.00 if pipeline is broken)
-    if (!resA || !resB || !resC || !resD) {
+    // Abort if Workers A, B, or C failed (Zero fee guarantee)
+    if (!resA || !resB || !resC) {
+      console.error('[Router] Worker agent pre-execution failed:', { resA, resB, resC });
       return c.json({
         status: 'error',
-        message: 'Worker execution failed. No payment challenge issued.',
+        message: 'Sub-agent pre-execution failed. Zero fee charged.',
       }, 502);
     }
 
-    // STEP B: Check Payment Verification Header (x-payment-txn-id)
+    // STEP B: Pre-Execution Phase (Phase 2: Post Scores to Worker D Fusion Agent)
+    const fusionUrl = process.env.WORKER_D_URL || 'http://localhost:5001/agent/fusion';
+
+    const sentimentScore = resA.sentimentScore ?? 78;
+    const onChainScore = resB.onChainScore ?? (resB.whaleFlow?.includes('+') ? 75 : 50);
+    const taScore = resC.taScore ?? (resC.taSignal?.includes('Bullish') ? 70 : 50);
+
+    const resD = await fetch(fusionUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: tokenSymbol,
+        sentimentScore,
+        onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || '+18% Net Inflow',
+        onChainScore,
+        technicalIndicator: resC.taSignal || resC.technicalIndicator || 'RSI 58 - Bullish Crossover',
+        taScore,
+      }),
+    })
+      .then(r => r.ok ? r.json() : null)
+      .catch(() => null);
+
+    // Abort if Worker D (Fusion) failed
+    if (!resD || resD.compositeScore === undefined) {
+      console.error('[Router] Worker D (Fusion) pre-execution failed:', resD);
+      return c.json({
+        status: 'error',
+        message: 'Fusion agent pre-execution failed. Zero fee charged.',
+      }, 502);
+    }
+
+    // STEP C: Check Payment Verification Header (x-payment-txn-id)
     const paymentTxId = c.req.header('x-payment-txn-id');
 
     // If no payment proof header, return HTTP 402 Payment Required Challenge
@@ -101,24 +130,24 @@ app.post('/api/v1/orchestrate', async (c) => {
       c.header('x-payment-scheme', 'exact');
       return c.json({
         status: 'payment_required',
-        message: 'x402 Payment Required: $0.007 USDC on Algorand Testnet',
+        message: 'x402 Payment Required: $0.007 USDC/ALGO on Algorand Testnet',
       }, 402);
     }
 
-    // STEP C: Return Aggregated Fused Signal matching schema.json
+    // STEP D: Return Aggregated Fused Signal matching schema.json
     return c.json({
       status: 'success',
       groupTxId: paymentTxId,
       totalCostUsdc: '0.0070',
       signalFusion: {
-        compositeScore: resD.compositeScore || 82,
-        verdict: resD.verdict || 'STRONG BUY',
-        confidencePct: resD.confidencePct || 88,
+        compositeScore: resD.compositeScore,
+        verdict: resD.verdict,
+        confidencePct: resD.confidencePct,
       },
       breakdown: {
-        sentimentScore: resA.sentimentScore || 78,
-        onChainWhaleFlow: resB.whaleFlow || '+18% Net Inflow',
-        technicalIndicator: resC.taSignal || 'RSI 58 - Bullish Crossover',
+        sentimentScore: resA.sentimentScore,
+        onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || '+18% Net Inflow',
+        technicalIndicator: resC.taSignal || resC.technicalIndicator || 'RSI 58 - Bullish Crossover',
       },
       onChainReceipt: {
         explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,

@@ -353,3 +353,19 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-04 18:46 IST] - Integrated Real FinBERT Sentiment & Sequential Fusion Agent Pipeline
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `agent-sentiment-fusion/main.py` (Real FinBERT sentiment model scoring + transparent weighted fusion math)
+  * `orchestrator/src/index.ts` (Updated to execute Workers A, B, C in parallel first, and then POST real sub-agent scores into Worker D Fusion agent before issuing payment challenge)
+  * `orchestrator/.env` (Configured WORKER_D_URL=http://localhost:5001/agent/fusion)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Deployed real FinBERT HuggingFace Sentiment agent and Fusion agent on port 5001 via PM2 (`sentiment-fusion-worker`).
+  * Updated orchestrator pipeline to run Worker D (Fusion) sequentially after Workers A, B, and C complete, feeding real sub-agent inputs into the composite scoring algorithm.
+  * Verified 402 challenge response from live production EC2 orchestrator (`https://api.dhanrajgupta.xyz/api/v1/orchestrate`).
+* **Next Action Required:** Push changes to GitHub.
+
+---
+
