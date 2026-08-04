@@ -381,3 +381,17 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-04 19:23 IST] - Expanded Multi-Token Coverage (BTC, ETH, SOL, AVAX, PEPE, LINK, DOGE, SUI, ALGO)
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `agent-sentiment-fusion/main.py` (Added FinBERT headline seeds & model scoring for BTC, ETH, SOL, AVAX, PEPE, LINK, DOGE, SUI, USDC, ALGO)
+  * `frontend/src/app/page.tsx` (Expanded UI token selector to include 9 major crypto pairs)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Expanded token coverage across FinBERT sentiment modeling and UI selection for ALGO, BTC, ETH, SOL, AVAX, PEPE, LINK, DOGE, and SUI pairs.
+  * Updated production sentiment-fusion worker on EC2.
+* **Next Action Required:** Push changes to GitHub.
+
+---
+

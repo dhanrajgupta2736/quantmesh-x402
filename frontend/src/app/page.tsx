@@ -174,8 +174,14 @@ export default function TerminalPage() {
               className="bg-transparent text-xs font-bold px-3 py-2 text-cyan-300 focus:outline-none cursor-pointer"
             >
               <option value="ALGO" className="bg-slate-900 text-white">ALGO / USDC</option>
-              <option value="PEPE" className="bg-slate-900 text-white">PEPE / USDC</option>
+              <option value="BTC" className="bg-slate-900 text-white">BTC / USDC</option>
               <option value="ETH" className="bg-slate-900 text-white">ETH / USDC</option>
+              <option value="SOL" className="bg-slate-900 text-white">SOL / USDC</option>
+              <option value="AVAX" className="bg-slate-900 text-white">AVAX / USDC</option>
+              <option value="PEPE" className="bg-slate-900 text-white">PEPE / USDC</option>
+              <option value="LINK" className="bg-slate-900 text-white">LINK / USDC</option>
+              <option value="DOGE" className="bg-slate-900 text-white">DOGE / USDC</option>
+              <option value="SUI" className="bg-slate-900 text-white">SUI / USDC</option>
             </select>
           </div>
 
