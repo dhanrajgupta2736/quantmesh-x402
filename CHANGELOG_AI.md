@@ -418,3 +418,16 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-04 19:49 IST] - Fixed CSS Parsing Error (Google Fonts @import vs Tailwind v4)
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `frontend/src/app/globals.css` (Removed `@import url(...)` for Google Fonts that conflicted with Tailwind CSS v4's `@import "tailwindcss"` expansion)
+  * `frontend/src/app/layout.tsx` (Added Google Fonts via `<link>` tags in `<head>` with preconnect hints)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Fixed `Parsing CSS source code failed: @import rules must precede all rules aside from @charset and @layer statements` by moving Google Fonts loading from CSS `@import` to HTML `<link>` tags in Next.js layout.
+* **Next Action Required:** Push changes to GitHub.
+
+---
+
