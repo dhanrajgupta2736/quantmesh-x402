@@ -218,6 +218,11 @@ def add_formatted_text(paragraph, text):
 
 if __name__ == '__main__':
     markdown_to_docx(
+        'c:/Users/HP/Desktop/quantmesh-x402/docs/ONE_PAGER_HINGLISH.md',
+        'c:/Users/HP/Desktop/quantmesh-x402/docs/ONE_PAGER_HINGLISH.docx',
+        'QuantMesh x402 1-Page Summary'
+    )
+    markdown_to_docx(
         'c:/Users/HP/Desktop/quantmesh-x402/docs/PROJECT_EXPLAINER_HINGLISH.md',
         'c:/Users/HP/Desktop/quantmesh-x402/docs/PROJECT_EXPLAINER_HINGLISH.docx',
         'QuantMesh x402 Project Explainer'
