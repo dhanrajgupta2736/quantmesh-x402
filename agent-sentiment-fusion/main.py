@@ -8,7 +8,7 @@ from pydantic import BaseModel
 app = FastAPI(title="QuantMesh Sentiment + Fusion Agent")
 
 HF_API_TOKEN = os.environ.get("HF_API_TOKEN", "")
-HF_MODEL_URL = "https://api-inference.huggingface.co/models/ProsusAI/finbert"
+HF_MODEL_URL = "https://router.huggingface.co/hf-inference/models/ProsusAI/finbert"
 
 HEADLINE_SEEDS = {
     "ALGO": [

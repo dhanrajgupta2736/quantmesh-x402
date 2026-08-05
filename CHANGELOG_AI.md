@@ -465,7 +465,22 @@ This document tracks all code edits, structural changes, and schema updates made
   * **n8n Field Fix:** Merged fix from Claude's code review — n8n on-chain workflow sends the computed score as `whaleScore`, not `onChainScore`. Without this, the real n8n-computed value was silently dropped and replaced with a crude `+` character heuristic.
   * **EC2 Verification:** All 3 PM2 services running (`orchestrator`, `sentiment-fusion-worker`, `onchain-ta-worker`). Workers B/C returning live CoinGecko data: ALGO -1.01% 24h, BTC RSI 46.2 Death Cross. Health endpoint confirms all 4 workers online.
   * **Note:** `agent-onchain-ta/` is a **live running service** (port 5002 on EC2 with CoinGecko Pro key). Not deleted — it provides real RSI/SMA/EMA/MACD analysis from OHLC candles.
-* **Next Action Required:** Configure HuggingFace API token on EC2 for live FinBERT sentiment inference.
+* **Next Action Required:** Push changes to GitHub.
+
+---
+
+### [2026-08-05 17:18 IST] - Configured Live FinBERT Sentiment Inference (HF Router Endpoint Fix)
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `agent-sentiment-fusion/main.py` (Updated `HF_MODEL_URL` from decommissioned `api-inference.huggingface.co` to current `router.huggingface.co/hf-inference` endpoint)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * **Hugging Face Token Setup:** Configured `HF_API_TOKEN` environment variable in PM2 environment for `sentiment-fusion-worker` process on EC2.
+  * **Endpoint Migration:** Fixed DNS/connection error by updating FinBERT model endpoint to Hugging Face's modernized serverless router (`https://router.huggingface.co/hf-inference/models/ProsusAI/finbert`).
+  * **Live Verification:** Verified live NLP model execution for `ALGO` (score 66, `"source":"live"`), `BTC` (score 51, `"source":"live"`), and `PEPE` (score 79, `"source":"live"`).
+  * **System Status:** **100% of workers are now live with real data & models.**
+* **Next Action Required:** Final verification & submission readiness.
 
 ---
 
