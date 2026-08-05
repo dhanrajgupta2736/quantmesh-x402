@@ -115,7 +115,27 @@ Apan ne intelligence ko 4 alag microservices me baata hai:
 
 ---
 
-## 🚀 6. Hackathon Pitching Ke Time Kya Bolna Hai? (Quick Summary)
+## 🎨 6. n8n Cloud Workflow Expansion Ideas (Visual WOW Factor for Demo)
+
+n8n Cloud canvas presentation me bohot mast lagta hai! Extra technical depth dikhane ke liye n8n me ye naye sub-agents aur workflows add kiye ja sakte hain:
+
+### 1. 🌐 Macro Market Agent (`agent-macro`)
+* **Kya karega:** Global macroeconomic metrics (Fed interest rates, DXY Dollar Index, S&P 500 correlation) pull karke macro market bias score (0-100) calculate karega.
+
+### 2. 🐦 Social Buzz & Velocity Agent (`agent-social`)
+* **Kya karega:** n8n ke native Twitter/X ya Reddit nodes use karke selected token ki social mention volume spikes aur sentiment velocity (buzz) ko real-time track karega.
+
+### 3. 💧 Algorand Ecosystem Liquidity Agent (`agent-liquidity`)
+* **Kya karega:** Pact DEX ya Tinyman DEX ke liquidity pools se orderbook depth aur slippage query karke trade execution safety score nikalega.
+
+### 4. 📢 Automated Telegram / Discord Alert Bot
+* **Kya karega:** n8n workflow ke last me Telegram/Discord node add karke: jab bhi **"STRONG BUY"** signal (score > 75) generate hoga, n8n automatically ek stylish visual alert Telegram channel par post kar dega!
+
+> **Pitch Tip:** Presentation ke time side-by-side n8n canvas khol ke dikhao. Jab user website par "Execute Strategy" dabata hai, n8n canvas real-time me step-by-step green light up hota hai!
+
+---
+
+## 🚀 7. Hackathon Pitching Ke Time Kya Bolna Hai? (Quick Summary)
 
 1. **Tagline:** *"QuantMesh x402 is an AI DeFi signal router powered by Algorand's x402 micropayment protocol."*
 2. **Main Innovation:** *"Pay-per-signal at $0.007 with a 100% Pre-Execution Zero-Fee Guarantee — if any AI sub-agent is down, the user pays zero."*
@@ -125,3 +145,4 @@ Apan ne intelligence ko 4 alag microservices me baata hai:
 ---
 
 *QuantMesh x402 — Built for AlgoVerse 2026 Hackathon (PS0404).*
+

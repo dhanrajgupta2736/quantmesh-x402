@@ -508,3 +508,15 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-05 18:31 IST] - Added n8n Workflow Expansion Section to Hinglish Guide
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified:**
+  * `docs/PROJECT_EXPLAINER_HINGLISH.md` (Added Section 6 covering 4 n8n sub-agent expansion ideas: Macro Market Agent, Social Buzz Agent, Liquidity Agent, and Automated Telegram/Discord Alert Bot)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Expanded `docs/PROJECT_EXPLAINER_HINGLISH.md` with visual n8n workflow ideas for judge presentation impact.
+* **Next Action Required:** Push changes to GitHub.
+
+---
+
