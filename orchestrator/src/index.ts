@@ -176,7 +176,8 @@ app.post('/api/v1/orchestrate', async (c) => {
     const fusionUrl = process.env.WORKER_D_URL || 'http://localhost:5001/agent/fusion';
 
     const sentimentScore = resA.sentimentScore ?? 78;
-    const onChainScore = resB.onChainScore ?? (resB.whaleFlow?.includes('+') ? 75 : 50);
+    // n8n on-chain agent sends the field as "whaleScore" — accept both field names
+    const onChainScore = resB.whaleScore ?? resB.onChainScore ?? (resB.whaleFlow?.includes('+') ? 75 : 50);
     const taScore = resC.taScore ?? (resC.taSignal?.includes('Bullish') ? 70 : 50);
 
     const resD = await fetch(fusionUrl, {

@@ -455,3 +455,17 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-05 17:08 IST] - Merged n8n Field Name Fix & Verified Live Production Pipeline
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Claude Opus 4.6 (Thinking)
+* **Files Modified:**
+  * `orchestrator/src/index.ts` (Added `resB.whaleScore` field fallback for n8n on-chain worker compatibility — n8n sends `whaleScore` not `onChainScore`)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * **n8n Field Fix:** Merged fix from Claude's code review — n8n on-chain workflow sends the computed score as `whaleScore`, not `onChainScore`. Without this, the real n8n-computed value was silently dropped and replaced with a crude `+` character heuristic.
+  * **EC2 Verification:** All 3 PM2 services running (`orchestrator`, `sentiment-fusion-worker`, `onchain-ta-worker`). Workers B/C returning live CoinGecko data: ALGO -1.01% 24h, BTC RSI 46.2 Death Cross. Health endpoint confirms all 4 workers online.
+  * **Note:** `agent-onchain-ta/` is a **live running service** (port 5002 on EC2 with CoinGecko Pro key). Not deleted — it provides real RSI/SMA/EMA/MACD analysis from OHLC candles.
+* **Next Action Required:** Configure HuggingFace API token on EC2 for live FinBERT sentiment inference.
+
+---
+
