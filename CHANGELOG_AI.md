@@ -520,3 +520,19 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ---
 
+### [2026-08-05 18:33 IST] - Converted Documentation to DOCX and PDF Formats
+* **Platform / Tool:** Antigravity IDE
+* **Model Used:** Gemini 3.6 Flash (High)
+* **Files Modified / Created:**
+  * `docs/PROJECT_EXPLAINER_HINGLISH.docx` [NEW] (Microsoft Word version of Hinglish explainer)
+  * `docs/PROJECT_EXPLAINER_HINGLISH.pdf` [NEW] (PDF document version of Hinglish explainer)
+  * `docs/PITCH_DECK.docx` [NEW] (Microsoft Word version of Pitch Deck)
+  * `docs/PITCH_DECK.pdf` [NEW] (PDF document version of Pitch Deck)
+  * `convert_docs.py` [NEW] (Python script for converting markdown to formatted DOCX)
+  * `CHANGELOG_AI.md` (Updated audit log)
+* **Summary of Changes:**
+  * Converted `PROJECT_EXPLAINER_HINGLISH.md` and `PITCH_DECK.md` into both Microsoft Word (`.docx`) and PDF (`.pdf`) formats for non-technical team members who cannot view markdown.
+* **Next Action Required:** Push changes to GitHub.
+
+---
+
