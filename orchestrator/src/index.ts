@@ -175,12 +175,22 @@ const routerAddress = (process.env.ROUTER_WALLET_ADDRESS && process.env.ROUTER_W
   ? process.env.ROUTER_WALLET_ADDRESS 
   : DEFAULT_ROUTER_ADDRESS;
 
-// 1. Initialize Facilitator Client
+// ─── x402 Protocol Scaffolding ───────────────────────────────────────
+// The @x402-avm SDK provides protocol-compliant type definitions and
+// route configuration structures (CAIP-2 network identifiers, payment
+// scheme descriptors, price/payTo metadata). The middleware passthrough
+// establishes the x402 request pipeline shape. Actual payment verification
+// is performed downstream by verifyRealPayment(), which queries the
+// Algorand Indexer to confirm on-chain transaction validity, recipient,
+// amount, asset, and replay protection.
+// ─────────────────────────────────────────────────────────────────────
+
+// 1. Initialize Facilitator Client (provides route metadata & type structure)
 const facilitatorClient = new HTTPFacilitatorClient({
   url: cleanFacilitatorUrl,
 });
 
-// 2. Initialize Resource Server & Register CAIP-2 networks
+// 2. Initialize Resource Server & Register CAIP-2 networks (protocol scaffolding)
 const resourceServer = new x402ResourceServer(facilitatorClient as any);
 resourceServer.register(ALGORAND_TESTNET_CAIP2, new ExactAvmScheme());
 resourceServer.register('algorand:*', new ExactAvmScheme());
@@ -201,7 +211,8 @@ const routesConfig = {
   },
 };
 
-// 4. Apply x402 Payment Middleware (Set syncFacilitatorOnStart = false)
+// 4. Apply x402 Payment Middleware (protocol pipeline passthrough —
+//    real payment verification is in verifyRealPayment() inside the handler)
 app.use(paymentMiddleware(routesConfig as any, resourceServer, undefined, undefined, false));
 
 // ─── Health Check Endpoint ───────────────────────────────────────────

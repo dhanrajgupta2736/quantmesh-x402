@@ -118,7 +118,7 @@ quantmesh-x402/
 |-------|-----------|---------|
 | **Frontend** | Next.js 16 (App Router) | Reactive dashboard UI |
 | **Wallet** | Lute Wallet + `@txnlab/use-wallet-react` | Algorand Testnet signing |
-| **Orchestrator** | Hono.js + `@x402-avm/hono` | HTTP 402 payment middleware |
+| **Orchestrator** | Hono.js + algosdk Indexer | HTTP 402 challenge + on-chain payment verification |
 | **Payment** | x402 Protocol on Algorand AVM | $0.007 micropayment settlement |
 | **Worker A** | Python FastAPI + FinBERT (HuggingFace) | NLP sentiment analysis |
 | **Workers B/C** | n8n Cloud Webhooks | On-chain analytics & TA automation |
@@ -255,7 +255,8 @@ Client                          Orchestrator                    Algorand
   |  POST /orchestrate               |                              |
   |  x-payment-txn-id: TX_ID        |                              |
   |--------------------------------->|                              |
-  |                                  |  Verify payment              |
+  |                                  |  Verify payment on-chain     |
+  |                                  |  (Indexer txn lookup)        |
   |  200 OK — Fused Signal           |                              |
   |<---------------------------------|                              |
 ```
@@ -292,7 +293,7 @@ Client                          Orchestrator                    Algorand
 | Frontend & x402 Client | Next.js, Lute Wallet, algosdk |
 | Orchestrator & Deployment | Hono.js, AWS EC2, PM2, Nginx |
 | AI Workers | Python FastAPI, FinBERT, n8n Cloud |
-| Blockchain | Algorand Testnet, USDC ASA, x402-AVM |
+| Blockchain | Algorand Testnet, USDC ASA, algosdk v3 |
 
 ---
 

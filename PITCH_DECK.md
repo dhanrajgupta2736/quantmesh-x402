@@ -85,7 +85,7 @@
                                        ▼
                          ┌───────────────────────────┐
                          │ ⚡ Hono Orchestrator (EC2) │
-                         │   x402 Payment Middleware │
+                         │   HTTP 402 Payment Gate   │
                          │   Rate Limiter (10/min)   │
                          └─────────────┬─────────────┘
                                        │
@@ -166,8 +166,8 @@ To deploy QuantMesh x402 from Testnet to Algorand Mainnet:
 **Q: What happens if HuggingFace or CoinGecko rate limits the request?**
 > *Each worker incorporates graceful fallback algorithms. For example, if CoinGecko is briefly unaccessible, Worker B computes flow metrics using Algorand Indexer block data. If HF model is warming up, deterministic seed-hash scoring ensures high availability.*
 
-**Q: Why use Box Storage instead of transaction notes?**
-> *Box storage allows contract-state verification. Third-party smart contracts on Algorand can directly inspect signal attestations via `box_get` without needing off-chain indexers.*
+**Q: How is payment verified on-chain?**
+> *The orchestrator calls the Algorand Indexer (`lookupTransactionByID`) to verify each payment is confirmed on-chain, sent to the correct recipient, for the correct amount and asset, with replay-attack prevention. A SHA-256 attestation digest (`sha256(token:score:verdict:txId:timestamp)`) is generated per signal and returned in the receipt for independent auditability.*
 
 ---
 
