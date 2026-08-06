@@ -635,16 +635,35 @@ export default function TerminalPage() {
               </div>
             </div>
 
-            <div className="flex justify-end pt-1">
-              <a
-                href={signalData.onChainReceipt.explorerUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-2 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors"
-              >
-                <span>View on AlgoKit Lora Explorer</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2 border-t border-slate-800/80 mt-2">
+              <div className="text-[11px] text-slate-400">
+                Payout Status: <span className={signalData.workerPayoutStatus === 'success' ? 'text-emerald-400 font-semibold' : 'text-amber-400'}>{signalData.workerPayoutStatus || 'N/A'}</span>
+                {signalData.workerPayoutNote && <span className="text-slate-500 ml-2">({signalData.workerPayoutNote})</span>}
+              </div>
+              <div className="flex items-center gap-4">
+                <a
+                  href={signalData.onChainReceipt.explorerUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors"
+                  title="View client-to-router payment transaction"
+                >
+                  <span>Client Payment Txn</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+                {signalData.onChainReceipt.workerPayoutExplorerUrl && (
+                  <a
+                    href={signalData.onChainReceipt.workerPayoutExplorerUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+                    title="View 4-worker atomic group payout transaction"
+                  >
+                    <span>Worker Payout Group (4 Txns)</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         )}
