@@ -1,0 +1,17 @@
+{
+  "name": "@x402-avm/avm",
+  "version": "0.1.0",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./exact/server": {
+      "types": "./exact/server.d.ts",
+      "default": "./exact/server.js"
+    }
+  }
+}

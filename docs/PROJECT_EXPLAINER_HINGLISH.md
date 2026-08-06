@@ -44,8 +44,7 @@ Apan ne intelligence ko 4 alag microservices me baata hai:
 * Direct Lute Wallet se Algorand Testnet par $0.007 atomic settlement hoti hai.
 
 ### 3. ⛓️ Algorand Box Storage Signal Attestation
-* Har generated signal ka ek unique 256-bit **SHA-256 cryptographic hash** banta hai (`sha256(token:score:verdict:txId:timestamp)`).
-* Humne **PyTeal ARC-4 Smart Contract (`contracts/approval.teal`)** banaya hai jo is hash ko Algorand Testnet ke **Box Storage** me permanently write kar deta hai. Pura audit trail on-chain rehta hai!
+* Yeh cryptographic receipt hash Algorand Testnet ke **Payment Transaction Receipt** me indelibly anchor ho jata hai (`sha256(token:score:verdict:txId:timestamp)`). Pura audit trail on-chain rehta hai!
 
 ### 4. 📊 Dashboard Features
 * **Animated Radial SVG Score Gauge:** Dynamic colors (Red = Sell, Yellow = Neutral, Cyan/Green = Buy).

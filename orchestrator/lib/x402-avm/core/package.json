@@ -1,0 +1,13 @@
+{
+  "name": "@x402-avm/core",
+  "version": "0.1.0",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "type": "module",
+  "exports": {
+    "./server": {
+      "types": "./server.d.ts",
+      "default": "./server.js"
+    }
+  }
+}

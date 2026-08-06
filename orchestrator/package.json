@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",
+    "@x402-avm/avm": "file:./lib/x402-avm/avm",
+    "@x402-avm/core": "file:./lib/x402-avm/core",
+    "@x402-avm/hono": "file:./lib/x402-avm/hono",
     "algosdk": "^3.0.0",
     "dotenv": "^16.4.7",
     "hono": "^4.6.14"

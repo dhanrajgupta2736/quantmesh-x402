@@ -67,7 +67,7 @@
 > **Result:** The system immediately aborts with an **HTTP 502 Sub-Agent Pre-Execution Failed: Zero Fee Charged**. My Lute Wallet was NEVER prompted, and not a single micro-ALGO left my account. That is true consumer protection built on AVM."*
 
 ### 4️⃣ On-Chain Attestation & Architecture (2:15 - 2:45)
-> *"Every successful signal generates a 256-bit cryptographic SHA-256 digest linked to the payment transaction ID. Our PyTeal ARC-4 smart contract writes this hash to Algorand Box Storage. Anyone can click the AlgoKit Lora Explorer link in the receipt to verify the exact signal parameters immutably on-chain."*
+> *"Every successful signal generates a 256-bit cryptographic SHA-256 attestation digest (`sha256(token:score:verdict:txId:timestamp)`). This cryptographic receipt hash is indelibly anchored to the payment transaction ID on Algorand Testnet. Anyone can click the AlgoKit Lora Explorer link in the receipt to verify the exact signal parameters immutably on-chain."*
 
 ### 5️⃣ Mainnet Readiness & Closing (2:45 - 3:00)
 > *"QuantMesh x402 is 100% production ready today. All 4 microservices are live on AWS EC2 with sub-30ms latencies. Moving to Algorand Mainnet requires changing only two environment variables: setting network to `algorand:mainnet` and updating the USDC ASA ID to `315667040`. Thank you!"*
