@@ -651,15 +651,15 @@ export default function TerminalPage() {
                   <span>Client Payment Txn</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
-                {signalData.onChainReceipt.workerPayoutExplorerUrl && (
+                {(signalData.onChainReceipt.workerPayoutGroupExplorerUrl || signalData.onChainReceipt.workerPayoutExplorerUrl) && (
                   <a
-                    href={signalData.onChainReceipt.workerPayoutExplorerUrl}
+                    href={signalData.onChainReceipt.workerPayoutGroupExplorerUrl || signalData.onChainReceipt.workerPayoutExplorerUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
-                    title="View 4-worker atomic group payout transaction"
+                    title="View full 4-worker atomic group payout flow on AlgoKit Lora"
                   >
-                    <span>Worker Payout Group (4 Txns)</span>
+                    <span>Worker Payout Group (4 Txns Flow)</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 )}

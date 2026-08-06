@@ -53,11 +53,16 @@ export async function buildAtomicPaymentGroup(config: AtomicPayoutConfig) {
 export async function signAndSubmitAtomicGroup(
   txns: algosdk.Transaction[],
   routerSecretKey: Uint8Array
-): Promise<{ workerPayoutGroupTxId: string; confirmedRound: number }> {
+): Promise<{ workerPayoutGroupTxId: string; groupHash: string; confirmedRound: number }> {
   const signedTxns = txns.map(txn => txn.signTxn(routerSecretKey));
   const { txid } = await algodClient.sendRawTransaction(signedTxns).do();
   const confirmed = await algosdk.waitForConfirmation(algodClient, txid, 8);
   const confirmedRound =
     (confirmed as any)['confirmed-round'] ?? (confirmed as any).confirmedRound ?? 0;
-  return { workerPayoutGroupTxId: txid, confirmedRound };
+  
+  let groupHash = '';
+  if (txns[0] && txns[0].group) {
+    groupHash = Buffer.from(txns[0].group).toString('base64');
+  }
+  return { workerPayoutGroupTxId: txid, groupHash, confirmedRound };
 }

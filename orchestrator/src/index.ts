@@ -379,6 +379,8 @@ app.post('/api/v1/orchestrate', async (c) => {
 
     const allWorkerAddressesConfigured = Object.values(WORKER_PAYOUT_ADDRESSES).every(a => a.length === 58);
 
+    console.log(`[Router] Payout check: routerSecretKey=${!!routerSecretKey}, allWorkerAddrs=${allWorkerAddressesConfigured}, addrs=[${WORKER_PAYOUT_ADDRESSES.A.slice(0,8)}..., ${WORKER_PAYOUT_ADDRESSES.B.slice(0,8)}..., ${WORKER_PAYOUT_ADDRESSES.C.slice(0,8)}..., ${WORKER_PAYOUT_ADDRESSES.D.slice(0,8)}...]`);
+
     if (routerSecretKey && allWorkerAddressesConfigured) {
       try {
         const unsignedGroup = await buildAtomicPaymentGroup({
@@ -389,14 +391,41 @@ app.post('/api/v1/orchestrate', async (c) => {
           workerDAddress: WORKER_PAYOUT_ADDRESSES.D,
           usdcAssetId: Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID),
         });
-        const { workerPayoutGroupTxId: txId } = await signAndSubmitAtomicGroup(unsignedGroup, routerSecretKey);
+        const { workerPayoutGroupTxId: txId, groupHash } = await signAndSubmitAtomicGroup(unsignedGroup, routerSecretKey);
         workerPayoutGroupTxId = txId;
         workerPayoutStatus = 'success';
         workerPayoutNote = 'All 4 workers paid atomically in one group — all-or-nothing.';
+
+        return c.json({
+          status: 'success',
+          clientPaymentTxId: paymentTxId,
+          workerPayoutGroupTxId,
+          workerPayoutGroupHash: groupHash,
+          workerPayoutStatus,
+          workerPayoutNote,
+          totalCostUsdc: '0.0070',
+          signalFusion: {
+            compositeScore: resD.compositeScore,
+            verdict: resD.verdict,
+            confidencePct: resD.confidencePct,
+          },
+          breakdown: {
+            sentimentScore: resA.sentimentScore,
+            onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || '+18% Net Inflow',
+            technicalIndicator: resC.taSignal || resC.technicalIndicator || 'RSI 58 - Bullish Crossover',
+          },
+          onChainReceipt: {
+            explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
+            workerPayoutExplorerUrl: workerPayoutGroupTxId
+              ? `https://lora.algokit.io/testnet/transaction/${workerPayoutGroupTxId}`
+              : null,
+            workerPayoutGroupExplorerUrl: groupHash
+              ? `https://lora.algokit.io/testnet/group/${encodeURIComponent(groupHash)}`
+              : null,
+            boxStorageHash,
+          },
+        });
       } catch (err: any) {
-        // The client's signal is still valid and already paid for — a
-        // failed payout to workers doesn't undo that. Reported honestly
-        // rather than silently hidden or faked as a success.
         console.error('[Router] Atomic worker payout failed:', err.message);
         workerPayoutStatus = 'failed';
         workerPayoutNote = `Payout attempt failed: ${err.message}`;
@@ -406,7 +435,8 @@ app.post('/api/v1/orchestrate', async (c) => {
     return c.json({
       status: 'success',
       clientPaymentTxId: paymentTxId,
-      workerPayoutGroupTxId,
+      workerPayoutGroupTxId: null,
+      workerPayoutGroupHash: null,
       workerPayoutStatus,
       workerPayoutNote,
       totalCostUsdc: '0.0070',
@@ -422,9 +452,8 @@ app.post('/api/v1/orchestrate', async (c) => {
       },
       onChainReceipt: {
         explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
-        workerPayoutExplorerUrl: workerPayoutGroupTxId
-          ? `https://lora.algokit.io/testnet/transaction/${workerPayoutGroupTxId}`
-          : null,
+        workerPayoutExplorerUrl: null,
+        workerPayoutGroupExplorerUrl: null,
         boxStorageHash,
       },
     });
