@@ -43,3 +43,21 @@ export async function buildAtomicPaymentGroup(config: AtomicPayoutConfig) {
 
   return txns;
 }
+
+/**
+ * Signs the atomic group with the router's own key and submits it to
+ * Algorand TestNet, then waits for confirmation. This is the piece that
+ * was previously missing — buildAtomicPaymentGroup only ever constructed
+ * the unsigned group; nothing signed or sent it.
+ */
+export async function signAndSubmitAtomicGroup(
+  txns: algosdk.Transaction[],
+  routerSecretKey: Uint8Array
+): Promise<{ workerPayoutGroupTxId: string; confirmedRound: number }> {
+  const signedTxns = txns.map(txn => txn.signTxn(routerSecretKey));
+  const { txid } = await algodClient.sendRawTransaction(signedTxns).do();
+  const confirmed = await algosdk.waitForConfirmation(algodClient, txid, 8);
+  const confirmedRound =
+    (confirmed as any)['confirmed-round'] ?? (confirmed as any).confirmedRound ?? 0;
+  return { workerPayoutGroupTxId: txid, confirmedRound };
+}

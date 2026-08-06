@@ -126,12 +126,36 @@ async def get_fusion(payload: FusionInput):
     onchain = payload.onChainScore if payload.onChainScore is not None else 50
     ta = payload.taScore if payload.taScore is not None else 50
 
-    weights = {"sentiment": 0.30, "onchain": 0.35, "ta": 0.35}
-    composite = round(
-        sentiment * weights["sentiment"]
-        + onchain * weights["onchain"]
-        + ta * weights["ta"]
-    )
+    # --- Dynamic Adaptive Weights ---
+    # Scores far from 50 (neutral) carry stronger signal conviction,
+    # so we weight them higher. A score of 20 or 80 is a strong signal;
+    # a score of 50 is wishy-washy and gets down-weighted.
+    def signal_strength(score: float) -> float:
+        """Returns 0.0-1.0 measuring how far from neutral (50) this score is."""
+        return abs(score - 50) / 50.0
+
+    str_s = signal_strength(sentiment)
+    str_o = signal_strength(onchain)
+    str_t = signal_strength(ta)
+
+    # Base weights: equal starting point
+    w_s = 0.33 + 0.15 * str_s   # sentiment: 0.33 to 0.48
+    w_o = 0.34 + 0.15 * str_o   # onchain:   0.34 to 0.49
+    w_t = 0.33 + 0.15 * str_t   # ta:        0.33 to 0.48
+
+    # Penalise workers that returned no real data (used default 50)
+    if payload.onChainScore is None:
+        w_o *= 0.5
+    if payload.taScore is None:
+        w_t *= 0.5
+
+    # Normalise so weights sum to 1.0
+    total_w = w_s + w_o + w_t
+    w_s /= total_w
+    w_o /= total_w
+    w_t /= total_w
+
+    composite = round(sentiment * w_s + onchain * w_o + ta * w_t)
 
     if composite >= 70:
         verdict = "STRONG BUY"
@@ -144,19 +168,43 @@ async def get_fusion(payload: FusionInput):
     else:
         verdict = "STRONG SELL"
 
+    # --- Real-time Confidence Score ---
+    # Based on two factors:
+    #   1) Inter-agent agreement (low variance = high confidence)
+    #   2) Data availability (more real inputs = higher confidence)
+    scores = [sentiment, onchain, ta]
+    mean = sum(scores) / len(scores)
+    variance = sum((s - mean) ** 2 for s in scores) / len(scores)
+    std_dev = variance ** 0.5  # 0 = perfect agreement, ~33 = max disagreement
+
+    # Agreement factor: 100% when all agents agree, drops as they diverge
+    # std_dev of 0 → 1.0 agreement, std_dev of 30+ → ~0.0 agreement
+    agreement = max(0.0, 1.0 - (std_dev / 30.0))
+
+    # Data availability factor
     real_inputs = 1 + sum([
         payload.onChainScore is not None,
         payload.taScore is not None,
     ])
-    confidence = round(50 + (real_inputs / 3) * 40)
+    availability = real_inputs / 3.0  # 0.33 to 1.0
+
+    # Final confidence: weighted combination (70% agreement, 30% availability)
+    confidence = round((agreement * 0.70 + availability * 0.30) * 100)
+    confidence = max(10, min(99, confidence))  # clamp to 10-99%
 
     return {
         "compositeScore": composite,
         "verdict": verdict,
         "confidencePct": confidence,
+        "weights": {
+            "sentiment": round(w_s, 3),
+            "onchain": round(w_o, 3),
+            "ta": round(w_t, 3),
+        },
     }
 
 
 @app.get("/health")
 async def health():
     return {"status": "ok", "hf_token_configured": bool(HF_API_TOKEN)}
+

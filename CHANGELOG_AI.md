@@ -8,6 +8,48 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-06T18:51:00+05:30 — Antigravity (Gemini)
+**Summary:** Instant Wallet Popup + Worker Atomic Payout Fix  
+**Files Changed:**
+- `frontend/src/lib/x402Client.ts` — Eliminated initial 402 challenge round-trip; wallet now pops up instantly on click. Added error recovery for stale Lute connections.
+- `orchestrator/.env` (EC2) — Added missing WORKER_A/B/C/D_PAYOUT_ADDR variables that prevented atomic worker payouts from executing.
+- `CHANGELOG_AI.md` — This entry
+
+**Details:**
+- Before: Click Execute → 5-15s wait (worker pre-execution) → wallet popup → 5-15s wait (workers again). Two API calls, workers run twice.
+- After: Click Execute → instant wallet popup → 5-15s (workers run once). One API call, workers run once.
+- Worker payout was being silently skipped because WORKER_*_PAYOUT_ADDR env vars were missing from EC2 .env.
+
+### 2026-08-06T18:35:00+05:30 — Antigravity (Gemini)
+**Summary:** Fixed USDC Payment Flow, Dynamic Fusion Weights, Real-time Confidence  
+**Files Changed:**
+- `frontend/src/lib/x402Client.ts` — Fixed BigInt+camelCase USDC asset detection so frontend pays with USDC instead of falling back to ALGO
+- `agent-sentiment-fusion/main.py` — Replaced static fusion weights (0.30/0.35/0.35) with dynamic adaptive weights based on signal conviction strength. Replaced static 98% confidence with real-time computation from inter-agent agreement (variance) and data availability
+- `orchestrator/src/index.ts` — Fixed `verifyRealPayment` for algosdk v3 (camelCase fields, BigInt, accepts both USDC and ALGO), increased indexer retry to 5×3s
+- `CHANGELOG_AI.md` — This entry
+
+**Details:**
+- Dynamic weights: agents with stronger signals (farther from 50) get higher weight
+- Real-time confidence: 94% when agents agree (75,72,78), drops to 43% when they disagree (85,25,60)
+- Fixed CoinGecko API key not loading in onchain-ta-worker (restarted PM2 with explicit env)
+
+### 2026-08-06T17:48:00+05:30 — Antigravity (Gemini)
+**Summary:** Implemented 4-Worker Atomic Payout System  
+**Files Changed:**
+- `orchestrator/src/index.ts` — Replaced with new version featuring real payment verification (`verifyRealPayment`), atomic worker payouts via `atomicBuilder.ts`, and updated default router address to new legacy wallet
+- `orchestrator/src/atomicBuilder.ts` — **[NEW]** Atomic USDC payout builder: splits $0.007 into 4 worker payments ($0.002 × 2 + $0.001 × 2) using Algorand atomic group transactions
+- `orchestrator/optin-workers.js` — **[NEW]** One-time script to opt all 4 worker wallets into USDC TestNet ASA
+- `orchestrator/.env` — Updated `ROUTER_WALLET_ADDRESS` to new legacy wallet, added `ROUTER_MNEMONIC`, added `WORKER_A/B/C/D_PAYOUT_ADDR`
+- `frontend/src/lib/x402Client.ts` — Updated `DEFAULT_PAY_TO` to new router wallet address
+- `CHANGELOG_AI.md` — This entry
+
+**Details:**
+- Generated new Algorand legacy wallet (25-word mnemonic) since HD wallet (24-word BIP39) is incompatible with `algosdk.mnemonicToSecretKey()`
+- New router address: `4DTSNS35EP24IFWIGXSG5NSD3GDDTPHNVGEXSHG67JDEHUHUNFR3KJGPO4`
+- Funded and opted-in router + 4 worker wallets into USDC TestNet ASA (10458941)
+- Deployed all changes to EC2, rebuilt TypeScript, restarted orchestrator via PM2
+- Health check confirmed all 4 workers online
+
 ### [2026-08-03 18:40 IST] - Workspace & Orchestrator Setup
 * **Platform / Tool:** Antigravity IDE
 * **Model Used:** Gemini 3.5 Flash / Developer

@@ -6,9 +6,136 @@ import { HTTPFacilitatorClient } from '@x402-avm/core/server';
 import { ExactAvmScheme } from '@x402-avm/avm/exact/server';
 import { ALGORAND_TESTNET_CAIP2, USDC_TESTNET_ASA_ID } from '@x402-avm/avm';
 import dotenv from 'dotenv';
+import algosdk from 'algosdk';
 import { computeBoxStorageHash } from './attestation.js';
+import { buildAtomicPaymentGroup, signAndSubmitAtomicGroup } from './atomicBuilder.js';
 
 dotenv.config();
+
+// Router's own signing key — needed now that the router pays OUT to the
+// four workers, not just receives payment. Required for the real atomic
+// payout; if absent, the payout is skipped and clearly marked as such in
+// the response rather than silently pretending it happened.
+let routerSecretKey: Uint8Array | null = null;
+if (process.env.ROUTER_MNEMONIC) {
+  try {
+    routerSecretKey = algosdk.mnemonicToSecretKey(process.env.ROUTER_MNEMONIC).sk;
+  } catch (e) {
+    console.error('[Router] ROUTER_MNEMONIC is set but invalid — worker payouts will be skipped.');
+  }
+}
+
+const WORKER_PAYOUT_ADDRESSES = {
+  A: process.env.WORKER_A_PAYOUT_ADDR || '',
+  B: process.env.WORKER_B_PAYOUT_ADDR || '',
+  C: process.env.WORKER_C_PAYOUT_ADDR || '',
+  D: process.env.WORKER_D_PAYOUT_ADDR || '',
+};
+
+// In-memory record of transaction IDs already used to pay for a signal.
+// Prevents the same real payment from being replayed across multiple
+// requests. Resets on restart — fine for a hackathon demo; a real
+// deployment would need this in Redis or a database instead.
+const usedPaymentTxIds = new Set<string>();
+
+const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', '443');
+const indexerClient = new algosdk.Indexer('', 'https://testnet-idx.algonode.cloud', '443');
+
+/**
+ * Verifies a claimed payment transaction ID is real — actually confirmed
+ * on Algorand TestNet, sent to the router's own address, for at least the
+ * required amount, in the correct asset, and not reused from an earlier
+ * request. Replaces a check that previously only confirmed a header was
+ * present, which meant any string would pass.
+ */
+async function verifyRealPayment(
+  txId: string,
+  expectedRecipient: string,
+  minAmountMicroUsdc: number,
+  usdcAssetId: number
+): Promise<{ valid: boolean; reason?: string }> {
+  if (usedPaymentTxIds.has(txId)) {
+    return { valid: false, reason: 'This transaction ID has already been used for a previous request.' };
+  }
+
+  // Retry up to 5 times with 3s delay — the TestNet indexer can lag 5-15s
+  // behind algod after a transaction is confirmed on-chain.
+  const MAX_RETRIES = 5;
+  const RETRY_DELAY_MS = 3000;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const result = await indexerClient.lookupTransactionByID(txId).do();
+      const txn = (result as any).transaction;
+
+      if (!txn) {
+        if (attempt < MAX_RETRIES) {
+          console.log(`[Router] Payment txn ${txId} not found yet, retry ${attempt}/${MAX_RETRIES}...`);
+          await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+          continue;
+        }
+        return { valid: false, reason: 'Transaction not found on Algorand TestNet.' };
+      }
+
+      // algosdk v3 uses camelCase field names (confirmedRound, not confirmed-round)
+      const confirmedRound = Number(txn.confirmedRound ?? txn['confirmed-round'] ?? 0);
+      if (confirmedRound === 0) {
+        if (attempt < MAX_RETRIES) {
+          console.log(`[Router] Payment txn ${txId} not confirmed yet, retry ${attempt}/${MAX_RETRIES}...`);
+          await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+          continue;
+        }
+        return { valid: false, reason: 'Transaction exists but is not yet confirmed.' };
+      }
+
+      // Accept BOTH USDC ASA transfers AND native ALGO payments
+      // The frontend sends whichever the user's wallet can handle
+      const assetTransfer = txn.assetTransferTransaction ?? txn['asset-transfer-transaction'];
+      const paymentTxn = txn.paymentTransaction ?? txn['payment-transaction'];
+
+      if (assetTransfer) {
+        // USDC ASA Transfer
+        const assetId = Number(assetTransfer.assetId ?? assetTransfer['asset-id'] ?? 0);
+        if (assetId !== usdcAssetId) {
+          return { valid: false, reason: `Payment was not in expected USDC asset (got ${assetId}).` };
+        }
+        const receiver = assetTransfer.receiver ?? '';
+        if (receiver !== expectedRecipient) {
+          return { valid: false, reason: 'Payment was not sent to the router address.' };
+        }
+        const amount = Number(assetTransfer.amount ?? 0);
+        if (amount < minAmountMicroUsdc) {
+          return { valid: false, reason: `Payment amount too low (${amount} < ${minAmountMicroUsdc} micro-USDC).` };
+        }
+      } else if (paymentTxn) {
+        // Native ALGO payment (frontend fallback when user has no USDC)
+        const receiver = paymentTxn.receiver ?? '';
+        if (receiver !== expectedRecipient) {
+          return { valid: false, reason: 'ALGO payment was not sent to the router address.' };
+        }
+        const amount = Number(paymentTxn.amount ?? 0);
+        if (amount < minAmountMicroUsdc) {
+          return { valid: false, reason: `ALGO payment amount too low (${amount} < ${minAmountMicroUsdc} microAlgo).` };
+        }
+      } else {
+        return { valid: false, reason: 'Transaction is neither an asset transfer nor a payment.' };
+      }
+
+      usedPaymentTxIds.add(txId);
+      console.log(`[Router] Payment ${txId} verified ✓ (confirmed round ${confirmedRound})`);
+      return { valid: true };
+    } catch (err: any) {
+      if (attempt < MAX_RETRIES) {
+        console.log(`[Router] Indexer error for ${txId}, retry ${attempt}/${MAX_RETRIES}: ${err.message}`);
+        await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+        continue;
+      }
+      return { valid: false, reason: `Could not verify transaction: ${err.message}` };
+    }
+  }
+
+  return { valid: false, reason: 'Payment verification timed out after retries.' };
+}
 
 const app = new Hono();
 const startTime = Date.now();
@@ -43,7 +170,7 @@ const rawFacilitatorUrl = process.env.FACILITATOR_URL || 'https://facilitator.go
 const cleanFacilitatorUrl = rawFacilitatorUrl.replace(/[\[\]]/g, '').trim();
 
 // Ensure valid 58-character Algorand recipient address
-const DEFAULT_ROUTER_ADDRESS = 'HXT5Z6DKIVYOIZB7WHVOGEQVYNGXVMQRMS43WXSGIDYORLE3ZUN63Q36MI';
+const DEFAULT_ROUTER_ADDRESS = '4DTSNS35EP24IFWIGXSG5NSD3GDDTPHNVGEXSHG67JDEHUHUNFR3KJGPO4';
 const routerAddress = (process.env.ROUTER_WALLET_ADDRESS && process.env.ROUTER_WALLET_ADDRESS.length === 58) 
   ? process.env.ROUTER_WALLET_ADDRESS 
   : DEFAULT_ROUTER_ADDRESS;
@@ -219,7 +346,22 @@ app.post('/api/v1/orchestrate', async (c) => {
       }, 402);
     }
 
-    // STEP D: Compute Cryptographic Box Storage Hash & Return Fused Signal matching schema.json
+    // Actually verify the claimed payment is real — previously this only
+    // checked that the header existed, which meant any string would pass.
+    const verification = await verifyRealPayment(
+      paymentTxId,
+      routerAddress,
+      7000, // 0.007 USDC in 6-decimal micro-units
+      Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID)
+    );
+    if (!verification.valid) {
+      return c.json({
+        status: 'payment_required',
+        message: `x402 Payment Required: ${verification.reason}`,
+      }, 402);
+    }
+
+    // STEP D: Compute Cryptographic Box Storage Hash
     const { boxStorageHash } = computeBoxStorageHash(
       tokenSymbol,
       resD.compositeScore,
@@ -227,9 +369,46 @@ app.post('/api/v1/orchestrate', async (c) => {
       paymentTxId
     );
 
+    // STEP E: Atomically pay all four workers from what the router just
+    // received. Only attempted now — after the client's payment is
+    // confirmed — never before, since the router can't pay out USDC it
+    // hasn't received yet.
+    let workerPayoutGroupTxId: string | null = null;
+    let workerPayoutStatus: 'success' | 'skipped' | 'failed' = 'skipped';
+    let workerPayoutNote = 'ROUTER_MNEMONIC or worker payout addresses not configured.';
+
+    const allWorkerAddressesConfigured = Object.values(WORKER_PAYOUT_ADDRESSES).every(a => a.length === 58);
+
+    if (routerSecretKey && allWorkerAddressesConfigured) {
+      try {
+        const unsignedGroup = await buildAtomicPaymentGroup({
+          senderAddress: routerAddress,
+          workerAAddress: WORKER_PAYOUT_ADDRESSES.A,
+          workerBAddress: WORKER_PAYOUT_ADDRESSES.B,
+          workerCAddress: WORKER_PAYOUT_ADDRESSES.C,
+          workerDAddress: WORKER_PAYOUT_ADDRESSES.D,
+          usdcAssetId: Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID),
+        });
+        const { workerPayoutGroupTxId: txId } = await signAndSubmitAtomicGroup(unsignedGroup, routerSecretKey);
+        workerPayoutGroupTxId = txId;
+        workerPayoutStatus = 'success';
+        workerPayoutNote = 'All 4 workers paid atomically in one group — all-or-nothing.';
+      } catch (err: any) {
+        // The client's signal is still valid and already paid for — a
+        // failed payout to workers doesn't undo that. Reported honestly
+        // rather than silently hidden or faked as a success.
+        console.error('[Router] Atomic worker payout failed:', err.message);
+        workerPayoutStatus = 'failed';
+        workerPayoutNote = `Payout attempt failed: ${err.message}`;
+      }
+    }
+
     return c.json({
       status: 'success',
-      groupTxId: paymentTxId,
+      clientPaymentTxId: paymentTxId,
+      workerPayoutGroupTxId,
+      workerPayoutStatus,
+      workerPayoutNote,
       totalCostUsdc: '0.0070',
       signalFusion: {
         compositeScore: resD.compositeScore,
@@ -243,6 +422,9 @@ app.post('/api/v1/orchestrate', async (c) => {
       },
       onChainReceipt: {
         explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
+        workerPayoutExplorerUrl: workerPayoutGroupTxId
+          ? `https://lora.algokit.io/testnet/transaction/${workerPayoutGroupTxId}`
+          : null,
         boxStorageHash,
       },
     });
