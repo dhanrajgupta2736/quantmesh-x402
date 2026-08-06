@@ -8,6 +8,16 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-06T19:38:00+05:30 — Antigravity (Gemini)
+**Summary:** Lora Explorer Block/Group Route URL Formatting Fix  
+**Files Changed:**
+- `orchestrator/src/index.ts` — Updated `workerPayoutGroupExplorerUrl` to format using `https://lora.algokit.io/testnet/block/{confirmedRound}/group/{encodeURIComponent(groupHash)}`.
+- `CHANGELOG_AI.md` — This entry
+
+**Details:**
+- Previously: Linking to `/testnet/group/{groupHash}` returned a 404 Error page on Lora Explorer because Lora's group route requires `{confirmedRound}` (`/testnet/block/{confirmedRound}/group/{groupHash}`).
+- Now: Clicking `Worker Payout Group (4 Txns Flow)` opens the exact Lora block/group page which renders **all 5 transactions simultaneously in 1 unified multi-branch visual graph diagram**.
+
 ### 2026-08-06T19:33:00+05:30 — Antigravity (Gemini)
 **Summary:** Implementation of Single-Gated 5-Txn Unified Atomic Group Execution  
 **Files Changed:**

@@ -342,7 +342,7 @@ app.post('/api/v1/orchestrate', async (c) => {
         const workerTxnsBytes = unifiedGroup.unsignedWorkerTxns.map((b64: string) => new Uint8Array(Buffer.from(b64, 'base64')));
         const workerTxns = workerTxnsBytes.map((b: Uint8Array) => algosdk.decodeUnsignedTransaction(b));
 
-        const { txId, groupHash } = await signAndSubmitUnifiedGroup(signedClientTxnBytes, workerTxns, routerSecretKey);
+        const { txId, groupHash, confirmedRound } = await signAndSubmitUnifiedGroup(signedClientTxnBytes, workerTxns, routerSecretKey);
         paymentTxId = txId;
 
         const { boxStorageHash } = computeBoxStorageHash(
@@ -351,6 +351,10 @@ app.post('/api/v1/orchestrate', async (c) => {
           resD.verdict,
           paymentTxId
         );
+
+        const groupExplorerUrl = confirmedRound && groupHash
+          ? `https://lora.algokit.io/testnet/block/${confirmedRound}/group/${encodeURIComponent(groupHash)}`
+          : `https://lora.algokit.io/testnet/transaction/${paymentTxId}`;
 
         return c.json({
           status: 'success',
@@ -372,7 +376,8 @@ app.post('/api/v1/orchestrate', async (c) => {
           },
           onChainReceipt: {
             explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
-            workerPayoutExplorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
+            workerPayoutExplorerUrl: groupExplorerUrl,
+            workerPayoutGroupExplorerUrl: groupExplorerUrl,
             boxStorageHash,
           },
         });
