@@ -8,6 +8,18 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-06T19:33:00+05:30 — Antigravity (Gemini)
+**Summary:** Implementation of Single-Gated 5-Txn Unified Atomic Group Execution  
+**Files Changed:**
+- `frontend/src/lib/x402Client.ts` — Constructed unified 5-transaction atomic group (`Client ➔ Router` + `Router ➔ 4 Workers`) using `algosdk.assignGroupID()`. Prompted user to sign Txn 0 in Lute and dispatched the signed Txn 0 + unsigned Txns 1-4 to orchestrator via `unifiedGroup` payload.
+- `orchestrator/src/atomicBuilder.ts` — Added `signAndSubmitUnifiedGroup()` to combine client's signed transaction 0 with router-signed worker transactions 1-4 into a single 5-txn atomic array submitted via `algodClient.sendRawTransaction()`.
+- `orchestrator/src/index.ts` — Added `unifiedGroup` handler in `/api/v1/orchestrate` endpoint to sign worker transactions, submit the 5-txn group, and return `onChainReceipt.explorerUrl` pointing directly to the single 5-txn atomic group ID.
+- `CHANGELOG_AI.md` — This entry
+
+**Visual Explorer Result:**
+- Clicking `Client Payment Txn` or `Worker Payout Group` on the receipt card opens `https://lora.algokit.io/testnet/transaction/{txId}`.
+- Because all 5 transactions belong to **1 single Atomic Group ID**, AlgoKit Lora Explorer loads the transaction and under the **Visual Tab** renders **all 5 parties simultaneously in 1 unified multi-branch graph diagram** (`Client ➔ Router ➔ Worker A, B, C, D`).
+
 ### 2026-08-06T19:25:00+05:30 — Antigravity (Gemini)
 **Summary:** Single-Gated 5-Txn Atomic Group Architectural Design & Implementation Plan  
 **Files Changed:**

@@ -5,6 +5,13 @@ const TESTNET_USDC_ASA = 10458941;
 const DEFAULT_PAY_TO = '4DTSNS35EP24IFWIGXSG5NSD3GDDTPHNVGEXSHG67JDEHUHUNFR3KJGPO4';
 const SIGNAL_PRICE_USDC = '0.007';
 
+const WORKER_PAYOUT_ADDRESSES = {
+  A: '3VX4MDC3ZRJWCJIYRACWDZLKMP5OOI7UTDUDFYSJO2ESCIYDRFVQFEY55U',
+  B: '4PIEYCWYYCPUIFNCLPP4BQ37PVFA23EF3GBYIK7VWE3QWZARC5RRTEVEIE',
+  C: 'U55BSD7ZWOIP4ZSLAYU4MX344DJBPONX4YWI3PFWPVMV34TELFBZYG3E6E',
+  D: 'B47KV6MF637THQAU6B6VM4JEQTKYFTJBUIYKCZPQ4E2QD6K67RV4XV5C6U',
+};
+
 export async function optInToUSDCAssest(
   userAddress: string,
   signTransactions: (txns: Uint8Array[]) => Promise<Uint8Array[]>
@@ -39,11 +46,6 @@ export async function fetchQuantMeshSignal(
 ) {
   const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
 
-  // ── INSTANT WALLET POPUP ──────────────────────────────────────────
-  // We skip the initial 402 challenge and build the transaction immediately
-  // since we already know: price=$0.007, payTo=router address, asset=USDC.
-  // This saves 5-15s of worker pre-execution latency before the popup.
-
   const payTo = DEFAULT_PAY_TO;
   const amountInBaseUnits = Math.round(parseFloat(SIGNAL_PRICE_USDC) * 1_000_000); // 7000
 
@@ -70,12 +72,12 @@ export async function fetchQuantMeshSignal(
     }
   }
 
-  // 3. Build transaction (USDC if available, ALGO fallback)
-  let txnToSign: algosdk.Transaction;
+  // 3. Build Unified 5-Txn Atomic Group (Client -> Router + Router -> 4 Workers)
+  let txn0: algosdk.Transaction;
 
   if (hasUsdcOptIn && usdcBalance >= amountInBaseUnits) {
-    console.log(`[x402] Building USDC ASA Transfer...`);
-    txnToSign = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+    console.log(`[x402] Building USDC ASA Transfer for 5-Txn Group...`);
+    txn0 = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
       from: userAddress,
       sender: userAddress,
       to: payTo,
@@ -85,8 +87,8 @@ export async function fetchQuantMeshSignal(
       suggestedParams: params,
     } as any);
   } else {
-    console.log(`[x402] Building Native ALGO Micropayment (fallback)...`);
-    txnToSign = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    console.log(`[x402] Building Native ALGO Micropayment for 5-Txn Group...`);
+    txn0 = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       from: userAddress,
       sender: userAddress,
       to: payTo,
@@ -96,43 +98,61 @@ export async function fetchQuantMeshSignal(
     } as any);
   }
 
-  // 4. INSTANT wallet popup — no server round-trip needed
-  let signedTxns: Uint8Array[];
+  // Worker payouts: $0.002, $0.002, $0.001, $0.001 USDC
+  const workerPayouts = [
+    { to: WORKER_PAYOUT_ADDRESSES.A, amount: 2000 },
+    { to: WORKER_PAYOUT_ADDRESSES.B, amount: 2000 },
+    { to: WORKER_PAYOUT_ADDRESSES.C, amount: 1000 },
+    { to: WORKER_PAYOUT_ADDRESSES.D, amount: 1000 },
+  ];
+
+  const workerTxns: algosdk.Transaction[] = workerPayouts.map(p =>
+    algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+      from: payTo,
+      sender: payTo,
+      to: p.to,
+      receiver: p.to,
+      amount: p.amount,
+      assetIndex: TESTNET_USDC_ASA,
+      suggestedParams: params,
+    } as any)
+  );
+
+  const group5Txns = [txn0, ...workerTxns];
+  algosdk.assignGroupID(group5Txns);
+
+  // 4. Prompt user to sign Txn 0 in Lute
+  let signedTxns: (Uint8Array | null)[];
   try {
-    signedTxns = await signTransactions([txnToSign.toByte()]);
+    signedTxns = await signTransactions(group5Txns.map(t => t.toByte()));
   } catch (signErr: any) {
-    // Lute can go stale — this gives the user a clear message
     throw new Error(
       signErr?.message?.includes('User rejected')
         ? 'Transaction was rejected by user.'
         : `Wallet error: ${signErr?.message || 'Could not connect to Lute. Please refresh the page.'}`
     );
   }
-  if (!signedTxns || signedTxns.length === 0) {
+
+  if (!signedTxns || !signedTxns[0]) {
     throw new Error('Transaction signing was cancelled by user.');
   }
 
-  // 5. Broadcast and wait for confirmation
-  let paymentTxId = '';
-  try {
-    const sendRes = await algodClient.sendRawTransaction(signedTxns[0]).do();
-    paymentTxId = sendRes.txid;
-    console.log(`[x402] Broadcasted: ${paymentTxId}. Awaiting confirmation...`);
-    await algosdk.waitForConfirmation(algodClient, paymentTxId, 4);
-  } catch (broadcastErr: any) {
-    console.error('[x402] Broadcast Error:', broadcastErr);
-    const rawMsg = broadcastErr?.response?.body?.message || broadcastErr?.message || '';
-    throw new Error(`Algorand Node Error: ${rawMsg || 'Failed to submit transaction.'}`);
-  }
+  const signedClientTxnBase64 = Buffer.from(signedTxns[0]).toString('base64');
+  const unsignedWorkerTxnsBase64 = workerTxns.map(t => Buffer.from(t.toByte()).toString('base64'));
 
-  // 6. Send ONLY the paid request to orchestrator (workers execute once, not twice)
+  // 5. Send single paid + atomic payout payload to orchestrator
   const paidRes = await fetch(ROUTER_GATEWAY, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-payment-txn-id': paymentTxId,
     },
-    body: JSON.stringify({ tokenSymbol }),
+    body: JSON.stringify({
+      tokenSymbol,
+      unifiedGroup: {
+        signedClientTxn: signedClientTxnBase64,
+        unsignedWorkerTxns: unsignedWorkerTxnsBase64,
+      },
+    }),
   });
 
   const paidData = await paidRes.json().catch(() => ({}));

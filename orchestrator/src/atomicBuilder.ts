@@ -125,3 +125,24 @@ export async function signAndSubmitAtomicGroup(
   }
   return { workerPayoutGroupTxId: txid, groupHash, confirmedRound };
 }
+
+export async function signAndSubmitUnifiedGroup(
+  signedClientTxn: Uint8Array,
+  workerTxns: algosdk.Transaction[],
+  routerSecretKey: Uint8Array
+): Promise<{ txId: string; groupHash: string; confirmedRound: number }> {
+  const signedWorkerTxns = workerTxns.map(txn => txn.signTxn(routerSecretKey));
+  const fullSignedGroup = [signedClientTxn, ...signedWorkerTxns];
+  
+  const { txid } = await algodClient.sendRawTransaction(fullSignedGroup).do();
+  const confirmed = await algosdk.waitForConfirmation(algodClient, txid, 8);
+  const confirmedRound =
+    (confirmed as any)['confirmed-round'] ?? (confirmed as any).confirmedRound ?? 0;
+
+  let groupHash = '';
+  if (workerTxns[0] && workerTxns[0].group) {
+    groupHash = Buffer.from(workerTxns[0].group).toString('base64');
+  }
+
+  return { txId: txid, groupHash, confirmedRound };
+}

@@ -8,7 +8,7 @@ import { ALGORAND_TESTNET_CAIP2, USDC_TESTNET_ASA_ID } from '@x402-avm/avm';
 import dotenv from 'dotenv';
 import algosdk from 'algosdk';
 import { computeBoxStorageHash } from './attestation.js';
-import { buildAtomicPaymentGroup, signAndSubmitAtomicGroup } from './atomicBuilder.js';
+import { buildAtomicPaymentGroup, signAndSubmitAtomicGroup, signAndSubmitUnifiedGroup } from './atomicBuilder.js';
 
 dotenv.config();
 
@@ -331,10 +331,61 @@ app.post('/api/v1/orchestrate', async (c) => {
       }, 502);
     }
 
-    // STEP C: Check Payment Verification Header (x-payment-txn-id)
-    const paymentTxId = c.req.header('x-payment-txn-id');
+    // STEP C: Check Unified 5-Txn Group or Legacy Payment Proof Header
+    const unifiedGroup = body?.unifiedGroup;
+    let paymentTxId = c.req.header('x-payment-txn-id');
 
-    // If no payment proof header, return HTTP 402 Payment Required Challenge
+    if (unifiedGroup && routerSecretKey) {
+      console.log(`[Router] Processing Unified 5-Txn Group...`);
+      try {
+        const signedClientTxnBytes = new Uint8Array(Buffer.from(unifiedGroup.signedClientTxn, 'base64'));
+        const workerTxnsBytes = unifiedGroup.unsignedWorkerTxns.map((b64: string) => new Uint8Array(Buffer.from(b64, 'base64')));
+        const workerTxns = workerTxnsBytes.map((b: Uint8Array) => algosdk.decodeUnsignedTransaction(b));
+
+        const { txId, groupHash } = await signAndSubmitUnifiedGroup(signedClientTxnBytes, workerTxns, routerSecretKey);
+        paymentTxId = txId;
+
+        const { boxStorageHash } = computeBoxStorageHash(
+          tokenSymbol,
+          resD.compositeScore,
+          resD.verdict,
+          paymentTxId
+        );
+
+        return c.json({
+          status: 'success',
+          clientPaymentTxId: paymentTxId,
+          workerPayoutGroupTxId: paymentTxId,
+          workerPayoutGroupHash: groupHash,
+          workerPayoutStatus: 'success',
+          workerPayoutNote: 'All 5 transactions (Client -> Router -> 4 Workers) executed atomically in 1 single block.',
+          totalCostUsdc: '0.0070',
+          signalFusion: {
+            compositeScore: resD.compositeScore,
+            verdict: resD.verdict,
+            confidencePct: resD.confidencePct,
+          },
+          breakdown: {
+            sentimentScore: resA.sentimentScore,
+            onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || '+18% Net Inflow',
+            technicalIndicator: resC.taSignal || resC.technicalIndicator || 'RSI 58 - Bullish Crossover',
+          },
+          onChainReceipt: {
+            explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
+            workerPayoutExplorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
+            boxStorageHash,
+          },
+        });
+      } catch (err: any) {
+        console.error('[Router] Unified 5-Txn Submission Failed:', err.message);
+        return c.json({
+          status: 'error',
+          message: `Unified 5-Txn Group Submission Failed: ${err.message}`,
+        }, 500);
+      }
+    }
+
+    // If no payment proof header or unified group, return HTTP 402 Payment Required Challenge
     if (!paymentTxId) {
       c.header('x-payment-pay-to', routerAddress);
       c.header('x-payment-price', '0.007');
