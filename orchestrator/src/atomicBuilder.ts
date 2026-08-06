@@ -44,12 +44,71 @@ export async function buildAtomicPaymentGroup(config: AtomicPayoutConfig) {
   return txns;
 }
 
-/**
- * Signs the atomic group with the router's own key and submits it to
- * Algorand TestNet, then waits for confirmation. This is the piece that
- * was previously missing — buildAtomicPaymentGroup only ever constructed
- * the unsigned group; nothing signed or sent it.
- */
+export interface Unified5TxnConfig {
+  userAddress: string;
+  routerAddress: string;
+  workerAAddress: string;
+  workerBAddress: string;
+  workerCAddress: string;
+  workerDAddress: string;
+  usdcAssetId: number;
+  clientAmountUsdcUnits?: number; // default 7000 ($0.007)
+  isUsdc?: boolean;
+}
+
+export async function buildUnified5TxnGroup(config: Unified5TxnConfig) {
+  const params = await algodClient.getTransactionParams().do();
+  const clientAmt = config.clientAmountUsdcUnits || 7000;
+
+  // Txn 0: Client -> Router ($0.007 USDC or ALGO fallback)
+  let txn0: algosdk.Transaction;
+  if (config.isUsdc !== false) {
+    txn0 = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+      from: config.userAddress,
+      sender: config.userAddress,
+      to: config.routerAddress,
+      receiver: config.routerAddress,
+      assetIndex: config.usdcAssetId,
+      amount: clientAmt,
+      suggestedParams: params,
+    } as any);
+  } else {
+    txn0 = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      from: config.userAddress,
+      sender: config.userAddress,
+      to: config.routerAddress,
+      receiver: config.routerAddress,
+      amount: clientAmt,
+      suggestedParams: params,
+    } as any);
+  }
+
+  // Txns 1-4: Router -> 4 Workers
+  const payouts = [
+    { to: config.workerAAddress, amount: 2000 },
+    { to: config.workerBAddress, amount: 2000 },
+    { to: config.workerCAddress, amount: 1000 },
+    { to: config.workerDAddress, amount: 1000 },
+  ];
+
+  const workerTxns: algosdk.Transaction[] = payouts.map(p =>
+    algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+      from: config.routerAddress,
+      sender: config.routerAddress,
+      to: p.to,
+      receiver: p.to,
+      amount: p.amount,
+      assetIndex: config.usdcAssetId,
+      suggestedParams: params,
+    } as any)
+  );
+
+  const allTxns = [txn0, ...workerTxns];
+  algosdk.assignGroupID(allTxns);
+
+  return allTxns;
+}
+
 export async function signAndSubmitAtomicGroup(
   txns: algosdk.Transaction[],
   routerSecretKey: Uint8Array

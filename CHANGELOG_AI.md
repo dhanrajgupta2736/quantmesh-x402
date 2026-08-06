@@ -8,6 +8,28 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-06T19:25:00+05:30 — Antigravity (Gemini)
+**Summary:** Single-Gated 5-Txn Atomic Group Architectural Design & Implementation Plan  
+**Files Changed:**
+- `orchestrator/src/atomicBuilder.ts` — Added `buildUnified5TxnGroup` helper to construct a 5-transaction atomic group (Client ➔ Router, Router ➔ 4 Workers) under a single cryptographic Group ID (`groupHash`).
+- `CHANGELOG_AI.md` — This entry
+
+**Detailed Architectural Analysis:**
+1. **Root Cause of Single-Line Explorer View**:
+   - Algorand standard transaction URLs (`/transaction/{txId}`) on block explorers like AlgoKit Lora display only 1 discrete transaction ID at a time.
+   - When payment (Client ➔ Router) and payouts (Router ➔ 4 Workers) execute as 2 separate on-chain transactions, Lora renders them as separate single-line transfers.
+   - AlgoKit Lora Explorer does NOT have a `/group/{groupHash}` URL route (returns 404 Error), so transaction groups must be bound together at transaction creation.
+
+2. **Unified 5-Txn Atomic Group Solution**:
+   - Combine Client Payment + 4 Worker Payouts into **1 single atomic group of 5 transactions** bound by a single `Group ID`.
+   - **Transaction 0**: Client ➔ Router ($0.007 USDC)
+   - **Transaction 1**: Router ➔ Worker A ($0.0020 USDC)
+   - **Transaction 2**: Router ➔ Worker B ($0.0020 USDC)
+   - **Transaction 3**: Router ➔ Worker C ($0.0010 USDC)
+   - **Transaction 4**: Router ➔ Worker D ($0.0010 USDC)
+   - All 5 transactions execute atomically in 1 block ("All-or-Nothing").
+   - Opening the atomic transaction hash on Lora Explorer displays the **full multi-branch web graph showing all 5 parties simultaneously** for pitch presentations and PPT screenshots.
+
 ### 2026-08-06T18:51:00+05:30 — Antigravity (Gemini)
 **Summary:** Instant Wallet Popup + Worker Atomic Payout Fix  
 **Files Changed:**
