@@ -30,6 +30,13 @@ This document tracks all code edits, structural changes, and schema updates made
    - All 5 transactions execute atomically in 1 block ("All-or-Nothing").
    - Opening the atomic transaction hash on Lora Explorer displays the **full multi-branch web graph showing all 5 parties simultaneously** for pitch presentations and PPT screenshots.
 
+### 2026-08-06T19:15:00+05:30 — Antigravity (Gemini)
+**Summary:** Group Hash Receipt Linking & AlgoKit Lora Visual Route Integration  
+**Files Changed:**
+- `orchestrator/src/atomicBuilder.ts` — Extracted base64-encoded `groupHash` from atomic transaction array in `signAndSubmitAtomicGroup`.
+- `orchestrator/src/index.ts` — Exported `workerPayoutGroupHash` and `workerPayoutGroupExplorerUrl` (`https://lora.algokit.io/testnet/group/{groupHash}`) in the `/api/v1/orchestrate` response.
+- `frontend/src/app/page.tsx` — Updated `Worker Payout Group` receipt link button to prefer `workerPayoutGroupExplorerUrl` for full visual multi-branch flow rendering.
+
 ### 2026-08-06T18:51:00+05:30 — Antigravity (Gemini)
 **Summary:** Instant Wallet Popup + Worker Atomic Payout Fix  
 **Files Changed:**
@@ -54,6 +61,18 @@ This document tracks all code edits, structural changes, and schema updates made
 - Dynamic weights: agents with stronger signals (farther from 50) get higher weight
 - Real-time confidence: 94% when agents agree (75,72,78), drops to 43% when they disagree (85,25,60)
 - Fixed CoinGecko API key not loading in onchain-ta-worker (restarted PM2 with explicit env)
+
+### 2026-08-06T18:05:00+05:30 — Antigravity (Gemini)
+**Summary:** TestNet USDC Liquidity Acquisition via Tinyman DEX  
+**Files Changed:**
+- `Tinyman TestNet DEX` — Executed swap of 1 TestNet ALGO to 20 TestNet USDC (ASA `10458941`) for the Router wallet (`4DTSNS...`) to fund internal worker atomic payouts.
+
+### 2026-08-06T17:30:00+05:30 — Antigravity (Gemini)
+**Summary:** Legacy Algorand 25-Word Mnemonic Wallet Migration & Worker USDC Opt-In  
+**Files Changed:**
+- `orchestrator/optin-workers.js` — Script created to opt Router wallet `4DTSNS...` and 4 Worker wallets into TestNet USDC ASA (`10458941`).
+- `orchestrator/.env` — Configured 25-word legacy seed mnemonic for `ROUTER_MNEMONIC` (migrated from HD BIP39 24-word wallet due to `algosdk` compatibility requirements).
+- `frontend/src/lib/x402Client.ts` — Updated `DEFAULT_PAY_TO` address to new legacy router address (`4DTSNS...`).
 
 ### 2026-08-06T17:48:00+05:30 — Antigravity (Gemini)
 **Summary:** Implemented 4-Worker Atomic Payout System  
