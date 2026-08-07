@@ -127,10 +127,10 @@ export default function ArchitecturePage() {
                 On-Chain Receipt
               </h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Payment verified on Algorand. Cryptographic Box Storage Hash issued.
+                Payment verified on Algorand. SHA-256 Cryptographic Attestation Digest issued.
               </p>
               <div className="text-[10px] font-mono-brand text-emerald-300 bg-slate-950/60 p-2 rounded-lg border border-slate-800">
-                SHA-256 Box Storage Hash
+                SHA-256 Attestation Digest
               </div>
             </div>
           </div>
@@ -191,11 +191,11 @@ export default function ArchitecturePage() {
         <div className="glass-card rounded-2xl p-6 space-y-4 border-amber-500/20">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <Database className="w-4 h-4 text-amber-400" />
-            Algorand Box Storage Signal Attestation
+            Cryptographic Signal Attestation Digest
           </h3>
           <p className="text-xs text-slate-300 leading-relaxed">
-            Every fused market signal produces a deterministic 256-bit cryptographic hash committed to Algorand Testnet. 
-            The ARC-4 PyTeal smart contract provides immutable box storage entry verification:
+            Every fused market signal produces a deterministic 256-bit cryptographic SHA-256 hash anchored to the Algorand Testnet payment transaction ID. 
+            The PyTeal ARC-4 smart contract (`contracts/signal_attestation.py`) is prepared for mainnet Box Storage deployment:
           </p>
           <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 text-xs font-mono-brand text-cyan-300 space-y-1">
             <div>Key: tokenSymbol + "_" + paymentTxId</div>

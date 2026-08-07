@@ -8,6 +8,18 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-07T19:26:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Residual Box Storage Wording Alignment & Asset Regeneration  
+**Files Changed:**
+- `docs/ONE_PAGER_HINGLISH.md` — Updated lines 29 & 36 to accurately describe the SHA-256 Attestation Digest anchored to the payment transaction ID.
+- `frontend/src/app/architecture/page.tsx` — Updated Step 4 card (lines 130, 133) and smart contract attestation section (lines 194, 197-198) to accurately state SHA-256 Cryptographic Attestation Digest anchored to the transaction ID.
+- `docs/PITCH_DECK.docx`, `docs/ONE_PAGER_HINGLISH.docx`, `docs/PROJECT_EXPLAINER_HINGLISH.docx` — Regenerated from updated markdown files.
+- `CHANGELOG_AI.md` — This entry.
+
+**Verification Results:**
+- `npm run build` (Frontend): Compiled successfully in 14.7s with 0 errors
+- All docs & code completely scrubbed of residual Box Storage claims
+
 ### 2026-08-07T19:21:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Full Hard Check & Final Documentation Synchronization  
 **Files Changed:**

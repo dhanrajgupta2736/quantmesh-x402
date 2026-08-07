@@ -26,14 +26,14 @@ QuantMesh x402 ek **Decentralized AI Market Signal Router** hai jo Algorand par 
 ```
 [Select Token: ALGO/BTC] ──► [Click 'Execute Strategy'] ──► [4 Bots Run in 25ms]
                                                                     │
-   [SHA-256 Box Storage Receipt] ◄── [Lute Wallet Signs $0.007] ◄───┘ (All Passed OK)
+   [SHA-256 Attestation Receipt] ◄── [Lute Wallet Signs $0.007] ◄───┘ (All Passed OK)
 ```
 
 ---
 
 ### ⛓️ 5. On-Chain Attestation & Proof
-* Every signal creates a **SHA-256 cryptographic digest** (`sha256(token:score:verdict:txId:timestamp)`).
-* Our **PyTeal ARC-4 Smart Contract** writes this hash to **Algorand Box Storage** for permanent on-chain auditability.
+* Every signal creates a **SHA-256 cryptographic attestation digest** (`sha256(token:score:verdict:txId:timestamp)`).
+* Our **Attestation Engine** anchors this digest to the **Algorand payment transaction ID** for permanent auditability. PyTeal Box Storage contract (`contracts/signal_attestation.py`) prepared for mainnet deployment.
 
 ---
 
