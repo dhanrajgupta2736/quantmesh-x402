@@ -371,6 +371,22 @@ app.post('/api/v1/orchestrate', async (c) => {
         ).catch(err => ({ isValid: false, invalidReason: `Facilitator unavailable: ${err.message}` }));
         console.log(`[Router] Facilitator verification: ${JSON.stringify(facilitatorResult)}`);
 
+        // Safe Gating: Hard reject if facilitator explicitly reports invalid payment (real fraud signal).
+        // Pass through if facilitator is temporarily unavailable (infrastructure resilience).
+        if (facilitatorResult.invalidReason && !facilitatorResult.invalidReason.includes('unavailable')) {
+          return c.json({
+            status: 'error',
+            message: `Facilitator rejected payment verification: ${facilitatorResult.invalidReason}`,
+          }, 402);
+        }
+
+        // x402 Rule 3 (Part 2): Settle payment via GoPlausible Facilitator
+        const settleResult = await settleViaFacilitator(
+          paymentTxId, routerAddress, '0.007',
+          ALGORAND_TESTNET_CAIP2, Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID)
+        ).catch(err => ({ success: false, errorReason: `Facilitator settle unavailable: ${err.message}` }));
+        console.log(`[Router] Facilitator settlement: ${JSON.stringify(settleResult)}`);
+
         const groupExplorerUrl = confirmedRound && groupHash
           ? `https://lora.algokit.io/testnet/block/${confirmedRound}/group/${encodeURIComponent(groupHash)}`
           : `https://lora.algokit.io/testnet/transaction/${paymentTxId}`;
@@ -398,6 +414,7 @@ app.post('/api/v1/orchestrate', async (c) => {
             workerPayoutExplorerUrl: groupExplorerUrl,
             workerPayoutGroupExplorerUrl: groupExplorerUrl,
             facilitatorVerification: facilitatorResult,
+            facilitatorSettlement: settleResult,
             boxStorageHash,
           },
         });
@@ -449,6 +466,24 @@ app.post('/api/v1/orchestrate', async (c) => {
       Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID)
     ).catch(err => ({ isValid: false, invalidReason: `Facilitator unavailable: ${err.message}` }));
     console.log(`[Router] Facilitator verification (legacy): ${JSON.stringify(facilitatorResult)}`);
+
+    // Safe Gating: Hard reject if facilitator explicitly reports invalid payment (real fraud signal).
+    if (facilitatorResult.invalidReason && !facilitatorResult.invalidReason.includes('unavailable')) {
+      return c.json({
+        status: 'error',
+        message: `Facilitator rejected payment verification: ${facilitatorResult.invalidReason}`,
+      }, 402);
+    }
+
+    // x402 Rule 3 (Part 2): Settle payment via GoPlausible Facilitator
+    const settleResult = await settleViaFacilitator(
+      paymentTxId!,
+      routerAddress,
+      '0.007',
+      ALGORAND_TESTNET_CAIP2,
+      Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID)
+    ).catch(err => ({ success: false, errorReason: `Facilitator settle unavailable: ${err.message}` }));
+    console.log(`[Router] Facilitator settlement (legacy): ${JSON.stringify(settleResult)}`);
 
     // STEP D: Compute Cryptographic Attestation Digest
     const { boxStorageHash } = computeBoxStorageHash(
@@ -512,6 +547,7 @@ app.post('/api/v1/orchestrate', async (c) => {
               ? `https://lora.algokit.io/testnet/group/${encodeURIComponent(groupHash)}`
               : null,
             facilitatorVerification: facilitatorResult,
+            facilitatorSettlement: settleResult,
             boxStorageHash,
           },
         });
@@ -545,6 +581,7 @@ app.post('/api/v1/orchestrate', async (c) => {
         workerPayoutExplorerUrl: null,
         workerPayoutGroupExplorerUrl: null,
         facilitatorVerification: facilitatorResult,
+        facilitatorSettlement: settleResult,
         boxStorageHash,
       },
     });

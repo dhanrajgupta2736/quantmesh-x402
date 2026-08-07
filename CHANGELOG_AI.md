@@ -8,6 +8,21 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-07T19:16:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Implementation of 4 Final Refinements (Facilitator Gating, Facilitator Settle, n8n Workflow Exports, Deck Scrubbing)  
+**Files Changed:**
+- `orchestrator/src/index.ts` — Added safe gating logic for `facilitatorResult` (hard rejects if facilitator explicitly reports invalid payment, passes through on timeout/infrastructure unavailability). Integrated `settleViaFacilitator` (`POST /settle`) right after verification succeeds and included `facilitatorSettlement` in `onChainReceipt` across both unified-group and legacy execution paths.
+- `workflows/n8n_agent_onchain.json` — **[NEW]** Exported n8n workflow JSON definition for Worker B (On-Chain Whale Flow Agent).
+- `workflows/n8n_agent_ta.json` — **[NEW]** Exported n8n workflow JSON definition for Worker C (Technical Analysis Agent).
+- `PITCH_DECK.md` — Sharpened line 19 to clearly describe the per-request SHA-256 cryptographic attestation digest (`sha256(token:score:verdict:txId:timestamp)`).
+- `docs/PITCH_DECK.docx`, `docs/ONE_PAGER_HINGLISH.docx`, `docs/PROJECT_EXPLAINER_HINGLISH.docx` — Regenerated via `convert_docs.py`.
+- `CHANGELOG_AI.md` — This entry.
+
+**Verification & Deployment Status:**
+- `npm run build` (Orchestrator): 0 errors
+- `npm run build` (Frontend): Compiled cleanly
+- EC2 Deployment: Orchestrator rebuilt and restarted via PM2; all processes `online`.
+
 ### 2026-08-07T18:56:00+05:30 — Antigravity (Gemini 3.6 Flash / Claude Opus)
 **Summary:** Full PS0404 & x402 Hackathon Rule Alignment Resolution  
 **Files Changed:**
