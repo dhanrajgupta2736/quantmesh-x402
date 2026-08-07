@@ -16,7 +16,7 @@
     * 🐋 **Worker B:** CoinGecko Live Market Data & Net Whale Flow Heuristics.
     * 📈 **Worker C:** Technical Analysis Engine (RSI, SMA 7/20 Golden/Death Cross, EMA 12/26, MACD).
     * 🎛️ **Worker D:** Weighted Fusion Engine ($W_s=0.30, W_o=0.35, W_t=0.35$).
-  * **On-Chain Smart Contract:** PyTeal ARC-4 Signal Attestation Contract (`contracts/signal_attestation.py`) issuing SHA-256 Box Storage Hashes (`sha256(token:score:verdict:txId:timestamp)`).
+  * **Cryptographic Attestation:** SHA-256 signal attestation digest (`sha256(token:score:verdict:txId:timestamp)`) returned per execution for independent verifiability. PyTeal Box Storage contract (`contracts/signal_attestation.py`) prepared for mainnet deployment.
 
 ---
 
@@ -26,7 +26,7 @@
 | :--- | :--- |
 | **Subscription Fatigue:** $50–$300/month recurring fees even if you trade once. | **Granular Micropayments:** $0.007 per execution paid via x402 AVM scheme. |
 | **Pay Upfront for Dead Signals:** You pay first; if the API or model is down, your money is gone. | **Pre-Execution Gating (Zero-Fee Guarantee):** Orchestrator runs all sub-agents *before* issuing HTTP 402 challenge. If any agent fails, HTTP 502 is returned and **$0 is charged**. |
-| **Centralized Black Box:** No proof of how signals are derived or if they were altered post-hoc. | **Immutable Box Storage Attestation:** Every fused signal produces an ARC-4 Box Storage hash on Algorand Testnet. |
+| **Centralized Black Box:** No proof of how signals are derived or if they were altered post-hoc. | **Cryptographic Attestation:** Every fused signal produces a SHA-256 attestation digest tied to the payment transaction, returned in the on-chain receipt for independent verification. |
 | **Single-Model Reliance:** Prone to hallucinations or market regime blind spots. | **Multi-Agent Consensus:** Combines NLP sentiment + on-chain whale flow + TA indicators into a fused composite score. |
 
 ---
@@ -113,15 +113,14 @@
                              No │             │ Yes
                                 ▼             ▼
                          ┌───────────┐   ┌───────────────────────────┐
-                         │ HTTP 502  │   │ HTTP 402 Challenge        │
-                         │ Zero Fee  │   │ Lute Wallet Signs $0.007  │
-                         └───────────┘   └─────────────┬─────────────┘
-                                                       │
+                         │ HTTP 502  │   │ Lute Wallet Signs $0.007  │
+                         │ Zero Fee  │   └─────────────┬─────────────┘
+                         └───────────┘                 │
                                                        ▼
-                                         ┌───────────────────────────┐
-                                         │ ⛓️ Algorand Box Storage   │
-                                         │ SHA-256 Attestation Hash  │
-                                         └───────────────────────────┘
+                                          ┌───────────────────────────┐
+                                          │ 🔐 SHA-256 Attestation    │
+                                          │ Cryptographic Digest      │
+                                          └───────────────────────────┘
 ```
 
 ---

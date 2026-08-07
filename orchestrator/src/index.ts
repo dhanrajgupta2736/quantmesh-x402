@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 import algosdk from 'algosdk';
 import { computeBoxStorageHash } from './attestation.js';
 import { buildAtomicPaymentGroup, signAndSubmitAtomicGroup, signAndSubmitUnifiedGroup } from './atomicBuilder.js';
+import { verifyViaFacilitator, settleViaFacilitator } from './facilitatorClient.js';
 
 dotenv.config();
 
@@ -363,6 +364,13 @@ app.post('/api/v1/orchestrate', async (c) => {
           paymentTxId
         );
 
+        // x402 Rule 3: Verify via GoPlausible Facilitator (third-party trust anchor)
+        const facilitatorResult = await verifyViaFacilitator(
+          paymentTxId, routerAddress, '0.007',
+          ALGORAND_TESTNET_CAIP2, Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID)
+        ).catch(err => ({ isValid: false, invalidReason: `Facilitator unavailable: ${err.message}` }));
+        console.log(`[Router] Facilitator verification: ${JSON.stringify(facilitatorResult)}`);
+
         const groupExplorerUrl = confirmedRound && groupHash
           ? `https://lora.algokit.io/testnet/block/${confirmedRound}/group/${encodeURIComponent(groupHash)}`
           : `https://lora.algokit.io/testnet/transaction/${paymentTxId}`;
@@ -389,6 +397,7 @@ app.post('/api/v1/orchestrate', async (c) => {
             explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
             workerPayoutExplorerUrl: groupExplorerUrl,
             workerPayoutGroupExplorerUrl: groupExplorerUrl,
+            facilitatorVerification: facilitatorResult,
             boxStorageHash,
           },
         });
@@ -407,9 +416,12 @@ app.post('/api/v1/orchestrate', async (c) => {
       c.header('x-payment-price', '0.007');
       c.header('x-payment-network', ALGORAND_TESTNET_CAIP2);
       c.header('x-payment-scheme', 'exact');
+      c.header('x-payment-usdc-asa-id', String(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID));
       return c.json({
         status: 'payment_required',
         message: 'x402 Payment Required: $0.007 USDC/ALGO on Algorand Testnet',
+        workerPayoutAddresses: WORKER_PAYOUT_ADDRESSES,
+        usdcAsaId: Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID),
       }, 402);
     }
 
@@ -428,7 +440,17 @@ app.post('/api/v1/orchestrate', async (c) => {
       }, 402);
     }
 
-    // STEP D: Compute Cryptographic Box Storage Hash
+    // x402 Rule 3: Verify via GoPlausible Facilitator (third-party trust anchor)
+    const facilitatorResult = await verifyViaFacilitator(
+      paymentTxId!,
+      routerAddress,
+      '0.007',
+      ALGORAND_TESTNET_CAIP2,
+      Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID)
+    ).catch(err => ({ isValid: false, invalidReason: `Facilitator unavailable: ${err.message}` }));
+    console.log(`[Router] Facilitator verification (legacy): ${JSON.stringify(facilitatorResult)}`);
+
+    // STEP D: Compute Cryptographic Attestation Digest
     const { boxStorageHash } = computeBoxStorageHash(
       tokenSymbol,
       resD.compositeScore,
@@ -489,6 +511,7 @@ app.post('/api/v1/orchestrate', async (c) => {
             workerPayoutGroupExplorerUrl: groupHash
               ? `https://lora.algokit.io/testnet/group/${encodeURIComponent(groupHash)}`
               : null,
+            facilitatorVerification: facilitatorResult,
             boxStorageHash,
           },
         });
@@ -521,6 +544,7 @@ app.post('/api/v1/orchestrate', async (c) => {
         explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
         workerPayoutExplorerUrl: null,
         workerPayoutGroupExplorerUrl: null,
+        facilitatorVerification: facilitatorResult,
         boxStorageHash,
       },
     });

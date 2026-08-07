@@ -8,6 +8,23 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-07T18:56:00+05:30 — Antigravity (Gemini 3.6 Flash / Claude Opus)
+**Summary:** Full PS0404 & x402 Hackathon Rule Alignment Resolution  
+**Files Changed:**
+- `frontend/src/lib/x402Client.ts` — **[REWRITTEN]** Implemented the full x402 Challenge → Sign → Retry flow (Rule 2). Client probes orchestrator first, receives 402 challenge, dynamically reads `x-payment-pay-to`, `x-payment-price`, `x-payment-network`, `x-payment-usdc-asa-id`, and `workerPayoutAddresses`, constructs the 5-txn group using server-provided values, and retries automatically with the signed payment.
+- `orchestrator/src/facilitatorClient.ts` — **[NEW]** Added HTTP client integration for the public GoPlausible Facilitator (`https://facilitator.goplausible.xyz`). Includes `verifyViaFacilitator` (`POST /verify`), `settleViaFacilitator` (`POST /settle`), and `getFacilitatorSupported` (`GET /supported`) with timeout control and custom User-Agent to ensure Cloudflare bypass.
+- `orchestrator/src/index.ts` — Updated `/api/v1/orchestrate` 402 response body to include `workerPayoutAddresses` and `usdcAsaId`. Integrated third-party `verifyViaFacilitator` verification step into both unified group and legacy payment handling paths (Rule 3).
+- `PITCH_DECK.md` — Replaced Box Storage overclaims (lines 19, 29, 122-124) with accurate SHA-256 cryptographic attestation digest descriptions (`sha256(token:score:verdict:txId:timestamp)`).
+- `docs/PITCH_DECK.docx`, `docs/ONE_PAGER_HINGLISH.docx`, `docs/PROJECT_EXPLAINER_HINGLISH.docx` — Regenerated from updated markdown via `convert_docs.py`.
+- `CHANGELOG_AI.md` — This entry.
+
+**Rule Audit Status:**
+- Rule 1 (402 Challenge): ✅ Exposes HTTP 402 status code with `x-payment-*` headers and payout details.
+- Rule 2 (Auto Sign & Retry): ✅ Frontend probes, receives 402, dynamically builds payload from 402 headers, prompts Lute, and retries.
+- Rule 3 (Facilitator Verification): ✅ GoPlausible facilitator (`POST /verify`) invoked in orchestrator pipeline alongside on-chain Indexer verification.
+- Rule 4 (Transaction-linked Receipt): ✅ Every successful response includes `clientPaymentTxId`, `workerPayoutGroupTxId`, group hash, and `explorerUrl`.
+- Rule 5 (Pay-per-use): ✅ Flat $0.007 per-request micro-settlement with Zero-Fee Guarantee on worker failure.
+
 ### 2026-08-06T20:52:00+05:30 — Antigravity (Claude Opus 4.6)
 **Summary:** Final 2 Assessment Issues — PS0407 PDF Deletion & x402 Facilitator Documentation Honesty  
 **Files Changed:**
