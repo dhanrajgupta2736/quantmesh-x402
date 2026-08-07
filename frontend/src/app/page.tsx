@@ -210,8 +210,8 @@ export default function TerminalPage() {
     setSuccessMsg(null);
 
     try {
-      const data = await fetchQuantMeshSignal(tokenSymbol, activeAddress, async (txns: Uint8Array[]) => {
-        const signed = await signTransactions(txns);
+      const data = await fetchQuantMeshSignal(tokenSymbol, activeAddress, async (txns: Uint8Array[], indexesToSign?: number[]) => {
+        const signed = await signTransactions(txns, indexesToSign);
         return signed.filter((t): t is Uint8Array => t !== null);
       });
 

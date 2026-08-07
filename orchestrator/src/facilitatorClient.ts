@@ -37,15 +37,20 @@ export async function verifyViaFacilitator(
   network: string,
   assetId: number
 ): Promise<FacilitatorVerifyResult> {
+  const normalizedNetwork = (network.includes('algorand') && (network.includes('testnet') || network.includes('SGO1GKS')))
+    ? 'algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+    : network;
+
   const paymentPayload = {
+    x402Version: 2,
     type: 'exact',
-    network,
+    network: normalizedNetwork,
     transaction: paymentTxId,
   };
 
   const paymentRequirements = {
     scheme: 'exact',
-    network,
+    network: normalizedNetwork,
     payTo,
     maxAmountRequired: price,
     asset: String(assetId),
@@ -101,15 +106,20 @@ export async function settleViaFacilitator(
   network: string,
   assetId: number
 ): Promise<FacilitatorSettleResult> {
+  const normalizedNetwork = (network.includes('algorand') && (network.includes('testnet') || network.includes('SGO1GKS')))
+    ? 'algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+    : network;
+
   const paymentPayload = {
+    x402Version: 2,
     type: 'exact',
-    network,
+    network: normalizedNetwork,
     transaction: paymentTxId,
   };
 
   const paymentRequirements = {
     scheme: 'exact',
-    network,
+    network: normalizedNetwork,
     payTo,
     maxAmountRequired: price,
     asset: String(assetId),

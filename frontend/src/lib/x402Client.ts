@@ -44,7 +44,7 @@ export async function optInToUSDCAssest(
 export async function fetchQuantMeshSignal(
   tokenSymbol: string,
   userAddress: string,
-  signTransactions: (txns: Uint8Array[]) => Promise<Uint8Array[]>
+  signTransactions: (txns: Uint8Array[], indexesToSign?: number[]) => Promise<Uint8Array[]>
 ) {
   const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
 
@@ -176,7 +176,7 @@ export async function fetchQuantMeshSignal(
   // 3d. Prompt user to sign Txn 0 in Lute
   let signedTxns: (Uint8Array | null)[];
   try {
-    signedTxns = await signTransactions(group5Txns.map(t => t.toByte()));
+    signedTxns = await signTransactions(group5Txns.map(t => t.toByte()), [0]);
   } catch (signErr: any) {
     throw new Error(
       signErr?.message?.includes('User rejected')

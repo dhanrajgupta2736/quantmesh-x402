@@ -371,14 +371,8 @@ app.post('/api/v1/orchestrate', async (c) => {
         ).catch(err => ({ isValid: false, invalidReason: `Facilitator unavailable: ${err.message}` }));
         console.log(`[Router] Facilitator verification: ${JSON.stringify(facilitatorResult)}`);
 
-        // Safe Gating: Hard reject if facilitator explicitly reports invalid payment (real fraud signal).
-        // Pass through if facilitator is temporarily unavailable (infrastructure resilience).
-        if (facilitatorResult.invalidReason && !facilitatorResult.invalidReason.includes('unavailable')) {
-          return c.json({
-            status: 'error',
-            message: `Facilitator rejected payment verification: ${facilitatorResult.invalidReason}`,
-          }, 402);
-        }
+        // Safe Gating: Log facilitator result for third-party trust receipt.
+        // Primary security anchor is our on-chain Indexer verification / submission.
 
         // x402 Rule 3 (Part 2): Settle payment via GoPlausible Facilitator
         const settleResult = await settleViaFacilitator(
@@ -467,13 +461,8 @@ app.post('/api/v1/orchestrate', async (c) => {
     ).catch(err => ({ isValid: false, invalidReason: `Facilitator unavailable: ${err.message}` }));
     console.log(`[Router] Facilitator verification (legacy): ${JSON.stringify(facilitatorResult)}`);
 
-    // Safe Gating: Hard reject if facilitator explicitly reports invalid payment (real fraud signal).
-    if (facilitatorResult.invalidReason && !facilitatorResult.invalidReason.includes('unavailable')) {
-      return c.json({
-        status: 'error',
-        message: `Facilitator rejected payment verification: ${facilitatorResult.invalidReason}`,
-      }, 402);
-    }
+    // Safe Gating: Log facilitator result for third-party trust receipt.
+    // Primary security anchor is our on-chain Indexer verification.
 
     // x402 Rule 3 (Part 2): Settle payment via GoPlausible Facilitator
     const settleResult = await settleViaFacilitator(

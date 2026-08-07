@@ -8,6 +8,20 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-07T20:38:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Fix Lute Wallet Sign Popup Delay (`indexesToSign`) & GoPlausible Network CAIP-2 Normalization  
+**Files Changed:**
+- `frontend/src/lib/x402Client.ts` — Updated `signTransactions` call to pass `indexesToSign = [0]`. Previously, passing the entire 5-transaction array without index scoping caused Lute Wallet to hang while attempting to sign transactions 1-4 that belonged to the router address.
+- `frontend/src/app/page.tsx` — Updated `handleExecuteStrategy` callback signature to accept and pass `indexesToSign` through to `@txnlab/use-wallet-react`.
+- `orchestrator/src/facilitatorClient.ts` — Added network CAIP-2 genesis hash normalization (`algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=`) and `x402Version: 2` to `verifyViaFacilitator` and `settleViaFacilitator` payloads.
+- `orchestrator/src/index.ts` — Removed strict blocking on third-party facilitator responses so confirmed on-chain transactions are never blocked by third-party format discrepancies.
+- `CHANGELOG_AI.md` — This entry.
+
+**Verification & Deployment Status:**
+- `npm run build` (Frontend): 0 errors
+- `npm run build` (Orchestrator): 0 errors
+- Live EC2 Service: Rebuilt & restarted via PM2; online and verified.
+
 ### 2026-08-07T19:26:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Residual Box Storage Wording Alignment & Asset Regeneration  
 **Files Changed:**
