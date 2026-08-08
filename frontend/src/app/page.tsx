@@ -228,7 +228,13 @@ export default function QuantMeshPage() {
         compositeScore: data.signalFusion?.compositeScore ?? data.sentiment?.score ?? 70,
         verdict: data.signalFusion?.verdict ?? data.sentiment?.sentimentVerdict ?? 'BULLISH',
         txId: data.clientPaymentTxId || 'N/A',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        timestamp: new Date().toLocaleString([], { 
+          month: 'short', 
+          day: 'numeric', 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          second: '2-digit' 
+        }),
         cost: activeEndpoint === 'consensus' ? '$0.0070' : '$0.0020',
       };
       setHistory((prev) => [entry, ...prev.slice(0, 7)]);
@@ -380,7 +386,13 @@ export default function QuantMeshPage() {
               return (
                 <button
                   key={token.symbol}
-                  onClick={() => setSelectedToken(token.symbol)}
+                  onClick={() => {
+                    setSelectedToken(token.symbol);
+                    setSignalData(null);
+                    setError(null);
+                    setSuccessMsg(null);
+                    setCurrentStep(0);
+                  }}
                   className={`p-3 rounded-2xl border text-left transition-all relative overflow-hidden group ${
                     isSelected
                       ? 'bg-slate-900 border-cyan-400/80 shadow-lg shadow-cyan-500/20 scale-[1.03]'
@@ -462,13 +474,15 @@ export default function QuantMeshPage() {
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-slate-400 font-medium">Multi-Agent Agreement Conviction</span>
                     <span className="font-bold font-mono-brand text-cyan-400">
-                      {signalData?.signalFusion?.confidencePct ? `${signalData.signalFusion.confidencePct}% Agreement` : '94% Agent Conviction'}
+                      {signalData?.signalFusion?.confidencePct 
+                        ? `${signalData.signalFusion.confidencePct}% Agreement` 
+                        : 'Awaiting Execution (--%)'}
                     </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full transition-all duration-1000"
-                      style={{ width: `${signalData?.signalFusion?.confidencePct ?? 94}%` }}
+                      style={{ width: `${signalData?.signalFusion?.confidencePct ?? 0}%` }}
                     />
                   </div>
                   <p className="text-[10px] text-slate-500">Measures cross-agent alignment across sentiment, whale flow, and technical indicators.</p>
@@ -512,26 +526,86 @@ export default function QuantMeshPage() {
               </div>
             </div>
 
-            {/* Breakdown Cards */}
+            {/* Breakdown Cards with Clear Bullish / Bearish / Neutral Status Badges */}
             {signalData && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-800/80 animate-fade-up">
-                <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase">Worker A (Sentiment)</div>
-                  <div className="text-sm font-bold text-white mt-1">Score: {signalData.breakdown?.sentimentScore ?? signalData.sentiment?.score}</div>
-                  <div className="text-[10px] text-cyan-400 mt-0.5">FinBERT NLP NLP</div>
-                </div>
+                {/* Worker A */}
+                {(() => {
+                  const score = signalData.breakdown?.sentimentScore ?? signalData.sentiment?.score ?? 50;
+                  const isBull = score >= 55;
+                  const isBear = score <= 45;
+                  const label = isBull ? 'BULLISH' : isBear ? 'BEARISH' : 'NEUTRAL';
+                  const badgeColor = isBull 
+                    ? 'text-emerald-400 bg-emerald-950/80 border-emerald-500/40' 
+                    : isBear 
+                    ? 'text-rose-400 bg-rose-950/80 border-rose-500/40' 
+                    : 'text-amber-400 bg-amber-950/80 border-amber-500/40';
 
-                <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase">Worker B (Whale Flow)</div>
-                  <div className="text-sm font-bold text-white mt-1">{signalData.breakdown?.onChainWhaleFlow ?? '+18% Net Inflow'}</div>
-                  <div className="text-[10px] text-emerald-400 mt-0.5">CoinGecko Heuristics</div>
-                </div>
+                  return (
+                    <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Worker A (Sentiment)</span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${badgeColor}`}>
+                          {label}
+                        </span>
+                      </div>
+                      <div className="text-sm font-bold text-white">Score: {score}</div>
+                      <div className="text-[10px] text-cyan-400">FinBERT Financial NLP</div>
+                    </div>
+                  );
+                })()}
 
-                <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase">Worker C (Technicals)</div>
-                  <div className="text-sm font-bold text-white mt-1 truncate">{signalData.breakdown?.technicalIndicator ?? 'RSI 58 Bullish'}</div>
-                  <div className="text-[10px] text-purple-400 mt-0.5">SMA 7/20 & MACD</div>
-                </div>
+                {/* Worker B */}
+                {(() => {
+                  const flowStr = signalData.breakdown?.onChainWhaleFlow ?? '+18% Net Inflow';
+                  const isBear = flowStr.includes('-') || flowStr.toLowerCase().includes('outflow');
+                  const isBull = flowStr.includes('+') || flowStr.toLowerCase().includes('inflow');
+                  const label = isBear ? 'BEARISH' : isBull ? 'BULLISH' : 'NEUTRAL';
+                  const badgeColor = isBull 
+                    ? 'text-emerald-400 bg-emerald-950/80 border-emerald-500/40' 
+                    : isBear 
+                    ? 'text-rose-400 bg-rose-950/80 border-rose-500/40' 
+                    : 'text-amber-400 bg-amber-950/80 border-amber-500/40';
+
+                  return (
+                    <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Worker B (Whale Flow)</span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${badgeColor}`}>
+                          {label}
+                        </span>
+                      </div>
+                      <div className="text-sm font-bold text-white">{flowStr}</div>
+                      <div className="text-[10px] text-emerald-400">CoinGecko Market Flow</div>
+                    </div>
+                  );
+                })()}
+
+                {/* Worker C */}
+                {(() => {
+                  const taStr = signalData.breakdown?.technicalIndicator ?? 'RSI 58 Bullish';
+                  const isBear = taStr.toLowerCase().includes('bearish');
+                  const isBull = taStr.toLowerCase().includes('bullish');
+                  const label = isBear ? 'BEARISH' : isBull ? 'BULLISH' : 'NEUTRAL';
+                  const badgeColor = isBull 
+                    ? 'text-emerald-400 bg-emerald-950/80 border-emerald-500/40' 
+                    : isBear 
+                    ? 'text-rose-400 bg-rose-950/80 border-rose-500/40' 
+                    : 'text-amber-400 bg-amber-950/80 border-amber-500/40';
+
+                  return (
+                    <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Worker C (Technicals)</span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${badgeColor}`}>
+                          {label}
+                        </span>
+                      </div>
+                      <div className="text-sm font-bold text-white truncate">{taStr}</div>
+                      <div className="text-[10px] text-purple-400">RSI, SMA & MACD Engine</div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
