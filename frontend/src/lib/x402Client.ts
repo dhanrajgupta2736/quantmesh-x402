@@ -3,8 +3,7 @@ import algosdk from 'algosdk';
 const ROUTER_GATEWAY = 'https://api.dhanrajgupta.xyz/api/v1/orchestrate';
 const TESTNET_USDC_ASA = 10458941;
 
-// Fallback constants — used ONLY if the 402 challenge headers are missing.
-// The correct x402 flow reads these from the server's 402 response.
+// Fallback constants
 const FALLBACK_PAY_TO = '4DTSNS35EP24IFWIGXSG5NSD3GDDTPHNVGEXSHG67JDEHUHUNFR3KJGPO4';
 const FALLBACK_PRICE_USDC = '0.007';
 const FALLBACK_WORKER_PAYOUT_ADDRESSES = {
@@ -58,56 +57,35 @@ export async function fetchQuantMeshSignal(
     body: JSON.stringify({ tokenSymbol }),
   });
 
-  // If the probe returns 200 (somehow already paid), return directly
   if (probeRes.ok) {
     const data = await probeRes.json();
     if (data.status === 'success') return data;
   }
 
-  // If we got something other than 402, it's an error
   if (probeRes.status !== 402) {
     const errBody = await probeRes.json().catch(() => ({}));
     throw new Error(errBody.message || `Unexpected server response: ${probeRes.status}`);
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // x402 STEP 2: READ 402 CHALLENGE — Extract payment parameters from
-  // the server's response headers and body (not hardcoded constants)
+  // x402 STEP 2: READ 402 CHALLENGE — Extract payment parameters
   // ═══════════════════════════════════════════════════════════════════
   console.log('[x402] Step 2: Reading 402 challenge headers...');
   const payTo = probeRes.headers.get('x-payment-pay-to') || FALLBACK_PAY_TO;
   const priceStr = probeRes.headers.get('x-payment-price') || FALLBACK_PRICE_USDC;
-  const network = probeRes.headers.get('x-payment-network') || '';
-  const scheme = probeRes.headers.get('x-payment-scheme') || 'exact';
 
-  // Read worker payout addresses from the 402 response body
   const challengeBody = await probeRes.json().catch(() => ({}));
-  const workerAddresses = challengeBody.workerPayoutAddresses || FALLBACK_WORKER_PAYOUT_ADDRESSES;
   const usdcAsaId = challengeBody.usdcAsaId || TESTNET_USDC_ASA;
-
   const amountInBaseUnits = Math.round(parseFloat(priceStr) * 1_000_000);
 
-  console.log(`[x402] 402 Challenge received:`, {
-    payTo: payTo.slice(0, 12) + '...',
-    price: priceStr,
-    network,
-    scheme,
-    amountInBaseUnits,
-    workerAddresses: Object.keys(workerAddresses),
-  });
-
   // ═══════════════════════════════════════════════════════════════════
-  // x402 STEP 3: SIGN — Build 5-Txn atomic group using server-provided
-  // values, then prompt user to sign in Lute Wallet
+  // x402 STEP 3: SIGN — Build clean payment transaction & prompt Lute
   // ═══════════════════════════════════════════════════════════════════
-
-  // 3a. Fetch account info + tx params IN PARALLEL for speed
   const [accountInfo, params] = await Promise.all([
     algodClient.accountInformation(userAddress).do().catch(() => null),
     algodClient.getTransactionParams().do(),
   ]);
 
-  // 3b. Detect USDC balance (handles algosdk v3 BigInt + camelCase)
   let hasUsdcOptIn = false;
   let usdcBalance = 0;
 
@@ -120,15 +98,11 @@ export async function fetchQuantMeshSignal(
     if (usdcAsset) {
       hasUsdcOptIn = true;
       usdcBalance = Number(usdcAsset.amount ?? 0);
-      console.log(`[x402] USDC detected: balance=${usdcBalance} micro-USDC`);
     }
   }
 
-  // 3c. Build Unified 5-Txn Atomic Group using server-provided addresses
   let txn0: algosdk.Transaction;
-
   if (hasUsdcOptIn && usdcBalance >= amountInBaseUnits) {
-    console.log(`[x402] Building USDC ASA Transfer for 5-Txn Group...`);
     txn0 = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
       from: userAddress,
       sender: userAddress,
@@ -139,7 +113,6 @@ export async function fetchQuantMeshSignal(
       suggestedParams: params,
     } as any);
   } else {
-    console.log(`[x402] Building Native ALGO Micropayment for 5-Txn Group...`);
     txn0 = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       from: userAddress,
       sender: userAddress,
@@ -150,70 +123,44 @@ export async function fetchQuantMeshSignal(
     } as any);
   }
 
-  // Worker payouts using server-provided addresses
-  const workerPayouts = [
-    { to: workerAddresses.A, amount: 2000 },
-    { to: workerAddresses.B, amount: 2000 },
-    { to: workerAddresses.C, amount: 1000 },
-    { to: workerAddresses.D, amount: 1000 },
-  ];
-
-  const workerTxns: algosdk.Transaction[] = workerPayouts.map(p =>
-    algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-      from: payTo,
-      sender: payTo,
-      to: p.to,
-      receiver: p.to,
-      amount: p.amount,
-      assetIndex: usdcAsaId,
-      suggestedParams: params,
-    } as any)
-  );
-
-  const group5Txns = [txn0, ...workerTxns];
-  algosdk.assignGroupID(group5Txns);
-
-  // 3d. Prompt user to sign Txn 0 in Lute Wallet (txn0 contains the assigned 5-txn Group ID)
-  let signedTxns: (Uint8Array | null)[];
+  console.log('[x402] Prompting Lute Wallet to sign payment transaction...');
+  let signedTxns: Uint8Array[];
   try {
     signedTxns = await signTransactions([txn0.toByte()]);
   } catch (signErr: any) {
-    // Fallback attempt with indexesToSign=[0] if wallet wrapper requires full array
-    try {
-      signedTxns = await signTransactions(group5Txns.map(t => t.toByte()), [0]);
-    } catch (fallbackErr: any) {
-      throw new Error(
-        signErr?.message?.includes('User rejected')
-          ? 'Transaction was rejected by user.'
-          : `Wallet signature error: ${signErr?.message || 'Could not connect to Lute Wallet.'}`
-      );
-    }
+    console.error('[x402] Wallet signing error:', signErr);
+    throw new Error(
+      signErr?.message?.includes('User rejected')
+        ? 'Transaction was rejected by user.'
+        : `Wallet error: ${signErr?.message || 'Could not connect to Lute Wallet.'}`
+    );
   }
 
   if (!signedTxns || !signedTxns[0]) {
     throw new Error('Transaction signing was cancelled by user.');
   }
 
-  // ═══════════════════════════════════════════════════════════════════
-  // x402 STEP 4: RETRY — Re-send the request with payment proof
-  // (the "automatic retry" per x402 Rule 2)
-  // ═══════════════════════════════════════════════════════════════════
-  console.log('[x402] Step 4: Retrying with signed payment proof...');
+  // Submit client payment to Algorand Testnet
+  console.log('[x402] Submitting payment transaction to Algorand Testnet...');
+  const sendRes = await algodClient.sendRawTransaction(signedTxns[0]).do();
+  const paymentTxId = sendRes.txid;
 
-  const signedClientTxnBase64 = Buffer.from(signedTxns[0]).toString('base64');
-  const unsignedWorkerTxnsBase64 = workerTxns.map(t => Buffer.from(t.toByte()).toString('base64'));
+  console.log(`[x402] Payment transaction submitted! TxId: ${paymentTxId}. Waiting for 1-block confirmation...`);
+  await algosdk.waitForConfirmation(algodClient, paymentTxId, 4);
 
+  // ═══════════════════════════════════════════════════════════════════
+  // x402 STEP 4: RETRY — Send request with verified payment transaction ID
+  // ═══════════════════════════════════════════════════════════════════
+  console.log(`[x402] Step 4: Retrying request with verified paymentTxId: ${paymentTxId}...`);
   const paidRes = await fetch(ROUTER_GATEWAY, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'x-payment-txn-id': paymentTxId,
     },
     body: JSON.stringify({
       tokenSymbol,
-      unifiedGroup: {
-        signedClientTxn: signedClientTxnBase64,
-        unsignedWorkerTxns: unsignedWorkerTxnsBase64,
-      },
+      clientPaymentTxId: paymentTxId,
     }),
   });
 
@@ -223,6 +170,6 @@ export async function fetchQuantMeshSignal(
     throw new Error(paidData.message || `Payment verification failed: ${paidRes.statusText}`);
   }
 
-  console.log('[x402] ✅ Full x402 flow complete: Challenge → Sign → Retry → Receipt');
+  console.log('[x402] ✅ Full x402 protocol execution complete!');
   return paidData;
 }
