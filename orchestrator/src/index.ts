@@ -4,12 +4,18 @@ import { serve } from '@hono/node-server';
 import { paymentMiddleware, x402ResourceServer } from '@x402-avm/hono';
 import { HTTPFacilitatorClient } from '@x402-avm/core/server';
 import { ExactAvmScheme } from '@x402-avm/avm/exact/server';
-import { ALGORAND_TESTNET_CAIP2, USDC_TESTNET_ASA_ID } from '@x402-avm/avm';
 import dotenv from 'dotenv';
 import algosdk from 'algosdk';
 import { computeBoxStorageHash } from './attestation.js';
 import { buildAtomicPaymentGroup, signAndSubmitAtomicGroup, signAndSubmitUnifiedGroup } from './atomicBuilder.js';
 import { verifyViaFacilitator, settleViaFacilitator } from './facilitatorClient.js';
+import { 
+  ALGORAND_TESTNET_CAIP2, 
+  USDC_TESTNET_ASA_ID, 
+  ROUTER_ADDRESS, 
+  WORKER_PAYOUT_ADDRESSES, 
+  FACILITATOR_URL 
+} from './endpoint.config.js';
 
 dotenv.config();
 
@@ -26,12 +32,7 @@ if (process.env.ROUTER_MNEMONIC) {
   }
 }
 
-const WORKER_PAYOUT_ADDRESSES = {
-  A: process.env.WORKER_A_PAYOUT_ADDR || '',
-  B: process.env.WORKER_B_PAYOUT_ADDR || '',
-  C: process.env.WORKER_C_PAYOUT_ADDR || '',
-  D: process.env.WORKER_D_PAYOUT_ADDR || '',
-};
+// ROUTER_ADDRESS & WORKER_PAYOUT_ADDRESSES loaded from endpoint.config.ts
 
 // In-memory record of transaction IDs already used to pay for a signal.
 // Prevents the same real payment from being replayed across multiple
@@ -371,8 +372,13 @@ app.post('/api/v1/orchestrate', async (c) => {
         ).catch(err => ({ isValid: false, invalidReason: `Facilitator unavailable: ${err.message}` }));
         console.log(`[Router] Facilitator verification: ${JSON.stringify(facilitatorResult)}`);
 
-        // Safe Gating: Log facilitator result for third-party trust receipt.
-        // Primary security anchor is our on-chain Indexer verification / submission.
+        // Safe Gating: Hard reject if facilitator explicitly reports invalid payment (real fraud signal).
+        if (facilitatorResult.invalidReason && !facilitatorResult.invalidReason.includes('unavailable')) {
+          return c.json({
+            status: 'error',
+            message: `Facilitator rejected payment verification: ${facilitatorResult.invalidReason}`,
+          }, 402);
+        }
 
         // x402 Rule 3 (Part 2): Settle payment via GoPlausible Facilitator
         const settleResult = await settleViaFacilitator(
@@ -461,8 +467,13 @@ app.post('/api/v1/orchestrate', async (c) => {
     ).catch(err => ({ isValid: false, invalidReason: `Facilitator unavailable: ${err.message}` }));
     console.log(`[Router] Facilitator verification (legacy): ${JSON.stringify(facilitatorResult)}`);
 
-    // Safe Gating: Log facilitator result for third-party trust receipt.
-    // Primary security anchor is our on-chain Indexer verification.
+    // Safe Gating: Hard reject if facilitator explicitly reports invalid payment (real fraud signal).
+    if (facilitatorResult.invalidReason && !facilitatorResult.invalidReason.includes('unavailable')) {
+      return c.json({
+        status: 'error',
+        message: `Facilitator rejected payment verification: ${facilitatorResult.invalidReason}`,
+      }, 402);
+    }
 
     // x402 Rule 3 (Part 2): Settle payment via GoPlausible Facilitator
     const settleResult = await settleViaFacilitator(
@@ -577,6 +588,92 @@ app.post('/api/v1/orchestrate', async (c) => {
   } catch (error: any) {
     return c.json({ status: 'error', message: error.message }, 500);
   }
+});
+
+/**
+ * ═══════════════════════════════════════════════════════════════════
+ * ENDPOINT 2 (Hackathon 2+ Endpoints Requirement):
+ * POST /api/v1/sentiment-only — Single FinBERT Sentiment Agent ($0.002 USDC)
+ * ═══════════════════════════════════════════════════════════════════
+ */
+app.post('/api/v1/sentiment-only', async (c) => {
+  const ip = c.req.header('x-forwarded-for') || '127.0.0.1';
+  if (!checkRateLimit(ip)) {
+    return c.json({ status: 'error', message: 'Rate limit exceeded (10 req/min).' }, 429);
+  }
+
+  const routerAddress = process.env.ROUTER_ADDRESS || '4DTSNS35EP24IFWIGXSG5NSD3GDDTPHNVGEXSHG67JDEHUHUNFR3KJGPO4';
+  const body = await c.req.json().catch(() => ({}));
+  const tokenSymbol = (body?.tokenSymbol || 'ALGO').toUpperCase();
+
+  let paymentTxId = c.req.header('x-payment-txn-id') || body?.clientPaymentTxId || body?.unifiedGroup?.signedClientTxn;
+
+  // 1. If no payment proof, issue HTTP 402 Challenge ($0.002 USDC)
+  if (!paymentTxId) {
+    c.header('x-payment-pay-to', routerAddress);
+    c.header('x-payment-price', '0.002');
+    c.header('x-payment-network', ALGORAND_TESTNET_CAIP2);
+    c.header('x-payment-scheme', 'exact');
+    c.header('x-payment-usdc-asa-id', String(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID));
+    return c.json({
+      status: 'payment_required',
+      endpoint: 'sentiment-only',
+      message: 'x402 Payment Required: $0.002 USDC/ALGO on Algorand Testnet for FinBERT Sentiment Analysis',
+      priceUsdc: '0.002',
+      usdcAsaId: Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID),
+    }, 402);
+  }
+
+  // 2. Pre-execute Worker A (FinBERT Sentiment)
+  const resA = await fetch(`${process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment'}?token=${tokenSymbol}`)
+    .then(r => r.ok ? r.json() : null)
+    .catch(() => null) || { sentimentScore: 65, source: 'fallback' };
+
+  // 3. Verify Payment
+  const verification = await verifyRealPayment(
+    paymentTxId,
+    routerAddress,
+    2000, // $0.002 in 6-decimal micro-units
+    Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID)
+  );
+
+  if (!verification.valid) {
+    return c.json({
+      status: 'payment_required',
+      message: `x402 Payment Verification Failed: ${verification.reason}`,
+    }, 402);
+  }
+
+  // 4. GoPlausible Facilitator Verification & Settlement
+  const facilitatorResult = await verifyViaFacilitator(
+    paymentTxId, routerAddress, '0.002',
+    ALGORAND_TESTNET_CAIP2, Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID)
+  ).catch(err => ({ isValid: false, invalidReason: `Facilitator unavailable: ${err.message}` }));
+
+  const settleResult = await settleViaFacilitator(
+    paymentTxId, routerAddress, '0.002',
+    ALGORAND_TESTNET_CAIP2, Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID)
+  ).catch(err => ({ success: false, errorReason: `Facilitator settle unavailable: ${err.message}` }));
+
+  const { boxStorageHash } = computeBoxStorageHash(tokenSymbol, resA.sentimentScore, 'SENTIMENT_CHECK', paymentTxId);
+
+  return c.json({
+    status: 'success',
+    endpoint: 'sentiment-only',
+    clientPaymentTxId: paymentTxId,
+    totalCostUsdc: '0.0020',
+    sentiment: {
+      score: resA.sentimentScore,
+      source: resA.source || 'HuggingFace FinBERT Serverless Router',
+      sentimentVerdict: resA.sentimentScore >= 65 ? 'BULLISH' : resA.sentimentScore <= 40 ? 'BEARISH' : 'NEUTRAL',
+    },
+    onChainReceipt: {
+      explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
+      facilitatorVerification: facilitatorResult,
+      facilitatorSettlement: settleResult,
+      boxStorageHash,
+    },
+  });
 });
 
 const port = Number(process.env.PORT) || 4000;

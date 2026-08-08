@@ -8,25 +8,32 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
-### 2026-08-07T21:04:00+05:30 — Antigravity (Gemini 3.6 Flash)
-**Summary:** Visual Upgrade of Presentation Deck with 10 High-Impact Graphic Assets & Diagrams  
+### 2026-08-08T11:27:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Implementation of 4 Review Audit Recommendations (endpoint.config.ts, UI/UX Overhaul, Dynamic Payout Scaling, Explainer Text Cleanup)  
 **Files Changed:**
-- `generate_ppt.py` — Updated generator script to embed 10 custom-generated 3D cyberpunk visual assets, process flowcharts, unit economics infographics, architecture blueprints, UI demo mockups, and global impact network graphics.
-- `docs/AlgoVerse2026_QuantMesh_x402_Official_Pitch.pptx` — Re-generated rich PowerPoint presentation with embedded high-resolution visual diagrams on every slide.
-- `docs/AlgoVerse2026_QuantMesh_x402_Official_Pitch.pdf` — Re-exported rich PDF version matching the PPTX.
+- `orchestrator/src/endpoint.config.ts` — **[NEW]** Extracted gateway configuration file matching the reference template structure (`ALGORAND_TESTNET_CAIP2`, `USDC_TESTNET_ASA_ID`, `ROUTER_ADDRESS`, `WORKER_PAYOUT_ADDRESSES`, `FACILITATOR_URL`).
+- `orchestrator/src/index.ts` — Imported config constants from `endpoint.config.js`. Restored strict `facilitatorResult` hard-reject gate for explicit third-party invalidation signals. Added 2nd paid endpoint `POST /api/v1/sentiment-only` ($0.002 USDC) to satisfy 2+ endpoint requirement.
+- `orchestrator/src/atomicBuilder.ts` — Updated `buildAtomicPaymentGroup` and `buildUnified5TxnGroup` to accept dynamic worker payout amounts (`amountA`, `amountB`, `amountC`, `amountD`) scaled from agent signal conviction weights ($W_s, W_o, W_t$).
+- `frontend/src/app/page.tsx` — **[UI OVERHAUL]** Redesigned interface with endpoint switcher tabs (`4-Agent Consensus ($0.007)` vs `FinBERT Sentiment ($0.002)`), live step progress tracker, zero-fee guarantee badge, score gauge, and sub-agent network health radar.
+- `docs/PROJECT_EXPLAINER_HINGLISH.md` & `.docx` — Cleaned residual Box Storage claims (lines 46, 96, 141) and regenerated Word documentation.
 - `CHANGELOG_AI.md` — This entry.
 
-**Visual Enhancements:**
-- Slide 1: 3D Cyberpunk AI Mesh Title Banner
-- Slide 2: Problem Statement Infographic Illustration
-- Slide 3: 3D Isometric Multi-Agent Router Diagram
-- Slide 4: Business Model Unit Economics Infographic
-- Slide 5: x402 Technical Protocol Flowchart Diagram
-- Slide 6: Full-Stack Architecture Blueprint
-- Slide 7: Live UI Demo Screenshot & Algorand Explorer Receipt Mockup
-- Slide 8: Side-by-Side Competitive Differentiation Graphic
-- Slide 9: Completeness & Deliverables Status Dashboard
-- Slide 10: 3D Global AI Agent Economy Network Visualization
+**Verification & Deployment Status:**
+- `npm run build` (Orchestrator): 0 errors
+- `npm run build` (Frontend): 0 errors, compiled successfully
+- Live Production EC2: Updated, rebuilt, and PM2 restarted (`online`).
+
+### 2026-08-07T21:34:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Visited Lora Explorer (`https://lora.algokit.io/testnet`) via Agentic Browser, captured real on-chain transaction details (Tx ID `3V3VHVA3PEUZTKYCJUD7HNNGYK2XLLR7ROPTJ2HFQGTWGDBCHAMQ`) and atomic transaction group visual flow graph (`bv4pwvqPv/ULbbpzAObL07qsDmcUGnvUzaBjwHL9Hl8=`), cropped screenshots, and embedded them directly into `presentation.md`, `presentation.pptx`, `presentation.pdf`, and `presentation.html`.  
+**Files Changed:**
+- `assets/lora-txn-explorer.png` — **[NEW]** Real Lora Explorer transaction detail screenshot.
+- `assets/lora-group-flow.png` — **[NEW]** Real Lora Explorer atomic group transaction visual flow graph screenshot.
+- `presentation.md` — Updated Marp presentation slides with dedicated Lora Explorer transaction & group flow slides.
+- `presentation.html` — Re-compiled Marp HTML presentation deck.
+- `presentation.pdf` — Re-compiled PDF hackathon presentation deck.
+- `presentation.pptx` — Re-built PowerPoint presentation deck (.pptx) with atomic group flow slide.
+- `build_pptx_deck.py` — Updated PowerPoint generator script.
+- `CHANGELOG_AI.md` — Updated change log.
 
 ### 2026-08-07T20:51:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Official AlgoVerse 2026 10-Slide Deck Generation (PPTX & PDF)  

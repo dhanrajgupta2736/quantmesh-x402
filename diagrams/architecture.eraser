@@ -1,0 +1,43 @@
+// QuantMesh x402 — System Architecture Flowchart (Eraser AI Format)
+// Algorand AVM Micropayment Signal Router (PS0404)
+
+// Node Definitions
+Client [icon: monitor, color: cyan] {
+  label: "Next.js 16 Dashboard\nLute Wallet SDK"
+}
+
+Gateway [icon: server, color: purple] {
+  label: "Hono.js Gateway (AWS EC2)\napi.dhanrajgupta.xyz"
+}
+
+group Workers [label: "Phase 1 Parallel AI Sub-Agents", color: blue] {
+  WorkerA [icon: cpu, label: "Worker A: FinBERT Sentiment NLP (5001)"]
+  WorkerB [icon: database, label: "Worker B: CoinGecko Whale Flow (5002)"]
+  WorkerC [icon: activity, label: "Worker C: TA Engine (RSI/MACD) (5002)"]
+}
+
+WorkerD [icon: git-merge, color: green, label: "Worker D: Weighted Fusion Engine (5001)"]
+
+Shield [icon: shield, color: red, label: "Pre-Execution Guardrail\nHTTP 502 Abort ($0 Charged)"]
+
+Algorand [icon: lock, color: cyan, label: "Algorand Testnet AVM\nUSDC ASA (10458941)"]
+
+// Connections
+Client > Gateway: "1. POST /api/v1/orchestrate"
+Gateway > WorkerA: "HF NLP Prompt"
+Gateway > WorkerB: "CoinGecko Market API"
+Gateway > WorkerC: "OHLC Indicators"
+
+WorkerA > WorkerD: "Sentiment (+0.78)"
+WorkerB > WorkerD: "Whale Net Flow (+14.2M)"
+WorkerC > WorkerD: "Golden Cross (RSI 62.4)"
+
+WorkerD > Gateway: "Fused Score (66/100 BUY)"
+
+Gateway > Shield: "Worker Health Check"
+Shield > Client: "IF Fail -> 502 Zero-Fee Abort"
+
+Gateway > Client: "2. HTTP 402 Payment Required ($0.007 USDC)"
+Client > Algorand: "3. Lute Wallet Signs ASA Tx"
+Algorand > Gateway: "4. Indexer Verification Proof"
+Gateway > Client: "5. HTTP 200 OK + SHA-256 Digest"

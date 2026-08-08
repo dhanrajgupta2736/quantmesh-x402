@@ -43,8 +43,8 @@ Apan ne intelligence ko 4 alag microservices me baata hai:
 * HTTP 402 Payment Required status code use hota hai.
 * Direct Lute Wallet se Algorand Testnet par $0.007 atomic settlement hoti hai.
 
-### 3. ⛓️ Algorand Box Storage Signal Attestation
-* Yeh cryptographic receipt hash Algorand Testnet ke **Payment Transaction Receipt** me indelibly anchor ho jata hai (`sha256(token:score:verdict:txId:timestamp)`). Pura audit trail on-chain rehta hai!
+### 3. ⛓️ Cryptographic Signal Attestation Digest
+* Yeh cryptographic attestation hash Algorand Testnet ke **Payment Transaction Receipt** me anchor ho jata hai (`sha256(token:score:verdict:txId:timestamp)`). Pura audit trail transaction ID ke saath verifiable hai! PyTeal Box Storage contract (`contracts/signal_attestation.py`) mainnet implementation ke liye prepared hai.
 
 ### 4. 📊 Dashboard Features
 * **Animated Radial SVG Score Gauge:** Dynamic colors (Red = Sell, Yellow = Neutral, Cyan/Green = Buy).
@@ -93,7 +93,7 @@ Apan ne intelligence ko 4 alag microservices me baata hai:
 9. Client Transaction ID Ke Saath Request Re-send Karta Hai
        │
        ▼
-10. Orchestrator On-Chain Receipt, SHA-256 Box Storage Hash, Aur Fused Score UI Par Display Kar Deta Hai! 🎉
+10. Orchestrator On-Chain Receipt, SHA-256 Attestation Hash, Aur Fused Score UI Par Display Kar Deta Hai! 🎉
 ```
 
 ---
@@ -138,7 +138,7 @@ n8n Cloud canvas presentation me bohot mast lagta hai! Extra technical depth dik
 
 1. **Tagline:** *"QuantMesh x402 is an AI DeFi signal router powered by Algorand's x402 micropayment protocol."*
 2. **Main Innovation:** *"Pay-per-signal at $0.007 with a 100% Pre-Execution Zero-Fee Guarantee — if any AI sub-agent is down, the user pays zero."*
-3. **Live Tech Stack:** *"Hono.js on AWS EC2, FinBERT Financial Sentiment NLP, CoinGecko Live Market Data, PyTeal ARC-4 Box Storage Smart Contracts, and Lute Wallet."*
+3. **Live Tech Stack:** *"Hono.js on AWS EC2, FinBERT Financial Sentiment NLP, CoinGecko Live Market Data, GoPlausible Facilitator Verification, SHA-256 Cryptographic Attestation Engine, and Lute Wallet."*
 4. **Mainnet Ready:** *"Only 2 config changes required to flip to Mainnet: setting network to `algorand:mainnet` and using Mainnet USDC ASA `315667040`."*
 
 ---

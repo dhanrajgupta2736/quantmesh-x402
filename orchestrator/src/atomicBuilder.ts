@@ -6,7 +6,14 @@ const algodClient = new algosdk.Algodv2(
   process.env.ALGOD_PORT || '443'
 );
 
-export interface AtomicPayoutConfig {
+export interface WorkerPayoutAmounts {
+  amountA?: number;
+  amountB?: number;
+  amountC?: number;
+  amountD?: number;
+}
+
+export interface AtomicPayoutConfig extends WorkerPayoutAmounts {
   senderAddress: string;
   workerAAddress: string;
   workerBAddress: string;
@@ -18,12 +25,12 @@ export interface AtomicPayoutConfig {
 export async function buildAtomicPaymentGroup(config: AtomicPayoutConfig) {
   const params = await algodClient.getTransactionParams().do();
   
-  // Micro-USDC payments (6 decimals: 2000 = $0.0020 USDC)
+  // Micro-USDC payments (dynamically scaled from weights or default 2000, 2000, 1000, 1000)
   const payouts = [
-    { to: config.workerAAddress, amount: 2000 }, // Agent A: $0.0020
-    { to: config.workerBAddress, amount: 2000 }, // Agent B: $0.0020
-    { to: config.workerCAddress, amount: 1000 }, // Agent C: $0.0010
-    { to: config.workerDAddress, amount: 1000 }, // Agent D: $0.0010
+    { to: config.workerAAddress, amount: config.amountA ?? 2000 },
+    { to: config.workerBAddress, amount: config.amountB ?? 2000 },
+    { to: config.workerCAddress, amount: config.amountC ?? 1000 },
+    { to: config.workerDAddress, amount: config.amountD ?? 1000 },
   ];
 
   const txns: algosdk.Transaction[] = payouts.map(payout =>
@@ -44,7 +51,7 @@ export async function buildAtomicPaymentGroup(config: AtomicPayoutConfig) {
   return txns;
 }
 
-export interface Unified5TxnConfig {
+export interface Unified5TxnConfig extends WorkerPayoutAmounts {
   userAddress: string;
   routerAddress: string;
   workerAAddress: string;
@@ -83,12 +90,12 @@ export async function buildUnified5TxnGroup(config: Unified5TxnConfig) {
     } as any);
   }
 
-  // Txns 1-4: Router -> 4 Workers
+  // Txns 1-4: Router -> 4 Workers (dynamic amounts or defaults)
   const payouts = [
-    { to: config.workerAAddress, amount: 2000 },
-    { to: config.workerBAddress, amount: 2000 },
-    { to: config.workerCAddress, amount: 1000 },
-    { to: config.workerDAddress, amount: 1000 },
+    { to: config.workerAAddress, amount: config.amountA ?? 2000 },
+    { to: config.workerBAddress, amount: config.amountB ?? 2000 },
+    { to: config.workerCAddress, amount: config.amountC ?? 1000 },
+    { to: config.workerDAddress, amount: config.amountD ?? 1000 },
   ];
 
   const workerTxns: algosdk.Transaction[] = payouts.map(p =>

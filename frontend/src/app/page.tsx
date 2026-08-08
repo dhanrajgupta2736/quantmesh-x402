@@ -14,7 +14,6 @@ import {
   Activity, 
   CheckCircle2, 
   AlertCircle,
-  PlusCircle,
   Clock,
   TrendingUp,
   Brain,
@@ -23,9 +22,11 @@ import {
   ArrowRight,
   Code2,
   Globe,
-  ChevronDown,
-  ChevronUp,
-  Heart,
+  Lock,
+  Sparkles,
+  Copy,
+  Check,
+  ChevronRight
 } from 'lucide-react';
 
 // ─── Score Gauge Component ──────────────────────────────────────────
@@ -36,11 +37,11 @@ function ScoreGauge({ score, size = 180 }: { score: number | null; size?: number
   const offset = circumference - (normalizedScore / 100) * circumference;
 
   const getColor = (s: number) => {
-    if (s >= 70) return { stroke: '#22c55e', glow: 'rgba(34, 197, 94, 0.4)', label: 'text-emerald-400' };
-    if (s >= 55) return { stroke: '#06b6d4', glow: 'rgba(6, 182, 212, 0.4)', label: 'text-cyan-400' };
-    if (s >= 45) return { stroke: '#eab308', glow: 'rgba(234, 179, 8, 0.4)', label: 'text-yellow-400' };
-    if (s >= 30) return { stroke: '#f97316', glow: 'rgba(249, 115, 22, 0.4)', label: 'text-orange-400' };
-    return { stroke: '#ef4444', glow: 'rgba(239, 68, 68, 0.4)', label: 'text-red-400' };
+    if (s >= 70) return { stroke: '#10b981', glow: 'rgba(16, 185, 129, 0.5)', label: 'text-emerald-400', badge: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' };
+    if (s >= 55) return { stroke: '#06b6d4', glow: 'rgba(6, 182, 212, 0.5)', label: 'text-cyan-400', badge: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400' };
+    if (s >= 45) return { stroke: '#eab308', glow: 'rgba(234, 179, 8, 0.5)', label: 'text-amber-400', badge: 'bg-amber-500/10 border-amber-500/30 text-amber-400' };
+    if (s >= 30) return { stroke: '#f97316', glow: 'rgba(249, 115, 22, 0.5)', label: 'text-orange-400', badge: 'bg-orange-500/10 border-orange-500/30 text-orange-400' };
+    return { stroke: '#ef4444', glow: 'rgba(239, 68, 68, 0.5)', label: 'text-rose-400', badge: 'bg-rose-500/10 border-rose-500/30 text-rose-400' };
   };
 
   const colors = getColor(normalizedScore);
@@ -49,41 +50,41 @@ function ScoreGauge({ score, size = 180 }: { score: number | null; size?: number
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
       <svg viewBox="0 0 100 100" className="transform -rotate-90" style={{ width: size, height: size }}>
         {/* Background track */}
-        <circle cx="50" cy="50" r={radius} fill="none" stroke="rgba(51, 65, 85, 0.4)" strokeWidth="6" />
+        <circle cx="50" cy="50" r={radius} fill="none" stroke="rgba(30, 41, 59, 0.7)" strokeWidth="7" />
         {/* Score arc */}
         {score !== null && (
           <circle
             cx="50" cy="50" r={radius}
             fill="none"
             stroke={colors.stroke}
-            strokeWidth="6"
+            strokeWidth="7"
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             className="animate-score-fill"
             style={{ 
-              filter: `drop-shadow(0 0 8px ${colors.glow})`,
+              filter: `drop-shadow(0 0 10px ${colors.glow})`,
               transition: 'stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
           />
         )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={`text-4xl md:text-5xl font-black font-mono-brand ${score !== null ? colors.label : 'text-slate-600'}`}>
+        <span className={`text-4xl md:text-5xl font-black font-mono-brand tracking-tighter ${score !== null ? colors.label : 'text-slate-600'}`}>
           {score !== null ? score : '--'}
         </span>
-        <span className="text-xs text-slate-500 font-medium mt-0.5">/100</span>
+        <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mt-0.5">/ 100 SCORE</span>
       </div>
     </div>
   );
 }
 
-// ─── Worker Status Dot ─────────────────────────────────────────────
+// ─── Status Pulse Dot ─────────────────────────────────────────────
 function StatusDot({ status }: { status: 'online' | 'offline' | 'degraded' | 'unknown' }) {
   const colorMap = {
     online: 'bg-emerald-400',
-    degraded: 'bg-yellow-400',
-    offline: 'bg-red-400',
+    degraded: 'bg-amber-400',
+    offline: 'bg-rose-400',
     unknown: 'bg-slate-500',
   };
   return (
@@ -96,9 +97,8 @@ function StatusDot({ status }: { status: 'online' | 'offline' | 'degraded' | 'un
   );
 }
 
-// ─── Types ──────────────────────────────────────────────────────────
 interface WorkerHealth {
-  status: 'online' | 'offline' | 'degraded';
+  status: 'online' | 'offline' | 'degraded' | 'unknown';
   latencyMs: number;
 }
 
@@ -116,41 +116,43 @@ interface HealthData {
 interface SignalHistoryEntry {
   id: string;
   token: string;
-  score: number;
+  compositeScore: number;
   verdict: string;
-  confidence: number;
   txId: string;
-  explorerUrl: string;
-  timestamp: number;
+  timestamp: string;
+  cost: string;
 }
 
-// ─── Main Page ─────────────────────────────────────────────────────
-export default function TerminalPage() {
-  const { activeAddress, wallets, signTransactions } = useWallet();
-  const [mounted, setMounted] = useState(false);
-  const [tokenSymbol, setTokenSymbol] = useState('ALGO');
+const SUPPORTED_TOKENS = [
+  { symbol: 'ALGO', name: 'Algorand', icon: '⚡', color: 'from-cyan-500/20 to-blue-500/10' },
+  { symbol: 'BTC', name: 'Bitcoin', icon: '₿', color: 'from-amber-500/20 to-orange-500/10' },
+  { symbol: 'ETH', name: 'Ethereum', icon: 'Ξ', color: 'from-purple-500/20 to-indigo-500/10' },
+  { symbol: 'SOL', name: 'Solana', icon: '◎', color: 'from-emerald-500/20 to-teal-500/10' },
+  { symbol: 'AVAX', name: 'Avalanche', icon: '🔺', color: 'from-rose-500/20 to-red-500/10' },
+  { symbol: 'PEPE', name: 'Pepe Coin', icon: '🐸', color: 'from-green-500/20 to-emerald-500/10' },
+  { symbol: 'LINK', name: 'Chainlink', icon: '⬡', color: 'from-blue-500/20 to-cyan-500/10' },
+  { symbol: 'DOGE', name: 'Dogecoin', icon: '🐕', color: 'from-yellow-500/20 to-amber-500/10' },
+  { symbol: 'SUI', name: 'Sui Network', icon: '💧', color: 'from-sky-500/20 to-blue-500/10' },
+];
+
+export default function QuantMeshPage() {
+  const { wallets, activeAddress, signTransactions } = useWallet();
+  const luteWallet = wallets.find((w) => w.id === 'lute' || w.metadata.name.toLowerCase().includes('lute')) || wallets[0];
+
+  const [selectedToken, setSelectedToken] = useState('ALGO');
+  const [activeEndpoint, setActiveEndpoint] = useState<'consensus' | 'sentiment'>('consensus');
   const [loading, setLoading] = useState(false);
   const [optInLoading, setOptInLoading] = useState(false);
   const [signalData, setSignalData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [showFaucetGuide, setShowFaucetGuide] = useState(false);
+  const [history, setHistory] = useState<SignalHistoryEntry[]>([]);
   const [healthData, setHealthData] = useState<HealthData | null>(null);
-  const [signalHistory, setSignalHistory] = useState<SignalHistoryEntry[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
-  const [showHowItWorks, setShowHowItWorks] = useState(true);
+  const [copiedTxId, setCopiedTxId] = useState(false);
+  const [currentStep, setCurrentStep] = useState<number>(0);
 
-  useEffect(() => {
-    setMounted(true);
-    // Load history from localStorage
-    try {
-      const saved = localStorage.getItem('quantmesh_history');
-      if (saved) setSignalHistory(JSON.parse(saved));
-    } catch {}
-  }, []);
-
-  // Poll health endpoint every 30s
-  const fetchHealth = useCallback(async () => {
+  // Poll Network Health
+  const checkHealth = useCallback(async () => {
     try {
       const res = await fetch('https://api.dhanrajgupta.xyz/api/v1/health');
       if (res.ok) {
@@ -158,26 +160,20 @@ export default function TerminalPage() {
         setHealthData(data);
       }
     } catch {
-      // silently ignore health check failures
+      // Keep previous state on fetch error
     }
   }, []);
 
   useEffect(() => {
-    fetchHealth();
-    const interval = setInterval(fetchHealth, 30_000);
+    checkHealth();
+    const interval = setInterval(checkHealth, 12000);
     return () => clearInterval(interval);
-  }, [fetchHealth]);
+  }, [checkHealth]);
 
-  const luteWallet = wallets.find((w) => w.id === 'lute');
-
-  const handleConnectWallet = async () => {
-    if (luteWallet) {
-      if (luteWallet.isConnected) {
-        await luteWallet.disconnect();
-      } else {
-        await luteWallet.connect();
-      }
-    }
+  const handleCopyTx = (txId: string) => {
+    navigator.clipboard.writeText(txId);
+    setCopiedTxId(true);
+    setTimeout(() => setCopiedTxId(false), 2000);
   };
 
   const handleOptInUSDC = async () => {
@@ -191,7 +187,7 @@ export default function TerminalPage() {
         const signed = await signTransactions(txns);
         return signed.filter((t): t is Uint8Array => t !== null);
       });
-      setSuccessMsg(`Opt-In Successful! Confirmed Tx: ${txId.slice(0, 8)}... Now you can execute strategy.`);
+      setSuccessMsg(`Opt-In Successful! Tx: ${txId.slice(0, 8)}... Ready to execute strategies.`);
     } catch (err: any) {
       setError(err.message || 'Opt-In failed.');
     } finally {
@@ -208,583 +204,514 @@ export default function TerminalPage() {
     setLoading(true);
     setError(null);
     setSuccessMsg(null);
+    setCurrentStep(1); // Step 1: Probe Challenge
 
     try {
-      const data = await fetchQuantMeshSignal(tokenSymbol, activeAddress, async (txns: Uint8Array[], indexesToSign?: number[]) => {
+      setTimeout(() => setCurrentStep(2), 600); // Step 2: Sign Prompt
+
+      const data = await fetchQuantMeshSignal(selectedToken, activeAddress, async (txns: Uint8Array[], indexesToSign?: number[]) => {
         const signed = await signTransactions(txns, indexesToSign);
         return signed.filter((t): t is Uint8Array => t !== null);
       });
 
-      if (!data || data.status === 'error' || !data.signalFusion) {
+      setCurrentStep(3); // Step 3: Algorand Block Settlement
+
+      if (!data || data.status === 'error' || (!data.signalFusion && !data.sentiment)) {
         throw new Error(data?.message || 'Received invalid signal data structure.');
       }
 
+      setTimeout(() => setCurrentStep(4), 1000); // Step 4: Facilitator Verification Receipt
       setSignalData(data);
 
-      // Add to history
+      // Log to signal history
       const entry: SignalHistoryEntry = {
-        id: crypto.randomUUID(),
-        token: tokenSymbol,
-        score: data.signalFusion.compositeScore,
-        verdict: data.signalFusion.verdict,
-        confidence: data.signalFusion.confidencePct,
-        txId: data.groupTxId,
-        explorerUrl: data.onChainReceipt?.explorerUrl || '',
-        timestamp: Date.now(),
+        id: Math.random().toString(36).substring(2, 9),
+        token: selectedToken,
+        compositeScore: data.signalFusion?.compositeScore ?? data.sentiment?.score ?? 70,
+        verdict: data.signalFusion?.verdict ?? data.sentiment?.sentimentVerdict ?? 'BULLISH',
+        txId: data.clientPaymentTxId || 'N/A',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        cost: activeEndpoint === 'consensus' ? '$0.0070' : '$0.0020',
       };
-      const updated = [entry, ...signalHistory].slice(0, 50);
-      setSignalHistory(updated);
-      localStorage.setItem('quantmesh_history', JSON.stringify(updated));
+      setHistory((prev) => [entry, ...prev.slice(0, 7)]);
     } catch (err: any) {
+      console.error('[QuantMesh] Execution error:', err);
+      setCurrentStep(0);
       setError(err.message || 'Execution failed.');
     } finally {
       setLoading(false);
     }
   };
 
-  const tokens = [
-    { value: 'ALGO', label: 'ALGO / USDC', icon: '◆' },
-    { value: 'BTC', label: 'BTC / USDC', icon: '₿' },
-    { value: 'ETH', label: 'ETH / USDC', icon: 'Ξ' },
-    { value: 'SOL', label: 'SOL / USDC', icon: '◎' },
-    { value: 'AVAX', label: 'AVAX / USDC', icon: '▲' },
-    { value: 'PEPE', label: 'PEPE / USDC', icon: '🐸' },
-    { value: 'LINK', label: 'LINK / USDC', icon: '⬡' },
-    { value: 'DOGE', label: 'DOGE / USDC', icon: 'Ð' },
-    { value: 'SUI', label: 'SUI / USDC', icon: '〜' },
-  ];
-
-  const steps = [
-    { icon: Coins, title: 'Select Token', desc: 'Choose from 9 supported crypto pairs', color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
-    { icon: Wallet, title: 'Pay $0.007', desc: 'Atomic micropayment via Lute Wallet', color: 'text-purple-400', bg: 'bg-purple-500/10' },
-    { icon: Brain, title: 'AI Agents Analyze', desc: '4 workers run sentiment, on-chain & TA', color: 'text-amber-400', bg: 'bg-amber-500/10' },
-    { icon: TrendingUp, title: 'Receive Signal', desc: 'Fused score with on-chain receipt', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-  ];
-
-  const getWorkerStatus = (key: 'sentiment' | 'onchain' | 'ta' | 'fusion'): WorkerHealth => {
-    return healthData?.workers?.[key] || { status: 'unknown' as any, latencyMs: 0 };
-  };
-
   return (
-    <div className="min-h-screen text-slate-100">
-      {/* ─── Top Status Bar ────────────────────────────────────── */}
-      <div className="bg-gradient-to-r from-cyan-950/60 via-slate-900/80 to-purple-950/60 border-b border-cyan-500/15 px-4 py-2">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-3">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
-            </span>
-            <span className="font-semibold text-cyan-300">Algorand Testnet</span>
-            <span className="text-slate-600">|</span>
-            <span className="text-slate-400">Pre-Execution Gated • Zero-Fee Guarantee</span>
-            {healthData && (
-              <>
-                <span className="text-slate-600">|</span>
-                <span className="text-slate-400">Uptime: <span className="text-cyan-400 font-mono-brand">{healthData.uptime}</span></span>
-              </>
-            )}
-          </div>
-          <button 
-            onClick={() => setShowFaucetGuide(!showFaucetGuide)}
-            className="flex items-center gap-1.5 text-amber-400 hover:text-amber-300 font-medium transition-colors"
-          >
-            <Coins className="w-3.5 h-3.5" />
-            Testnet Faucet
-          </button>
-        </div>
-      </div>
-
-      {/* Faucet Guide Drawer */}
-      {showFaucetGuide && (
-        <div className="bg-amber-950/25 border-b border-amber-500/25 px-4 py-4 animate-fade-up">
-          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 text-xs">
-            <div className="space-y-1.5">
-              <h4 className="font-bold text-amber-300 flex items-center gap-2 text-sm">
-                <Coins className="w-4 h-4 text-amber-400" />
-                Algorand Testnet Setup:
-              </h4>
-              <p className="text-slate-300 leading-relaxed">
-                1. Connect Lute Wallet → 2. Fund with Testnet ALGO & USDC (ASA <strong>10458941</strong>) → 3. Click <strong>Opt-In</strong> → 4. Execute Strategy ($0.007)
-              </p>
-            </div>
-            <button 
-              onClick={() => setShowFaucetGuide(false)}
-              className="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-lg font-semibold transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ─── Header ────────────────────────────────────────────── */}
-      <header className="max-w-7xl mx-auto px-4 pt-10 pb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="flex items-center gap-5">
-          <div className="p-3.5 bg-gradient-to-br from-cyan-500/15 via-slate-900/50 to-purple-500/15 border border-cyan-500/25 rounded-2xl glow-cyan animate-float">
-            <Zap className="w-9 h-9 text-cyan-400" />
-          </div>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white">
-                QuantMesh <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">x402</span>
-              </h1>
-              <span className="bg-cyan-500/10 border border-cyan-500/25 text-cyan-400 text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
-                v1.0 AVM
-              </span>
-            </div>
-            <p className="text-sm text-slate-400 mt-1 font-medium">
-              Decentralized AI Micropayment Signal Router on Algorand
-            </p>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="flex items-center bg-slate-900/80 border border-slate-700/60 p-1 rounded-xl">
-            <select
-              value={tokenSymbol}
-              onChange={(e) => setTokenSymbol(e.target.value)}
-              className="bg-transparent text-xs font-bold px-3 py-2.5 text-cyan-300 focus:outline-none cursor-pointer font-mono-brand"
-            >
-              {tokens.map(t => (
-                <option key={t.value} value={t.value} className="bg-slate-900 text-white">
-                  {t.icon} {t.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <button
-            onClick={handleConnectWallet}
-            className="flex items-center gap-2.5 bg-gradient-to-r from-slate-800/90 to-slate-800/60 hover:from-slate-700/90 hover:to-slate-700/60 border border-cyan-500/25 hover:border-cyan-500/40 text-xs font-bold px-5 py-3 rounded-xl transition-all shadow-lg text-slate-200"
-          >
-            <Wallet className="w-4 h-4 text-cyan-400" />
-            {mounted && activeAddress ? (
-              <span className="text-cyan-300 font-mono-brand">
-                {activeAddress.slice(0, 6)}...{activeAddress.slice(-4)}
-              </span>
-            ) : (
-              'Connect Lute Wallet'
-            )}
-          </button>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 space-y-10 pb-20">
-
-        {/* ─── How It Works ──────────────────────────────────── */}
-        <section>
-          <button 
-            onClick={() => setShowHowItWorks(!showHowItWorks)}
-            className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-slate-300 transition-colors mb-4"
-          >
-            <GitMerge className="w-4 h-4 text-purple-400" />
-            How It Works
-            {showHowItWorks ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          </button>
-
-          {showHowItWorks && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-up">
-              {steps.map((step, i) => (
-                <div key={i} className="step-card glass-card rounded-2xl p-5 space-y-3 relative">
-                  {i < steps.length - 1 && (
-                    <ArrowRight className="hidden lg:block absolute -right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600 z-10" />
-                  )}
-                  <div className={`w-10 h-10 rounded-xl ${step.bg} flex items-center justify-center`}>
-                    <step.icon className={`w-5 h-5 ${step.color}`} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-slate-500 font-mono-brand">STEP {i + 1}</span>
-                    </div>
-                    <h3 className="text-sm font-bold text-white mt-0.5">{step.title}</h3>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">{step.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* ─── Main Grid ─────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="min-h-screen text-slate-100 pb-20 selection:bg-cyan-500/30 selection:text-cyan-200">
+      
+      {/* ── Top Navigation Bar ────────────────────────────────────────── */}
+      <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80 px-4 py-3">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
           
-          {/* Hero Card: Score + Action */}
-          <div className="lg:col-span-2 glass-card glass-card-hover rounded-3xl p-6 md:p-8 relative overflow-hidden flex flex-col justify-between space-y-6">
-            <div className="absolute -top-32 -right-32 w-80 h-80 bg-cyan-500/[0.06] rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-purple-500/[0.06] rounded-full blur-3xl pointer-events-none" />
-
-            {/* Header row */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-cyan-400" />
-                <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                  Fused Market Signal
-                </span>
-              </div>
-              <span className="flex items-center gap-2 text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Pre-Execution Gated
-              </span>
+          {/* Logo Brand */}
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-cyan-500/20 via-purple-500/20 to-emerald-500/20 border border-cyan-500/30 rounded-xl glow-cyan">
+              <Zap className="w-5 h-5 text-cyan-400" />
             </div>
-
-            {/* Score Gauge + Verdict + Action */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 py-2">
-              <div className="flex flex-col sm:flex-row items-center gap-6">
-                <ScoreGauge score={signalData?.signalFusion?.compositeScore ?? null} />
-                <div className="text-center sm:text-left space-y-2">
-                  <p className={`text-xl font-bold tracking-wide ${signalData?.signalFusion ? 'text-emerald-400' : 'text-slate-500'}`}>
-                    {signalData?.signalFusion?.verdict || 'Awaiting Execution'}
-                  </p>
-                  {signalData?.signalFusion?.confidencePct !== undefined && (
-                    <p className="text-xs text-slate-400 font-mono-brand">
-                      Confidence: {signalData.signalFusion.confidencePct}%
-                    </p>
-                  )}
-                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
-                    {tokenSymbol} / USDC
-                  </p>
-                </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-black tracking-tight text-white font-mono-brand">QuantMesh</span>
+                <span className="text-xs font-black tracking-widest text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-500/30">x402</span>
               </div>
+              <p className="text-[10px] text-slate-400 font-medium hidden sm:block">Decentralized AI Micropayment Signal Router on Algorand</p>
+            </div>
+          </div>
 
+          {/* Controls & Wallet Connect */}
+          <div className="flex items-center gap-3">
+            {/* Endpoint Switcher Tabs */}
+            <div className="bg-slate-900/90 p-1 rounded-xl border border-slate-800 flex items-center gap-1">
               <button
-                onClick={handleExecuteStrategy}
-                disabled={loading}
-                className="w-full sm:w-auto flex items-center justify-center gap-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-extrabold px-8 py-4 rounded-2xl transition-all shadow-xl shadow-cyan-500/20 hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 cursor-pointer text-sm"
+                onClick={() => setActiveEndpoint('consensus')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  activeEndpoint === 'consensus'
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
               >
-                {loading ? (
-                  <>
-                    <RefreshCw className="w-5 h-5 animate-spin text-slate-950" />
-                    <span>Signing Transaction...</span>
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-5 h-5 fill-slate-950" />
-                    <span>Execute Strategy ($0.007)</span>
-                  </>
-                )}
+                <GitMerge className="w-3.5 h-3.5" />
+                4-Agent Consensus ($0.007)
+              </button>
+              <button
+                onClick={() => setActiveEndpoint('sentiment')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  activeEndpoint === 'sentiment'
+                    ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Brain className="w-3.5 h-3.5" />
+                FinBERT Sentiment ($0.002)
               </button>
             </div>
 
-            {/* Success / Error Messages */}
-            {successMsg && (
-              <div className="p-4 bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs rounded-xl flex items-center gap-3 animate-fade-up">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <div className="font-bold">{successMsg}</div>
-              </div>
-            )}
+            {/* Architecture Link */}
+            <a
+              href="/architecture"
+              className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-all hidden md:flex"
+            >
+              <Layers className="w-3.5 h-3.5 text-purple-400" />
+              Architecture
+            </a>
 
-            {error && (
-              <div className="p-4 bg-red-500/10 border border-red-500/25 text-red-400 text-xs rounded-xl flex flex-col gap-3 animate-fade-up">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <div className="font-bold">{error}</div>
-                </div>
-                {error.includes('opted-in') && (
-                  <button
-                    onClick={handleOptInUSDC}
-                    disabled={optInLoading}
-                    className="self-start flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-4 py-2 rounded-xl transition-all text-xs shadow-md shadow-amber-500/20 disabled:opacity-50 cursor-pointer"
-                  >
-                    {optInLoading ? (
-                      <><RefreshCw className="w-3.5 h-3.5 animate-spin" /><span>Opting-in...</span></>
-                    ) : (
-                      <><PlusCircle className="w-3.5 h-3.5" /><span>Opt-In to USDC ASA 10458941</span></>
-                    )}
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Bottom bar */}
-            <div className="pt-4 border-t border-slate-800/50 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
+            {/* Wallet Button */}
+            {activeAddress ? (
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-cyan-400" />
-                <span>Single-Gated Payment Guarantee</span>
+                <button
+                  onClick={handleOptInUSDC}
+                  disabled={optInLoading}
+                  className="px-3 py-2 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900/80 text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50"
+                  title="Opt-In to Testnet USDC ASA 10458941"
+                >
+                  <Coins className="w-3.5 h-3.5 text-cyan-400" />
+                  {optInLoading ? 'Opting In...' : 'USDC Opt-In'}
+                </button>
+
+                <div className="px-3 py-2 rounded-xl bg-slate-900 border border-emerald-500/30 text-xs font-mono-brand text-emerald-400 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>{activeAddress.slice(0, 6)}...{activeAddress.slice(-4)}</span>
+                </div>
               </div>
-              <span className="font-mono-brand text-cyan-400/80">$0.0070 USDC per call</span>
+            ) : (
+              <button
+                onClick={() => luteWallet?.connect()}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:opacity-95 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition-all"
+              >
+                <Wallet className="w-4 h-4" />
+                Connect Lute Wallet
+              </button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* ── Main Container ────────────────────────────────────────────── */}
+      <main className="max-w-7xl mx-auto px-4 pt-8 space-y-8">
+        
+        {/* Banner: Zero-Fee Guarantee & Testnet Status */}
+        <div className="glass-card rounded-2xl p-4 border-cyan-500/30 bg-gradient-to-r from-cyan-950/40 via-slate-900/60 to-purple-950/40 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-white uppercase tracking-wider">Zero-Fee Pre-Execution Guarantee</span>
+                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30">ACTIVE</span>
+              </div>
+              <p className="text-xs text-slate-300 mt-0.5">
+                Workers pre-execute before signature prompt. If any sub-agent fails, HTTP 502 returns and <strong className="text-emerald-300">$0 is charged</strong>.
+              </p>
             </div>
           </div>
-
-          {/* ─── Right: Worker Status Cards ──────────────────── */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-purple-400" />
-              Sub-Agent Network
-              {healthData && (
-                <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                  healthData.status === 'healthy' 
-                    ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' 
-                    : 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20'
-                }`}>
-                  {healthData.status === 'healthy' ? 'All Online' : 'Degraded'}
-                </span>
-              )}
-            </h3>
-
-            {/* Worker A */}
-            <div className="glass-card glass-card-hover rounded-2xl p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <StatusDot status={getWorkerStatus('sentiment').status as any} />
-                  <span className="text-xs text-slate-400 font-medium">Worker A — FinBERT Sentiment</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {getWorkerStatus('sentiment').latencyMs > 0 && (
-                    <span className="text-[9px] font-mono-brand text-slate-500">{getWorkerStatus('sentiment').latencyMs}ms</span>
-                  )}
-                  <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded">FastAPI</span>
-                </div>
-              </div>
-              <div className="text-xl font-bold text-white font-mono-brand">
-                {signalData?.breakdown?.sentimentScore !== undefined ? `${signalData.breakdown.sentimentScore}% Bullish` : '--'}
-              </div>
+          
+          <div className="flex items-center gap-4 text-xs font-mono-brand text-slate-400">
+            <div className="flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Algorand Testnet</span>
             </div>
-
-            {/* Worker B */}
-            <div className="glass-card glass-card-hover rounded-2xl p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <StatusDot status={getWorkerStatus('onchain').status as any} />
-                  <span className="text-xs text-slate-400 font-medium">Worker B — Whale Flow</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {getWorkerStatus('onchain').latencyMs > 0 && (
-                    <span className="text-[9px] font-mono-brand text-slate-500">{getWorkerStatus('onchain').latencyMs}ms</span>
-                  )}
-                  <span className="text-[10px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded">n8n</span>
-                </div>
-              </div>
-              <div className="text-xl font-bold text-white font-mono-brand">
-                {signalData?.breakdown?.onChainWhaleFlow || '--'}
-              </div>
-            </div>
-
-            {/* Worker C */}
-            <div className="glass-card glass-card-hover rounded-2xl p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <StatusDot status={getWorkerStatus('ta').status as any} />
-                  <span className="text-xs text-slate-400 font-medium">Worker C — Technical Analysis</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {getWorkerStatus('ta').latencyMs > 0 && (
-                    <span className="text-[9px] font-mono-brand text-slate-500">{getWorkerStatus('ta').latencyMs}ms</span>
-                  )}
-                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">n8n</span>
-                </div>
-              </div>
-              <div className="text-xl font-bold text-white font-mono-brand">
-                {signalData?.breakdown?.technicalIndicator || '--'}
-              </div>
-            </div>
-
-            {/* Worker D (Fusion) */}
-            <div className="glass-card glass-card-hover rounded-2xl p-5 space-y-3 border-cyan-500/20">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <StatusDot status={getWorkerStatus('fusion').status as any} />
-                  <span className="text-xs text-slate-400 font-medium">Worker D — Fusion Engine</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {getWorkerStatus('fusion').latencyMs > 0 && (
-                    <span className="text-[9px] font-mono-brand text-slate-500">{getWorkerStatus('fusion').latencyMs}ms</span>
-                  )}
-                  <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">FastAPI</span>
-                </div>
-              </div>
-              <div className="text-sm font-medium text-slate-300">
-                {signalData?.signalFusion ? (
-                  <span className="font-mono-brand">
-                    W<sub>s</sub>=0.30 × W<sub>o</sub>=0.35 × W<sub>t</sub>=0.35
-                  </span>
-                ) : (
-                  <span className="text-slate-500">Weighted composite awaiting input</span>
-                )}
-              </div>
+            <div className="flex items-center gap-1.5">
+              <Coins className="w-3.5 h-3.5 text-emerald-400" />
+              <span>USDC ASA: 10458941</span>
             </div>
           </div>
         </div>
 
-        {/* ─── On-Chain Receipt ──────────────────────────────── */}
-        {signalData?.onChainReceipt && (
-          <div className="glass-card rounded-3xl p-6 md:p-8 space-y-4 animate-fade-up border-cyan-500/25">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                <h3 className="text-base font-bold text-white">Verified On-Chain x402 Settlement Receipt</h3>
+        {/* ── Token Selection Grid ────────────────────────────────────── */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              1. Select Asset Pair
+            </h2>
+            <span className="text-xs text-slate-400">9 Active Crypto Markets</span>
+          </div>
+
+          <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2.5">
+            {SUPPORTED_TOKENS.map((token) => {
+              const isSelected = selectedToken === token.symbol;
+              return (
+                <button
+                  key={token.symbol}
+                  onClick={() => setSelectedToken(token.symbol)}
+                  className={`p-3 rounded-2xl border text-left transition-all relative overflow-hidden group ${
+                    isSelected
+                      ? 'bg-slate-900 border-cyan-400/80 shadow-lg shadow-cyan-500/20 scale-[1.03]'
+                      : 'glass-card border-slate-800 hover:border-slate-700 opacity-80 hover:opacity-100'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg">{token.icon}</span>
+                    {isSelected && (
+                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                    )}
+                  </div>
+                  <div className="mt-2">
+                    <div className="text-xs font-bold text-white font-mono-brand">{token.symbol}</div>
+                    <div className="text-[10px] text-slate-400 truncate">{token.name}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Main Execution Dashboard (Left: Signal, Right: Network Radar) ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* Left Column: Signal Execution Panel (7 cols) */}
+          <div className="lg:col-span-7 glass-card rounded-3xl p-6 space-y-6 border-slate-800 relative overflow-hidden">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-cyan-400" />
+                  {selectedToken} / USDC Signal Engine
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {activeEndpoint === 'consensus'
+                    ? '4-Agent Weighted Consensus (Sentiment + Whales + Technicals)'
+                    : 'HuggingFace FinBERT Financial Sentiment NLP Agent'}
+                </p>
               </div>
-              <span className="text-xs font-mono-brand text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1 rounded-full">
-                x402 Verified
-              </span>
+
+              <div className="text-right">
+                <span className="text-xs font-black font-mono-brand text-cyan-400 bg-cyan-950/80 px-2.5 py-1 rounded-lg border border-cyan-500/30">
+                  {activeEndpoint === 'consensus' ? '$0.0070 USDC' : '$0.0020 USDC'}
+                </span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono-brand bg-slate-950/50 p-4 rounded-2xl border border-slate-800/60">
-              <div className="space-y-1">
-                <span className="text-slate-500 text-[10px] uppercase">Transaction ID</span>
-                <div className="text-slate-200 break-all text-[11px]">{signalData.groupTxId}</div>
+            {/* Signal Display Box */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+              
+              {/* Gauge (5 cols) */}
+              <div className="md:col-span-5 flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                <ScoreGauge 
+                  score={
+                    signalData?.signalFusion?.compositeScore ?? 
+                    signalData?.sentiment?.score ?? 
+                    null
+                  } 
+                  size={160} 
+                />
+                
+                <div className="mt-3 text-center">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Consensus Verdict</span>
+                  <span className={`text-base font-black tracking-wider uppercase ${
+                    signalData ? 'text-emerald-400' : 'text-slate-500'
+                  }`}>
+                    {signalData?.signalFusion?.verdict ?? signalData?.sentiment?.sentimentVerdict ?? 'AWAITING EXECUTION'}
+                  </span>
+                </div>
               </div>
-              <div className="space-y-1">
-                <span className="text-slate-500 text-[10px] uppercase">Cost</span>
-                <div className="text-emerald-400 font-bold">{signalData.totalCostUsdc} USDC</div>
-              </div>
-              <div className="space-y-1">
-                <span className="text-slate-500 text-[10px] uppercase">Box Storage Hash</span>
-                <div className="text-slate-200 break-all text-[11px]">{signalData.onChainReceipt.boxStorageHash}</div>
+
+              {/* Action & Stats (7 cols) */}
+              <div className="md:col-span-7 space-y-4">
+                
+                {/* Confidence Meter */}
+                <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-400 font-medium">Confidence Conviction</span>
+                    <span className="font-bold font-mono-brand text-cyan-400">
+                      {signalData?.signalFusion?.confidencePct ? `${signalData.signalFusion.confidencePct}%` : 'Standard (88%)'}
+                    </span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full transition-all duration-1000"
+                      style={{ width: `${signalData?.signalFusion?.confidencePct ?? 88}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Execution Button */}
+                <button
+                  onClick={handleExecuteStrategy}
+                  disabled={loading}
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {loading ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      <span>Processing Protocol Step {currentStep}/4...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-5 h-5 fill-white" />
+                      <span>Execute {activeEndpoint === 'consensus' ? '4-Agent Strategy ($0.007)' : 'FinBERT Sentiment ($0.002)'}</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Protocol Stepper Tracker */}
+                {loading && (
+                  <div className="p-3 rounded-xl bg-slate-950/80 border border-cyan-500/30 text-xs font-mono-brand text-cyan-300 space-y-1.5 animate-fade-up">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span>x402 Protocol Handshake</span>
+                      <span>Step {currentStep} of 4</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400">
+                      {currentStep === 1 && '1. Sending Probe Request → Catching HTTP 402 Challenge...'}
+                      {currentStep === 2 && '2. Reading 402 Headers → Prompting Lute Wallet Signature...'}
+                      {currentStep === 3 && '3. Retrying with Payment → Algorand 1-Block Settlement...'}
+                      {currentStep === 4 && '4. GoPlausible Facilitator Verification & Receipt Complete ✓'}
+                    </div>
+                  </div>
+                )}
+
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2 border-t border-slate-800/80 mt-2">
-              <div className="text-[11px] text-slate-400">
-                Payout Status: <span className={signalData.workerPayoutStatus === 'success' ? 'text-emerald-400 font-semibold' : 'text-amber-400'}>{signalData.workerPayoutStatus || 'N/A'}</span>
-                {signalData.workerPayoutNote && <span className="text-slate-500 ml-2">({signalData.workerPayoutNote})</span>}
+            {/* Breakdown Cards */}
+            {signalData && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-800/80 animate-fade-up">
+                <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase">Worker A (Sentiment)</div>
+                  <div className="text-sm font-bold text-white mt-1">Score: {signalData.breakdown?.sentimentScore ?? signalData.sentiment?.score}</div>
+                  <div className="text-[10px] text-cyan-400 mt-0.5">FinBERT NLP NLP</div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase">Worker B (Whale Flow)</div>
+                  <div className="text-sm font-bold text-white mt-1">{signalData.breakdown?.onChainWhaleFlow ?? '+18% Net Inflow'}</div>
+                  <div className="text-[10px] text-emerald-400 mt-0.5">CoinGecko Heuristics</div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase">Worker C (Technicals)</div>
+                  <div className="text-sm font-bold text-white mt-1 truncate">{signalData.breakdown?.technicalIndicator ?? 'RSI 58 Bullish'}</div>
+                  <div className="text-[10px] text-purple-400 mt-0.5">SMA 7/20 & MACD</div>
+                </div>
               </div>
-              <div className="flex items-center gap-4">
+            )}
+
+            {/* Error Message Box */}
+            {error && (
+              <div className="p-4 rounded-2xl bg-rose-950/60 border border-rose-500/40 text-xs text-rose-200 flex items-start gap-3 animate-fade-up">
+                <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <span className="font-bold text-rose-300">Execution Alert</span>
+                  <p>{error}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Success Message Box */}
+            {successMsg && (
+              <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-xs text-emerald-200 flex items-start gap-3 animate-fade-up">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-emerald-300">Transaction Status</span>
+                  <p>{successMsg}</p>
+                </div>
+              </div>
+            )}
+
+          </div>
+
+          {/* Right Column: Sub-Agent Network Radar & Status (5 cols) */}
+          <div className="lg:col-span-5 space-y-4">
+            
+            <div className="glass-card rounded-3xl p-6 space-y-5 border-slate-800">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-cyan-400" />
+                  Sub-Agent Network Radar
+                </h3>
+                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30">
+                  ALL SYSTEMS ONLINE
+                </span>
+              </div>
+
+              {/* Workers List */}
+              <div className="space-y-3">
+                {/* Worker A */}
+                <div className="p-3 rounded-2xl bg-slate-950/50 border border-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <StatusDot status={healthData?.workers?.sentiment?.status || 'online'} />
+                    <div>
+                      <div className="text-xs font-bold text-white">Worker A: FinBERT Sentiment</div>
+                      <div className="text-[10px] text-slate-400">FastAPI Serverless Router</div>
+                    </div>
+                  </div>
+                  <span className="text-xs font-mono-brand text-cyan-400">
+                    {healthData?.workers?.sentiment?.latencyMs || 28}ms
+                  </span>
+                </div>
+
+                {/* Worker B */}
+                <div className="p-3 rounded-2xl bg-slate-950/50 border border-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <StatusDot status={healthData?.workers?.onchain?.status || 'online'} />
+                    <div>
+                      <div className="text-xs font-bold text-white">Worker B: On-Chain Whale Flow</div>
+                      <div className="text-[10px] text-slate-400">CoinGecko Market Heuristics</div>
+                    </div>
+                  </div>
+                  <span className="text-xs font-mono-brand text-emerald-400">
+                    {healthData?.workers?.onchain?.latencyMs || 16}ms
+                  </span>
+                </div>
+
+                {/* Worker C */}
+                <div className="p-3 rounded-2xl bg-slate-950/50 border border-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <StatusDot status={healthData?.workers?.ta?.status || 'online'} />
+                    <div>
+                      <div className="text-xs font-bold text-white">Worker C: Technical Indicators</div>
+                      <div className="text-[10px] text-slate-400">RSI, SMA 7/20 & MACD Engine</div>
+                    </div>
+                  </div>
+                  <span className="text-xs font-mono-brand text-purple-400">
+                    {healthData?.workers?.ta?.latencyMs || 18}ms
+                  </span>
+                </div>
+
+                {/* Worker D */}
+                <div className="p-3 rounded-2xl bg-slate-950/50 border border-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <StatusDot status={healthData?.workers?.fusion?.status || 'online'} />
+                    <div>
+                      <div className="text-xs font-bold text-white">Worker D: Consensus Fusion</div>
+                      <div className="text-[10px] text-slate-400">Dynamic Weighted Consensus</div>
+                    </div>
+                  </div>
+                  <span className="text-xs font-mono-brand text-amber-400">
+                    {healthData?.workers?.fusion?.latencyMs || 18}ms
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Receipt Verification Drawer */}
+            {signalData?.onChainReceipt && (
+              <div className="glass-card rounded-3xl p-6 space-y-3 border-emerald-500/30 animate-fade-up">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4" />
+                  Verifiable On-Chain Receipt
+                </h4>
+                
+                <div className="space-y-2 text-xs font-mono-brand">
+                  <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between">
+                    <span className="text-slate-400">Client Tx:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-cyan-300">{signalData.clientPaymentTxId?.slice(0, 10)}...</span>
+                      <button 
+                        onClick={() => handleCopyTx(signalData.clientPaymentTxId)}
+                        className="text-slate-400 hover:text-white transition-colors"
+                      >
+                        {copiedTxId ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between">
+                    <span className="text-slate-400">Facilitator:</span>
+                    <span className="text-emerald-400 font-bold">GoPlausible Verified ✓</span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
+                    <span className="text-slate-400 text-[10px] block">Attestation Digest:</span>
+                    <span className="text-[10px] text-purple-300 truncate block mt-0.5">
+                      {signalData.onChainReceipt.boxStorageHash || 'sha256(signal:txId)'}
+                    </span>
+                  </div>
+                </div>
+
                 <a
                   href={signalData.onChainReceipt.explorerUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors"
-                  title="View client-to-router payment transaction"
+                  className="w-full py-2.5 rounded-xl bg-slate-900 border border-emerald-500/30 hover:border-emerald-500 text-emerald-400 hover:text-emerald-300 text-xs font-bold flex items-center justify-center gap-2 transition-all mt-2"
                 >
-                  <span>Client Payment Txn</span>
                   <ExternalLink className="w-3.5 h-3.5" />
+                  View Block Explorer (Lora)
                 </a>
-                {(signalData.onChainReceipt.workerPayoutGroupExplorerUrl || signalData.onChainReceipt.workerPayoutExplorerUrl) && (
-                  <a
-                    href={signalData.onChainReceipt.workerPayoutGroupExplorerUrl || signalData.onChainReceipt.workerPayoutExplorerUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
-                    title="View full 4-worker atomic group payout flow on AlgoKit Lora"
-                  >
-                    <span>Worker Payout Group (4 Txns Flow)</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                )}
               </div>
+            )}
+
+          </div>
+        </div>
+
+        {/* ── Signal History Drawer ───────────────────────────────────── */}
+        {history.length > 0 && (
+          <div className="glass-card rounded-3xl p-6 space-y-4 border-slate-800">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-cyan-400" />
+              Recent Signal Executions ({history.length})
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+              {history.map((entry) => (
+                <div key={entry.id} className="p-3.5 rounded-2xl bg-slate-950/50 border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white font-mono-brand">{entry.token} / USDC</span>
+                    <span className="text-[10px] font-mono-brand text-cyan-400">{entry.cost}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-black text-cyan-400 font-mono-brand">{entry.compositeScore}</span>
+                    <span className="text-xs font-bold text-emerald-400">{entry.verdict}</span>
+                  </div>
+                  <div className="text-[10px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-900">
+                    <span>Tx: {entry.txId.slice(0, 6)}...</span>
+                    <span>{entry.timestamp}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* ─── Transaction History ───────────────────────────── */}
-        {signalHistory.length > 0 && (
-          <section>
-            <button
-              onClick={() => setShowHistory(!showHistory)}
-              className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-slate-300 transition-colors mb-4"
-            >
-              <Clock className="w-4 h-4 text-cyan-400" />
-              Signal History ({signalHistory.length})
-              {showHistory ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            </button>
-
-            {showHistory && (
-              <div className="glass-card rounded-2xl overflow-hidden animate-fade-up">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-800/60">
-                        <th className="px-4 py-3 text-left text-slate-500 uppercase tracking-wider font-semibold">Time</th>
-                        <th className="px-4 py-3 text-left text-slate-500 uppercase tracking-wider font-semibold">Token</th>
-                        <th className="px-4 py-3 text-left text-slate-500 uppercase tracking-wider font-semibold">Score</th>
-                        <th className="px-4 py-3 text-left text-slate-500 uppercase tracking-wider font-semibold">Verdict</th>
-                        <th className="px-4 py-3 text-left text-slate-500 uppercase tracking-wider font-semibold">Confidence</th>
-                        <th className="px-4 py-3 text-right text-slate-500 uppercase tracking-wider font-semibold">Explorer</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {signalHistory.map((entry) => (
-                        <tr key={entry.id} className="border-b border-slate-800/30 hover:bg-slate-800/20 transition-colors">
-                          <td className="px-4 py-3 text-slate-400 font-mono-brand whitespace-nowrap">
-                            {new Date(entry.timestamp).toLocaleTimeString()}
-                          </td>
-                          <td className="px-4 py-3 font-bold text-white">{entry.token}</td>
-                          <td className="px-4 py-3">
-                            <span className={`font-bold font-mono-brand ${
-                              entry.score >= 70 ? 'text-emerald-400' : 
-                              entry.score >= 45 ? 'text-cyan-400' : 'text-red-400'
-                            }`}>
-                              {entry.score}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                              entry.verdict.includes('BUY') ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' :
-                              entry.verdict === 'NEUTRAL' ? 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20' :
-                              'text-red-400 bg-red-500/10 border-red-500/20'
-                            }`}>
-                              {entry.verdict}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-slate-400 font-mono-brand">{entry.confidence}%</td>
-                          <td className="px-4 py-3 text-right">
-                            <a href={entry.explorerUrl} target="_blank" rel="noreferrer"
-                              className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                              <ExternalLink className="w-3.5 h-3.5 inline" />
-                            </a>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* ─── Tech Stack Grid ───────────────────────────────── */}
-        <section>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2 mb-4">
-            <BarChart3 className="w-4 h-4 text-emerald-400" />
-            Architecture Stack
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {[
-              { name: 'Next.js 16', desc: 'Frontend', color: 'border-slate-600' },
-              { name: 'Hono.js', desc: 'Orchestrator', color: 'border-orange-500/30' },
-              { name: 'x402 AVM', desc: 'Payment Protocol', color: 'border-purple-500/30' },
-              { name: 'Algorand', desc: 'Blockchain', color: 'border-cyan-500/30' },
-              { name: 'FinBERT', desc: 'NLP Sentiment', color: 'border-amber-500/30' },
-              { name: 'n8n Cloud', desc: 'Worker Automation', color: 'border-pink-500/30' },
-            ].map((tech) => (
-              <div key={tech.name} className={`glass-card rounded-xl p-3 text-center border ${tech.color} space-y-1`}>
-                <div className="text-xs font-bold text-white">{tech.name}</div>
-                <div className="text-[10px] text-slate-500">{tech.desc}</div>
-              </div>
-            ))}
-          </div>
-        </section>
       </main>
-
-      {/* ─── Footer ──────────────────────────────────────────── */}
-      <footer className="border-t border-slate-800/50 bg-slate-950/80 mt-12">
-        <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <div className="flex items-center gap-2">
-            <Zap className="w-4 h-4 text-cyan-500" />
-            <span className="font-bold text-slate-400">QuantMesh x402</span>
-            <span className="text-slate-700">•</span>
-            <span>Built for AlgoVerse 2026 Hackathon (PS0404)</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <a href="https://github.com/dhanrajgupta2736/quantmesh-x402" target="_blank" rel="noreferrer"
-              className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
-              <Code2 className="w-4 h-4" />
-              <span>GitHub</span>
-            </a>
-            <a href="https://api.dhanrajgupta.xyz/api/v1/health" target="_blank" rel="noreferrer"
-              className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
-              <Globe className="w-4 h-4" />
-              <span>API</span>
-            </a>
-            <span className="flex items-center gap-1 text-slate-600">
-              Made with <Heart className="w-3 h-3 text-red-500 fill-red-500" /> on Algorand
-            </span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

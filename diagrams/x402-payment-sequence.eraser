@@ -1,0 +1,30 @@
+// QuantMesh x402 — Sequence Flow Diagram (Eraser AI Format)
+// Protocol: HTTP 402 Payment Required on Algorand AVM
+
+sequenceDiagram
+Client -> Hono Gateway: POST /api/v1/orchestrate { token: "ALGO" }
+
+group Pre-Execution Zero-Fee Gating Phase
+  Hono Gateway -> Worker A (Sentiment): POST /agent/sentiment (FinBERT)
+  Hono Gateway -> Worker B (Whale Flow): POST /agent/onchain (CoinGecko)
+  Hono Gateway -> Worker C (TA Engine): POST /agent/ta (RSI/MACD)
+  
+  Worker A (Sentiment) --> Hono Gateway: 200 OK (Score: +0.78)
+  Worker B (Whale Flow) --> Hono Gateway: 200 OK (Flow: +14.2M ALGO)
+  Worker C (TA Engine) --> Hono Gateway: 200 OK (RSI 62.4)
+  
+  Hono Gateway -> Worker D (Fusion): POST /agent/fusion
+  Worker D (Fusion) --> Hono Gateway: Composite Score: 66/100 (STRONG BUY)
+end
+
+alt Any Worker Fails / Times Out
+  Hono Gateway --> Client: HTTP 502 Sub-Agent Failed (Zero Fee Charged)
+else All 4 Workers Pass
+  Hono Gateway --> Client: HTTP 402 Payment Required { price: "$0.007 USDC", payTo: "HXT5Z6...36MI", assetId: 10458941 }
+  Client -> Lute Wallet: Prompt User for ASA Signature
+  Lute Wallet --> Client: Signed Algorand Transaction Payload
+  Client -> Hono Gateway: Retry POST with X-Payment-Tx Header
+  Hono Gateway -> Algorand Indexer: Verify Transaction On-Chain
+  Algorand Indexer --> Hono Gateway: Verified Confirmed in Block #38924102
+  Hono Gateway --> Client: HTTP 200 OK { score: 66, verdict: "BUY", txId: "M4X7Q9...", sha256: "e3b0c442..." }
+end

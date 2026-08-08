@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "eraser": {
+      "command": "npx",
+      "args": ["-y", "@eraser/mcp-server"],
+      "env": {
+        "ERASER_API_KEY": "YOUR_ERASER_API_KEY"
+      }
+    }
+  }
+}
