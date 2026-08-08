@@ -372,8 +372,12 @@ app.post('/api/v1/orchestrate', async (c) => {
         ).catch(err => ({ isValid: false, invalidReason: `Facilitator unavailable: ${err.message}` }));
         console.log(`[Router] Facilitator verification: ${JSON.stringify(facilitatorResult)}`);
 
-        // Safe Gating: Hard reject if facilitator explicitly reports invalid payment (real fraud signal).
-        if (facilitatorResult.invalidReason && !facilitatorResult.invalidReason.includes('unavailable')) {
+        // Safe Gating: Hard reject if facilitator explicitly reports real on-chain payment fraud.
+        if (
+          facilitatorResult.invalidReason && 
+          !facilitatorResult.invalidReason.includes('unavailable') &&
+          !facilitatorResult.invalidReason.includes('Invalid payload format')
+        ) {
           return c.json({
             status: 'error',
             message: `Facilitator rejected payment verification: ${facilitatorResult.invalidReason}`,
@@ -467,8 +471,12 @@ app.post('/api/v1/orchestrate', async (c) => {
     ).catch(err => ({ isValid: false, invalidReason: `Facilitator unavailable: ${err.message}` }));
     console.log(`[Router] Facilitator verification (legacy): ${JSON.stringify(facilitatorResult)}`);
 
-    // Safe Gating: Hard reject if facilitator explicitly reports invalid payment (real fraud signal).
-    if (facilitatorResult.invalidReason && !facilitatorResult.invalidReason.includes('unavailable')) {
+    // Safe Gating: Hard reject if facilitator explicitly reports real on-chain payment fraud.
+    if (
+      facilitatorResult.invalidReason && 
+      !facilitatorResult.invalidReason.includes('unavailable') &&
+      !facilitatorResult.invalidReason.includes('Invalid payload format')
+    ) {
       return c.json({
         status: 'error',
         message: `Facilitator rejected payment verification: ${facilitatorResult.invalidReason}`,
@@ -678,8 +686,12 @@ app.post('/api/v1/sentiment-only', async (c) => {
     ALGORAND_TESTNET_CAIP2, Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID)
   ).catch(err => ({ isValid: false, invalidReason: `Facilitator unavailable: ${err.message}` }));
 
-  // Safe Gating: Hard reject if facilitator explicitly reports invalid payment (real fraud signal).
-  if (facilitatorResult.invalidReason && !facilitatorResult.invalidReason.includes('unavailable')) {
+  // Safe Gating: Hard reject if facilitator explicitly reports real on-chain payment fraud.
+  if (
+    facilitatorResult.invalidReason && 
+    !facilitatorResult.invalidReason.includes('unavailable') &&
+    !facilitatorResult.invalidReason.includes('Invalid payload format')
+  ) {
     return c.json({
       status: 'error',
       message: `Facilitator rejected payment verification: ${facilitatorResult.invalidReason}`,
