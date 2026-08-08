@@ -75,14 +75,15 @@ export async function fetchQuantMeshSignal(
   // ═══════════════════════════════════════════════════════════════════
   // x402 STEP 2: READ 402 CHALLENGE — Extract payment parameters
   // ═══════════════════════════════════════════════════════════════════
-  console.log('[x402] Step 2: Reading 402 challenge headers...');
+  console.log(`[x402] Step 2: Reading 402 challenge parameters for ${endpointType}...`);
   const challengeBody = await probeRes.json().catch(() => ({}));
 
   const payTo = probeRes.headers.get('x-payment-pay-to') || challengeBody.payTo || FALLBACK_PAY_TO;
-  const defaultPrice = endpointType === 'sentiment' ? '0.002' : '0.007';
-  const priceStr = probeRes.headers.get('x-payment-price') || challengeBody.priceUsdc || defaultPrice;
+  // Explicit endpoint pricing: '0.002' for sentiment ($0.002 USDC), '0.007' for consensus ($0.007 USDC)
+  const priceStr = endpointType === 'sentiment' ? '0.002' : '0.007';
   const usdcAsaId = challengeBody.usdcAsaId || TESTNET_USDC_ASA;
   const amountInBaseUnits = Math.round(parseFloat(priceStr) * 1_000_000);
+  console.log(`[x402] Endpoint: ${endpointType} | Price: $${priceStr} USDC | Base Units: ${amountInBaseUnits} µUSDC`);
 
   // ═══════════════════════════════════════════════════════════════════
   // x402 STEP 3: SIGN — Build clean payment transaction & prompt Lute
