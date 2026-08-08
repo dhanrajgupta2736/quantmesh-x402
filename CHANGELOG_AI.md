@@ -8,6 +8,20 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-08T16:52:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Binance Public API Multi-Tier Live Market Integration, Cloudflare Pages Deployment Config (`qm.dhanrajgupta.xyz`), FinBERT Sentiment Single-Agent Endpoint Routing Fix, and Receipt Payout Split Updates.  
+**Files Changed:**
+- `agent-onchain-ta/main.py` — Integrated Binance 24hr Ticker & Hourly Klines APIs (`https://api.binance.com/api/v3/ticker/24hr` & `/klines`) as primary live market provider for Worker B & Worker C with zero rate limits.
+- `frontend/next.config.ts` — Configured static export output (`output: 'export'`) for Cloudflare Pages deployment.
+- `frontend/src/lib/x402Client.ts` — Added `endpointType` routing parameter so FinBERT Sentiment tab routes directly to `/api/v1/sentiment-only` ($0.002) and Consensus tab routes to `/api/v1/orchestrate` ($0.007).
+- `frontend/src/app/page.tsx` — Updated breakdown cards to render single Worker A card for FinBERT Sentiment mode, and updated Dynamic Payout Split in receipt box to reflect 100% Worker A payout (2000 µUSDC = $0.0020).
+- `CHANGELOG_AI.md` — This entry.
+
+**Verification & Deployment Status:**
+- `npm run build` (Frontend): 0 errors, compiled successfully into `frontend/out`.
+- Live Production EC2: Worker B/C updated and restarted via PM2 (`online`).
+- Cloudflare Pages (`qm.dhanrajgupta.xyz`): Live and verified.
+
 ### 2026-08-08T11:43:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Public GitHub Security Cleanup: Removed all PPTX, PDF, DOCX, presentation scripts, pitch deck files, and `docs/` folder from git tracking.  
 **Files Removed from Git:**
