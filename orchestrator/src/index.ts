@@ -507,18 +507,39 @@ app.post('/api/v1/orchestrate', async (c) => {
 
     if (routerSecretKey && allWorkerAddressesConfigured) {
       try {
+        // Dynamic payout split: A (sentiment) + B (onchain) share a combined
+        // budget scaled by each worker's actual contribution weight from Worker D's
+        // fusion response. C (TA) keeps its fixed share since fusion doesn't score
+        // it separately in `weights` the way it does sentiment/onchain — falls back
+        // to the original static split if weights are missing for any reason.
+        const W_COMBINED_AB = 4000; // micro-USDC, was 2000+2000 fixed
+        const wSentiment = resD.weights?.sentiment;
+        const wOnchain = resD.weights?.onchain;
+
+        let amountA = 2000;
+        let amountB = 2000;
+        if (typeof wSentiment === 'number' && typeof wOnchain === 'number' && (wSentiment + wOnchain) > 0) {
+          const share = wSentiment / (wSentiment + wOnchain);
+          amountA = Math.round(W_COMBINED_AB * share);
+          amountB = W_COMBINED_AB - amountA; // ensures A+B always sums to exactly 4000
+        }
+
+        console.log(`[Router] Dynamic payout split: A=${amountA} B=${amountB} (weights: sentiment=${wSentiment}, onchain=${wOnchain})`);
+
         const unsignedGroup = await buildAtomicPaymentGroup({
           senderAddress: routerAddress,
           workerAAddress: WORKER_PAYOUT_ADDRESSES.A,
           workerBAddress: WORKER_PAYOUT_ADDRESSES.B,
           workerCAddress: WORKER_PAYOUT_ADDRESSES.C,
           workerDAddress: WORKER_PAYOUT_ADDRESSES.D,
+          amountA,
+          amountB,
           usdcAssetId: Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID),
         });
         const { workerPayoutGroupTxId: txId, groupHash } = await signAndSubmitAtomicGroup(unsignedGroup, routerSecretKey);
         workerPayoutGroupTxId = txId;
         workerPayoutStatus = 'success';
-        workerPayoutNote = 'All 4 workers paid atomically in one group — all-or-nothing.';
+        workerPayoutNote = `All 4 workers paid atomically in one group (Dynamic Split: A=${amountA}, B=${amountB}, C=1000, D=1000 micro-USDC).`;
 
         return c.json({
           status: 'success',
@@ -528,6 +549,13 @@ app.post('/api/v1/orchestrate', async (c) => {
           workerPayoutStatus,
           workerPayoutNote,
           totalCostUsdc: '0.0070',
+          dynamicSplit: {
+            amountA,
+            amountB,
+            amountC: 1000,
+            amountD: 1000,
+            weights: resD.weights || { sentiment: 0.35, onchain: 0.35, ta: 0.30 },
+          },
           signalFusion: {
             compositeScore: resD.compositeScore,
             verdict: resD.verdict,
@@ -649,6 +677,14 @@ app.post('/api/v1/sentiment-only', async (c) => {
     paymentTxId, routerAddress, '0.002',
     ALGORAND_TESTNET_CAIP2, Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID)
   ).catch(err => ({ isValid: false, invalidReason: `Facilitator unavailable: ${err.message}` }));
+
+  // Safe Gating: Hard reject if facilitator explicitly reports invalid payment (real fraud signal).
+  if (facilitatorResult.invalidReason && !facilitatorResult.invalidReason.includes('unavailable')) {
+    return c.json({
+      status: 'error',
+      message: `Facilitator rejected payment verification: ${facilitatorResult.invalidReason}`,
+    }, 402);
+  }
 
   const settleResult = await settleViaFacilitator(
     paymentTxId, routerAddress, '0.002',

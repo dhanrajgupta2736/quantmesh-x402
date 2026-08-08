@@ -8,6 +8,18 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-08T11:37:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Wired Dynamic Weights (`resD.weights`) into Atomic Worker Payouts & Added Facilitator Gate to `/api/v1/sentiment-only`  
+**Files Changed:**
+- `orchestrator/src/index.ts` — 
+  1) Dynamically computed `amountA` and `amountB` micro-USDC worker payouts from `resD.weights.sentiment` and `resD.weights.onchain` (guaranteeing exact 4000 micro-USDC total for A+B), passed `amountA` & `amountB` into `buildAtomicPaymentGroup`, and exposed `dynamicSplit` in response.
+  2) Added facilitator verification hard-reject gate to `/api/v1/sentiment-only` endpoint.
+- `CHANGELOG_AI.md` — This entry.
+
+**Verification & Deployment Status:**
+- `npm run build` (Orchestrator): 0 errors
+- Live Production EC2: Updated, rebuilt, and PM2 restarted (`online`).
+
 ### 2026-08-08T11:27:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Implementation of 4 Review Audit Recommendations (endpoint.config.ts, UI/UX Overhaul, Dynamic Payout Scaling, Explainer Text Cleanup)  
 **Files Changed:**
