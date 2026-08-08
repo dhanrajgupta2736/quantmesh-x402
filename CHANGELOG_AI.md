@@ -8,6 +8,12 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-08T19:10:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Full Architecture Page Harmonization (`bf98880`). Converted `frontend/src/app/architecture/page.tsx` to match the warm ink and phosphor amber design system, with Sora display titles, JetBrains Mono step numbers/code blocks, and ink panel styling.  
+**Files Changed:**
+- `frontend/src/app/architecture/page.tsx` — Updated palette, card classes (`ink-panel`, `ink-card`), and typography roles (`font-sora`, `font-mono-brand`).
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-08T18:15:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Full Instrumentation-Grade Frontend Redesign per Design Specification (`114caf4`). Implemented phosphor amber `#F0A868` color palette, Sora & JetBrains Mono typography roles, dynamic conviction glow tracking `confidencePct`, and signature horizontal proportional payout split bar with 0.6s transitions.  
 **Files Changed:**
