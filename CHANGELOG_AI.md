@@ -8,6 +8,12 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-08T20:41:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Updated receipt card header in `frontend/src/app/page.tsx` (`a2ac324`) from `"Verifiable On-Chain Receipt"` to `"Verifiable Payment Receipt"` for 100% accuracy across all contained fields. Tested live EC2 server response (`https://api.dhanrajgupta.xyz/api/v1/orchestrate`), confirming HTTP 402 challenge headers & body.  
+**Files Changed:**
+- `frontend/src/app/page.tsx` — Updated card header string to `"Verifiable Payment Receipt"`.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-08T20:30:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Applied Combined Audit Findings & Fixes (`6e7c704`). Updated `schema.json` to match exact orchestrator response structure (`clientPaymentTxId` & `workerPayoutGroupTxId`), enforced USDC ASA 10458941 balance requirement in `x402Client.ts` disabling microALGO underpayment fallbacks, optimized `pingWorker` timeout for n8n URLs, updated fallback data strings to `'Data Unavailable'`, updated attestation hash label in `page.tsx`, aligned ports in `deploy-ec2.sh`, and verified `ROUTER_MNEMONIC` live on EC2. Rebuilt and restarted PM2 `orchestrator`.  
 **Files Changed:**
