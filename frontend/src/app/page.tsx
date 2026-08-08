@@ -783,22 +783,40 @@ export default function QuantMeshPage() {
                   )}
 
                   {/* Dynamic Payout Split */}
-                  {signalData.dynamicSplit && (
-                    <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1">
-                      <div className="flex items-center justify-between text-[10px] text-slate-400">
-                        <span>Dynamic Payout Split:</span>
-                        <span className="text-cyan-400 font-bold">4-Worker Pool ($0.0060)</span>
-                      </div>
-                      <div className="text-[10px] font-mono-brand text-slate-300 flex items-center justify-between">
-                        <span>Worker A: {signalData.dynamicSplit.amountA} µUSDC</span>
-                        <span>Worker B: {signalData.dynamicSplit.amountB} µUSDC</span>
-                      </div>
-                      <div className="text-[10px] font-mono-brand text-slate-400 flex items-center justify-between">
-                        <span>Worker C: {signalData.dynamicSplit.amountC} µUSDC</span>
-                        <span>Worker D: {signalData.dynamicSplit.amountD} µUSDC</span>
-                      </div>
+                  <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1">
+                    <div className="flex items-center justify-between text-[10px] text-slate-400">
+                      <span>Dynamic Payout Split:</span>
+                      <span className="text-cyan-400 font-bold">
+                        {activeEndpoint === 'sentiment' || signalData.endpoint === 'sentiment-only'
+                          ? 'Single Worker Pool ($0.0020)'
+                          : '4-Worker Pool ($0.0070)'}
+                      </span>
                     </div>
-                  )}
+                    <div className="text-[10px] font-mono-brand text-slate-300 flex items-center justify-between">
+                      <span>
+                        Worker A: {activeEndpoint === 'sentiment' || signalData.endpoint === 'sentiment-only'
+                          ? '2000'
+                          : signalData.dynamicSplit?.amountA || '2000'} µUSDC
+                      </span>
+                      <span>
+                        Worker B: {activeEndpoint === 'sentiment' || signalData.endpoint === 'sentiment-only'
+                          ? '0'
+                          : signalData.dynamicSplit?.amountB || '1800'} µUSDC
+                      </span>
+                    </div>
+                    <div className="text-[10px] font-mono-brand text-slate-400 flex items-center justify-between">
+                      <span>
+                        Worker C: {activeEndpoint === 'sentiment' || signalData.endpoint === 'sentiment-only'
+                          ? '0'
+                          : signalData.dynamicSplit?.amountC || '1200'} µUSDC
+                      </span>
+                      <span>
+                        Worker D: {activeEndpoint === 'sentiment' || signalData.endpoint === 'sentiment-only'
+                          ? '0'
+                          : signalData.dynamicSplit?.amountD || '1000'} µUSDC
+                      </span>
+                    </div>
+                  </div>
 
                   <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
                     <span className="text-slate-400 text-[10px] block">Attestation Digest:</span>
