@@ -660,6 +660,42 @@ export default function QuantMeshPage() {
                     <span className="text-emerald-400 font-bold">GoPlausible Verified ✓</span>
                   </div>
 
+                  {/* Worker Payout Atomic Group Tx */}
+                  {(signalData.workerPayoutGroupTxId || signalData.onChainReceipt?.workerPayoutExplorerUrl) && (
+                    <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between">
+                      <span className="text-slate-400">4-Worker Payout Group Tx:</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-purple-300">
+                          {(signalData.workerPayoutGroupTxId || signalData.clientPaymentTxId)?.slice(0, 10)}...
+                        </span>
+                        <button 
+                          onClick={() => handleCopyTx(signalData.workerPayoutGroupTxId || signalData.clientPaymentTxId)}
+                          className="text-slate-400 hover:text-white transition-colors"
+                        >
+                          {copiedTxId ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Dynamic Payout Split */}
+                  {signalData.dynamicSplit && (
+                    <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1">
+                      <div className="flex items-center justify-between text-[10px] text-slate-400">
+                        <span>Dynamic Payout Split:</span>
+                        <span className="text-cyan-400 font-bold">4-Worker Pool ($0.0060)</span>
+                      </div>
+                      <div className="text-[10px] font-mono-brand text-slate-300 flex items-center justify-between">
+                        <span>Worker A: {signalData.dynamicSplit.amountA} µUSDC</span>
+                        <span>Worker B: {signalData.dynamicSplit.amountB} µUSDC</span>
+                      </div>
+                      <div className="text-[10px] font-mono-brand text-slate-400 flex items-center justify-between">
+                        <span>Worker C: {signalData.dynamicSplit.amountC} µUSDC</span>
+                        <span>Worker D: {signalData.dynamicSplit.amountD} µUSDC</span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
                     <span className="text-slate-400 text-[10px] block">Attestation Digest:</span>
                     <span className="text-[10px] text-purple-300 truncate block mt-0.5">
