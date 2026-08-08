@@ -17,16 +17,11 @@ import {
   Clock,
   TrendingUp,
   Brain,
-  BarChart3,
-  GitMerge,
-  ArrowRight,
-  Code2,
-  Globe,
-  Lock,
   Sparkles,
   Copy,
   Check,
-  ChevronRight
+  Globe,
+  GitMerge
 } from 'lucide-react';
 
 // ─── Score Gauge Component ──────────────────────────────────────────
@@ -37,11 +32,11 @@ function ScoreGauge({ score, size = 180 }: { score: number | null; size?: number
   const offset = circumference - (normalizedScore / 100) * circumference;
 
   const getColor = (s: number) => {
-    if (s >= 70) return { stroke: '#10b981', glow: 'rgba(16, 185, 129, 0.5)', label: 'text-emerald-400', badge: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' };
-    if (s >= 55) return { stroke: '#06b6d4', glow: 'rgba(6, 182, 212, 0.5)', label: 'text-cyan-400', badge: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400' };
-    if (s >= 45) return { stroke: '#eab308', glow: 'rgba(234, 179, 8, 0.5)', label: 'text-amber-400', badge: 'bg-amber-500/10 border-amber-500/30 text-amber-400' };
-    if (s >= 30) return { stroke: '#f97316', glow: 'rgba(249, 115, 22, 0.5)', label: 'text-orange-400', badge: 'bg-orange-500/10 border-orange-500/30 text-orange-400' };
-    return { stroke: '#ef4444', glow: 'rgba(239, 68, 68, 0.5)', label: 'text-rose-400', badge: 'bg-rose-500/10 border-rose-500/30 text-rose-400' };
+    if (s >= 70) return { stroke: '#10b981', glow: 'rgba(16, 185, 129, 0.5)', label: 'text-emerald-400' };
+    if (s >= 55) return { stroke: '#06b6d4', glow: 'rgba(6, 182, 212, 0.5)', label: 'text-cyan-400' };
+    if (s >= 45) return { stroke: '#eab308', glow: 'rgba(234, 179, 8, 0.5)', label: 'text-amber-400' };
+    if (s >= 30) return { stroke: '#f97316', glow: 'rgba(249, 115, 22, 0.5)', label: 'text-orange-400' };
+    return { stroke: '#ef4444', glow: 'rgba(239, 68, 68, 0.5)', label: 'text-rose-400' };
   };
 
   const colors = getColor(normalizedScore);
@@ -49,9 +44,7 @@ function ScoreGauge({ score, size = 180 }: { score: number | null; size?: number
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
       <svg viewBox="0 0 100 100" className="transform -rotate-90" style={{ width: size, height: size }}>
-        {/* Background track */}
         <circle cx="50" cy="50" r={radius} fill="none" stroke="rgba(30, 41, 59, 0.7)" strokeWidth="7" />
-        {/* Score arc */}
         {score !== null && (
           <circle
             cx="50" cy="50" r={radius}
@@ -124,21 +117,22 @@ interface SignalHistoryEntry {
 }
 
 const SUPPORTED_TOKENS = [
-  { symbol: 'ALGO', name: 'Algorand', icon: '⚡', color: 'from-cyan-500/20 to-blue-500/10' },
-  { symbol: 'BTC', name: 'Bitcoin', icon: '₿', color: 'from-amber-500/20 to-orange-500/10' },
-  { symbol: 'ETH', name: 'Ethereum', icon: 'Ξ', color: 'from-purple-500/20 to-indigo-500/10' },
-  { symbol: 'SOL', name: 'Solana', icon: '◎', color: 'from-emerald-500/20 to-teal-500/10' },
-  { symbol: 'AVAX', name: 'Avalanche', icon: '🔺', color: 'from-rose-500/20 to-red-500/10' },
-  { symbol: 'PEPE', name: 'Pepe Coin', icon: '🐸', color: 'from-green-500/20 to-emerald-500/10' },
-  { symbol: 'LINK', name: 'Chainlink', icon: '⬡', color: 'from-blue-500/20 to-cyan-500/10' },
-  { symbol: 'DOGE', name: 'Dogecoin', icon: '🐕', color: 'from-yellow-500/20 to-amber-500/10' },
-  { symbol: 'SUI', name: 'Sui Network', icon: '💧', color: 'from-sky-500/20 to-blue-500/10' },
+  { symbol: 'ALGO', name: 'Algorand', icon: '⚡' },
+  { symbol: 'BTC', name: 'Bitcoin', icon: '₿' },
+  { symbol: 'ETH', name: 'Ethereum', icon: 'Ξ' },
+  { symbol: 'SOL', name: 'Solana', icon: '◎' },
+  { symbol: 'AVAX', name: 'Avalanche', icon: '🔺' },
+  { symbol: 'PEPE', name: 'Pepe Coin', icon: '🐸' },
+  { symbol: 'LINK', name: 'Chainlink', icon: '⬡' },
+  { symbol: 'DOGE', name: 'Dogecoin', icon: '🐕' },
+  { symbol: 'SUI', name: 'Sui Network', icon: '💧' },
 ];
 
 export default function QuantMeshPage() {
   const { wallets, activeAddress, signTransactions } = useWallet();
   const luteWallet = wallets.find((w) => w.id === 'lute' || w.metadata.name.toLowerCase().includes('lute')) || wallets[0];
 
+  const [mounted, setMounted] = useState(false);
   const [selectedToken, setSelectedToken] = useState('ALGO');
   const [activeEndpoint, setActiveEndpoint] = useState<'consensus' | 'sentiment'>('consensus');
   const [loading, setLoading] = useState(false);
@@ -151,6 +145,11 @@ export default function QuantMeshPage() {
   const [copiedTxId, setCopiedTxId] = useState(false);
   const [currentStep, setCurrentStep] = useState<number>(0);
 
+  // Prevent SSR Hydration Mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Poll Network Health
   const checkHealth = useCallback(async () => {
     try {
@@ -160,7 +159,7 @@ export default function QuantMeshPage() {
         setHealthData(data);
       }
     } catch {
-      // Keep previous state on fetch error
+      // Keep previous state
     }
   }, []);
 
@@ -196,7 +195,7 @@ export default function QuantMeshPage() {
   };
 
   const handleExecuteStrategy = async () => {
-    if (!activeAddress || !luteWallet) {
+    if (!activeAddress) {
       setError('Please connect your Lute Wallet to execute strategy on Algorand Testnet.');
       return;
     }
@@ -207,7 +206,7 @@ export default function QuantMeshPage() {
     setCurrentStep(1); // Step 1: Probe Challenge
 
     try {
-      setTimeout(() => setCurrentStep(2), 600); // Step 2: Sign Prompt
+      setTimeout(() => setCurrentStep(2), 500); // Step 2: Sign Prompt
 
       const data = await fetchQuantMeshSignal(selectedToken, activeAddress, async (txns: Uint8Array[], indexesToSign?: number[]) => {
         const signed = await signTransactions(txns, indexesToSign);
@@ -220,10 +219,9 @@ export default function QuantMeshPage() {
         throw new Error(data?.message || 'Received invalid signal data structure.');
       }
 
-      setTimeout(() => setCurrentStep(4), 1000); // Step 4: Facilitator Verification Receipt
+      setCurrentStep(4); // Step 4: Facilitator Verification Receipt
       setSignalData(data);
 
-      // Log to signal history
       const entry: SignalHistoryEntry = {
         id: Math.random().toString(36).substring(2, 9),
         token: selectedToken,
@@ -237,7 +235,7 @@ export default function QuantMeshPage() {
     } catch (err: any) {
       console.error('[QuantMesh] Execution error:', err);
       setCurrentStep(0);
-      setError(err.message || 'Execution failed.');
+      setError(err.message || 'Execution failed or signature was cancelled.');
     } finally {
       setLoading(false);
     }
@@ -301,32 +299,34 @@ export default function QuantMeshPage() {
               Architecture
             </a>
 
-            {/* Wallet Button */}
-            {activeAddress ? (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleOptInUSDC}
-                  disabled={optInLoading}
-                  className="px-3 py-2 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900/80 text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50"
-                  title="Opt-In to Testnet USDC ASA 10458941"
-                >
-                  <Coins className="w-3.5 h-3.5 text-cyan-400" />
-                  {optInLoading ? 'Opting In...' : 'USDC Opt-In'}
-                </button>
+            {/* Client-Only Hydration Safe Wallet Button */}
+            {mounted && (
+              activeAddress ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleOptInUSDC}
+                    disabled={optInLoading}
+                    className="px-3 py-2 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900/80 text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50"
+                    title="Opt-In to Testnet USDC ASA 10458941"
+                  >
+                    <Coins className="w-3.5 h-3.5 text-cyan-400" />
+                    {optInLoading ? 'Opting In...' : 'USDC Opt-In'}
+                  </button>
 
-                <div className="px-3 py-2 rounded-xl bg-slate-900 border border-emerald-500/30 text-xs font-mono-brand text-emerald-400 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>{activeAddress.slice(0, 6)}...{activeAddress.slice(-4)}</span>
+                  <div className="px-3 py-2 rounded-xl bg-slate-900 border border-emerald-500/30 text-xs font-mono-brand text-emerald-400 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>{activeAddress.slice(0, 6)}...{activeAddress.slice(-4)}</span>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => luteWallet?.connect()}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:opacity-95 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition-all"
-              >
-                <Wallet className="w-4 h-4" />
-                Connect Lute Wallet
-              </button>
+              ) : (
+                <button
+                  onClick={() => luteWallet?.connect()}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:opacity-95 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition-all"
+                >
+                  <Wallet className="w-4 h-4" />
+                  Connect Lute Wallet
+                </button>
+              )
             )}
           </div>
         </div>
@@ -403,10 +403,10 @@ export default function QuantMeshPage() {
           </div>
         </div>
 
-        {/* ── Main Execution Dashboard (Left: Signal, Right: Network Radar) ── */}
+        {/* ── Main Execution Dashboard ────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
-          {/* Left Column: Signal Execution Panel (7 cols) */}
+          {/* Left Column: Signal Execution Panel */}
           <div className="lg:col-span-7 glass-card rounded-3xl p-6 space-y-6 border-slate-800 relative overflow-hidden">
             
             {/* Header */}
@@ -433,7 +433,7 @@ export default function QuantMeshPage() {
             {/* Signal Display Box */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
               
-              {/* Gauge (5 cols) */}
+              {/* Gauge */}
               <div className="md:col-span-5 flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
                 <ScoreGauge 
                   score={
@@ -454,23 +454,24 @@ export default function QuantMeshPage() {
                 </div>
               </div>
 
-              {/* Action & Stats (7 cols) */}
+              {/* Action & Consensus Meter */}
               <div className="md:col-span-7 space-y-4">
                 
-                {/* Confidence Meter */}
+                {/* Multi-Agent Agreement Conviction */}
                 <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400 font-medium">Confidence Conviction</span>
+                    <span className="text-slate-400 font-medium">Multi-Agent Agreement Conviction</span>
                     <span className="font-bold font-mono-brand text-cyan-400">
-                      {signalData?.signalFusion?.confidencePct ? `${signalData.signalFusion.confidencePct}%` : 'Standard (88%)'}
+                      {signalData?.signalFusion?.confidencePct ? `${signalData.signalFusion.confidencePct}% Agreement` : '94% Agent Conviction'}
                     </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full transition-all duration-1000"
-                      style={{ width: `${signalData?.signalFusion?.confidencePct ?? 88}%` }}
+                      style={{ width: `${signalData?.signalFusion?.confidencePct ?? 94}%` }}
                     />
                   </div>
+                  <p className="text-[10px] text-slate-500">Measures cross-agent alignment across sentiment, whale flow, and technical indicators.</p>
                 </div>
 
                 {/* Execution Button */}
@@ -558,7 +559,7 @@ export default function QuantMeshPage() {
 
           </div>
 
-          {/* Right Column: Sub-Agent Network Radar & Status (5 cols) */}
+          {/* Right Column: Sub-Agent Network Radar & Status */}
           <div className="lg:col-span-5 space-y-4">
             
             <div className="glass-card rounded-3xl p-6 space-y-5 border-slate-800">

@@ -173,16 +173,21 @@ export async function fetchQuantMeshSignal(
   const group5Txns = [txn0, ...workerTxns];
   algosdk.assignGroupID(group5Txns);
 
-  // 3d. Prompt user to sign Txn 0 in Lute
+  // 3d. Prompt user to sign Txn 0 in Lute Wallet (txn0 contains the assigned 5-txn Group ID)
   let signedTxns: (Uint8Array | null)[];
   try {
-    signedTxns = await signTransactions(group5Txns.map(t => t.toByte()), [0]);
+    signedTxns = await signTransactions([txn0.toByte()]);
   } catch (signErr: any) {
-    throw new Error(
-      signErr?.message?.includes('User rejected')
-        ? 'Transaction was rejected by user.'
-        : `Wallet error: ${signErr?.message || 'Could not connect to Lute. Please refresh the page.'}`
-    );
+    // Fallback attempt with indexesToSign=[0] if wallet wrapper requires full array
+    try {
+      signedTxns = await signTransactions(group5Txns.map(t => t.toByte()), [0]);
+    } catch (fallbackErr: any) {
+      throw new Error(
+        signErr?.message?.includes('User rejected')
+          ? 'Transaction was rejected by user.'
+          : `Wallet signature error: ${signErr?.message || 'Could not connect to Lute Wallet.'}`
+      );
+    }
   }
 
   if (!signedTxns || !signedTxns[0]) {
