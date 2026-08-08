@@ -8,6 +8,12 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-08T17:35:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Added `priceUsdc: '0.007'` and `payTo` to `/api/v1/orchestrate` HTTP 402 JSON response body (`4c4d5e9`). Rebuilt and deployed to AWS EC2 (`3.110.207.74`) and PM2 `orchestrator`. Both endpoints (`/orchestrate` and `/sentiment-only`) are now 100% symmetric in HTTP Headers & JSON Response Body.  
+**Files Changed:**
+- `orchestrator/src/index.ts` — Added `priceUsdc: '0.007'` and `payTo` to `/api/v1/orchestrate` 402 JSON body.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-08T17:30:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Refactored `x402Client.ts` (`eb13a8a`) to read `priceStr` live from HTTP 402 response headers (`x-payment-price`) and body (`challengeBody.priceUsdc`) FIRST, falling back to endpoint default SECOND. Fully aligns implementation with Hackathon Host Yash Diwan's specification.  
 **Files Changed:**
