@@ -455,7 +455,6 @@ app.post('/api/v1/orchestrate', async (c) => {
             facilitatorVerification: facilitatorResult,
             facilitatorSettlement: settleResult,
             attestationHash: boxStorageHash,
-            boxStorageHash,
           },
         });
       } catch (err: any) {
@@ -624,7 +623,6 @@ app.post('/api/v1/orchestrate', async (c) => {
             facilitatorVerification: facilitatorResult,
             facilitatorSettlement: settleResult,
             attestationHash: boxStorageHash,
-            boxStorageHash,
           },
         });
       } catch (err: any) {
@@ -659,7 +657,6 @@ app.post('/api/v1/orchestrate', async (c) => {
         facilitatorVerification: facilitatorResult,
         facilitatorSettlement: settleResult,
         attestationHash: boxStorageHash,
-        boxStorageHash,
       },
     });
   } catch (error: any) {
@@ -782,7 +779,6 @@ app.post('/api/v1/sentiment-only', async (c) => {
       facilitatorVerification: facilitatorResult,
       facilitatorSettlement: settleResult,
       attestationHash: boxStorageHash,
-      boxStorageHash,
     },
   });
 });

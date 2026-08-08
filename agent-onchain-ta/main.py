@@ -19,7 +19,6 @@ app = FastAPI(title="QuantMesh On-Chain & TA Agent")
 
 COINGECKO_API_KEY = os.environ.get("COINGECKO_API_KEY", "")
 CMC_API_KEY = os.environ.get("CMC_API_KEY", "")
-ALGORAND_INDEXER = "https://testnet-idx.algonode.cloud"
 
 # CoinGecko ID mapping
 COINGECKO_IDS = {

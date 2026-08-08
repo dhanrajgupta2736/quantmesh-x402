@@ -2,7 +2,7 @@ import os
 from typing import Optional
 
 import httpx
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, HTTPException
 from pydantic import BaseModel
 
 app = FastAPI(title="QuantMesh Sentiment + Fusion Agent")
@@ -46,11 +46,6 @@ HEADLINE_SEEDS = {
         "Cross-Chain Interoperability Protocol (CCIP) adoption boosts LINK demand.",
         "Technical indicators suggest a breakout formation for Chainlink.",
     ],
-    "USDC": [
-        "USD Coin total circulating supply reaches new quarterly highs.",
-        "DeFi protocol TVL backed by USDC stability remains extremely solid.",
-        "Treasury yield backing provides steady collateral confidence for USDC.",
-    ],
     "SUI": [
         "Sui network throughput hits record peak following mainnet upgrades.",
         "DApp ecosystem TVL on Sui grows rapidly amid gaming partnerships.",
@@ -90,6 +85,8 @@ async def score_text_with_finbert(client: httpx.AsyncClient, text: str) -> Optio
 
 @app.get("/agent/sentiment")
 async def get_sentiment(token: str = Query(default="ALGO")):
+    if token.upper() == "USDC":
+        raise HTTPException(status_code=400, detail="USDC is a stablecoin; sentiment analysis is not applicable.")
     token_key = token.upper()
     headlines = HEADLINE_SEEDS.get(token_key, DEFAULT_SEEDS)
 
