@@ -1,89 +1,68 @@
 @import "tailwindcss";
 
+:root {
+  --ink-950: #08090C;
+  --ink-900: #0D0F14;
+  --ink-800: #14171E;
+  --ink-700: #1C202A;
+
+  --line: rgba(240, 168, 104, 0.14);
+  --line-strong: rgba(240, 168, 104, 0.32);
+
+  --phosphor: #F0A868;
+  --phosphor-dim: #B87F4C;
+  --phosphor-glow: rgba(240, 168, 104, 0.45);
+
+  --signal-bull: #4FAE8C;
+  --signal-bear: #C4685A;
+  --signal-neutral: #8A8578;
+
+  --foreground: #EDE9E1;
+}
+
 @layer base {
   body {
-    background-color: #030712;
-    color: #f3f4f6;
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: var(--ink-950);
+    color: var(--foreground);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
     background-image: 
-      radial-gradient(at 15% 15%, rgba(14, 165, 233, 0.08) 0px, transparent 50%),
-      radial-gradient(at 85% 20%, rgba(168, 85, 247, 0.08) 0px, transparent 50%),
-      radial-gradient(at 50% 80%, rgba(16, 185, 129, 0.06) 0px, transparent 50%);
+      radial-gradient(at 15% 15%, rgba(240, 168, 104, 0.035) 0px, transparent 45%),
+      radial-gradient(at 85% 85%, rgba(79, 174, 140, 0.025) 0px, transparent 45%);
     background-attachment: fixed;
   }
 }
 
-/* ─── Glass Cards ─────────────────────────────────────────── */
-.glass-card {
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(51, 65, 85, 0.5);
+.font-sora {
+  font-family: 'Sora', system-ui, -apple-system, sans-serif;
 }
 
-.glass-card-hover {
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+.font-mono-brand {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 }
 
-.glass-card-hover:hover {
-  border-color: rgba(56, 189, 248, 0.45);
-  box-shadow: 0 0 30px -5px rgba(56, 189, 248, 0.2), 0 0 60px -15px rgba(56, 189, 248, 0.1);
-  transform: translateY(-2px);
+/* Instrumentation Glass Panels */
+.ink-panel {
+  background-color: var(--ink-900);
+  border: 1px solid var(--line);
 }
 
-/* ─── Glows ──────────────────────────────────────────────── */
-.glow-cyan {
-  box-shadow: 0 0 40px -5px rgba(6, 182, 212, 0.3);
+.ink-card {
+  background-color: var(--ink-800);
+  border: 1px solid var(--line);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.glow-emerald {
-  box-shadow: 0 0 40px -5px rgba(16, 185, 129, 0.3);
+.ink-card:hover {
+  border-color: var(--line-strong);
+  background-color: var(--ink-700);
 }
 
-.glow-purple {
-  box-shadow: 0 0 40px -5px rgba(168, 85, 247, 0.3);
+.glow-phosphor {
+  box-shadow: 0 0 25px -4px var(--phosphor-glow);
 }
 
-/* ─── Animations ─────────────────────────────────────────── */
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.8; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.03); }
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 3s infinite ease-in-out;
-}
-
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-up {
-  animation: fade-up 0.5s ease-out forwards;
-}
-
-@keyframes slide-in-left {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-.animate-slide-in-left {
-  animation: slide-in-left 0.4s ease-out forwards;
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.animate-shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(56, 189, 248, 0.08) 50%, transparent 100%);
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite;
-}
-
+/* Animations */
 @keyframes score-fill {
   from { stroke-dashoffset: 283; }
 }
@@ -92,45 +71,26 @@
   animation: score-fill 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-float {
-  animation: float 4s ease-in-out infinite;
+.animate-fade-up {
+  animation: fade-up 0.4s ease-out forwards;
 }
 
-/* ─── Step Cards ─────────────────────────────────────────── */
-.step-card {
-  position: relative;
-  transition: all 0.3s ease;
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.15); }
 }
 
-.step-card:hover {
-  transform: translateY(-4px);
+.animate-pulse-dot {
+  animation: pulse-subtle 2s ease-in-out infinite;
 }
 
-.step-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 1rem;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(168, 85, 247, 0.3));
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: xor;
-  -webkit-mask-composite: xor;
-  pointer-events: none;
-}
-
-/* ─── Scrollbar ──────────────────────────────────────────── */
+/* Custom Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
-::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.5); }
-
-/* ─── Mono font utility ─────────────────────────────────── */
-.font-mono-brand {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
-}
+::-webkit-scrollbar-track { background: var(--ink-950); }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--phosphor-dim); }
