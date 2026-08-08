@@ -8,6 +8,14 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-08T18:15:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Full Instrumentation-Grade Frontend Redesign per Design Specification (`114caf4`). Implemented phosphor amber `#F0A868` color palette, Sora & JetBrains Mono typography roles, dynamic conviction glow tracking `confidencePct`, and signature horizontal proportional payout split bar with 0.6s transitions.  
+**Files Changed:**
+- `frontend/src/app/globals.css` — Defined ink background tokens (`#08090C`, `#0D0F14`, `#14171E`), phosphor amber accents, and animation utilities.
+- `frontend/src/app/layout.tsx` — Imported Google Fonts `Sora`, `Inter`, and `JetBrains Mono`.
+- `frontend/src/app/page.tsx` — Restyled complete UI hierarchy, restyled 5-band score gauge, added dynamic conviction glow, and implemented proportional segmented payout split bar.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-08T17:35:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Added `priceUsdc: '0.007'` and `payTo` to `/api/v1/orchestrate` HTTP 402 JSON response body (`4c4d5e9`). Rebuilt and deployed to AWS EC2 (`3.110.207.74`) and PM2 `orchestrator`. Both endpoints (`/orchestrate` and `/sentiment-only`) are now 100% symmetric in HTTP Headers & JSON Response Body.  
 **Files Changed:**
