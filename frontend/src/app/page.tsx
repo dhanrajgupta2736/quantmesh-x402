@@ -791,7 +791,7 @@ export default function QuantMeshPage() {
               <div className="ink-panel rounded-3xl p-6 space-y-4 border-[#4FAE8C]/30 animate-fade-up">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#4FAE8C] flex items-center gap-2 font-sora">
                   <ShieldCheck className="w-4 h-4" />
-                  Verifiable On-Chain Receipt
+                  Verifiable Payment Receipt
                 </h4>
                 
                 <div className="space-y-2.5 text-xs font-mono-brand">
