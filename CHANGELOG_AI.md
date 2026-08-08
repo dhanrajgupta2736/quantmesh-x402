@@ -8,6 +8,19 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-08T21:10:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Applied Consolidated Issue List Fixes (`9de2972`). Implemented 10-second in-memory `preExecCache` across probe/retry HTTP request pairs for both `/orchestrate` and `/sentiment-only`, added `attestationHash` key alongside `boxStorageHash` in JSON responses & `schema.json`, updated `WORKER_PAYOUT_ADDRESSES` fallback lookup in `endpoint.config.ts`, added `USDC` stablecoin rejection guard in `agent-onchain-ta/main.py`, uncommented `ROUTER_MNEMONIC` & `HF_API_TOKEN` in `.env.example`, added explicit warning in `deploy-ec2.sh` if `ROUTER_MNEMONIC` is absent, and updated Python FastAPI worker installation logic in `deploy-ec2.sh`.  
+**Files Changed:**
+- `orchestrator/src/index.ts` — Added 10s worker pre-execution cache `preExecCache` and added `attestationHash` to all JSON response objects.
+- `orchestrator/src/endpoint.config.ts` — Accepted both `WORKER_A_PAYOUT_ADDRESS` and `WORKER_A_PAYOUT_ADDR`.
+- `agent-onchain-ta/main.py` — Added `USDC` stablecoin rejection guard with HTTP 400 error.
+- `schema.json` — Typed `workerPayoutGroupTxId` as `["string", "null"]` and added `attestationHash`.
+- `frontend/src/app/page.tsx` — Updated attestation hash lookup (`attestationHash || boxStorageHash`).
+- `frontend/src/lib/x402Client.ts` — Inlined fallback router address and cleaned up unused constants.
+- `deploy-ec2.sh` & `orchestrator/.env.example` — Added Python worker setup and explicit `ROUTER_MNEMONIC` warning.
+- `README.md` — Updated latency example numbers to realistic per-worker figures.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-08T20:55:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Applied Complete Issue List & Final Fixes (`afa6824`). Unified `ROUTER_ADDRESS` across all endpoints (`/orchestrate` & `/sentiment-only`), implemented zero-fee pre-execution guarantee for `/sentiment-only` (pre-fetching Worker A before issuing HTTP 402 challenge), removed server-side microALGO payment fallback from `verifyRealPayment()`, updated default worker URLs from n8n to local FastAPI service (`5002`), removed dead constants in `x402Client.ts`, updated `computeAttestationHash` naming in `attestation.ts`, and updated `deploy-ec2.sh` & `.env.example`. Rebuilt and restarted PM2 `orchestrator` on AWS EC2.  
 **Files Changed:**
