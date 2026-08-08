@@ -208,6 +208,8 @@ export default function QuantMeshPage() {
     try {
       setTimeout(() => setCurrentStep(2), 500); // Step 2: Sign Prompt
 
+      console.log(`[UI Handshake] Executing strategy | activeEndpoint: ${activeEndpoint} | token: ${selectedToken}`);
+
       const data = await fetchQuantMeshSignal(
         selectedToken, 
         activeAddress, 
