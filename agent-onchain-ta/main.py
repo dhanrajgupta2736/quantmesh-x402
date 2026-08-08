@@ -9,7 +9,7 @@ import hashlib
 from typing import Optional
 
 import httpx
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, HTTPException
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
@@ -388,6 +388,8 @@ def analyze_market_data(market_data: dict, token: str = "ALGO") -> dict:
 # ─── On-Chain Whale Flow Endpoint (Worker B replacement) ─────────
 @app.get("/agent/onchain")
 async def get_onchain(token: str = Query(default="ALGO")):
+    if token.upper() == "USDC":
+        raise HTTPException(status_code=400, detail="USDC is a stablecoin; sentiment/technical analysis is not applicable.")
     async with httpx.AsyncClient() as client:
         market_data = await fetch_binance_market(client, token)
         source = "binance_live"
@@ -403,6 +405,8 @@ async def get_onchain(token: str = Query(default="ALGO")):
 # ─── Technical Analysis Endpoint (Worker C replacement) ──────────
 @app.get("/agent/ta")
 async def get_ta(token: str = Query(default="ALGO")):
+    if token.upper() == "USDC":
+        raise HTTPException(status_code=400, detail="USDC is a stablecoin; sentiment/technical analysis is not applicable.")
     async with httpx.AsyncClient() as client:
         ohlc_data = await fetch_binance_ohlc(client, token)
         source = "binance_live"

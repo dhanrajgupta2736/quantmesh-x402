@@ -3,8 +3,7 @@ import algosdk from 'algosdk';
 const ROUTER_GATEWAY = 'https://api.dhanrajgupta.xyz/api/v1/orchestrate';
 const TESTNET_USDC_ASA = 10458941;
 
-// Fallback constants
-const FALLBACK_PAY_TO = '4DTSNS35EP24IFWIGXSG5NSD3GDDTPHNVGEXSHG67JDEHUHUNFR3KJGPO4';
+
 
 export async function optInToUSDCAssest(
   userAddress: string,
@@ -72,7 +71,7 @@ export async function fetchQuantMeshSignal(
   const challengeBody = await probeRes.json().catch(() => ({}));
 
   // Read payTo, price, and asset parameters directly from HTTP 402 headers & body (Host compliant pattern)
-  const payTo = probeRes.headers.get('x-payment-pay-to') || challengeBody.payTo || FALLBACK_PAY_TO;
+  const payTo = probeRes.headers.get('x-payment-pay-to') || challengeBody.payTo || '4DTSNS35EP24IFWIGXSG5NSD3GDDTPHNVGEXSHG67JDEHUHUNFR3KJGPO4';
   const priceStr =
     probeRes.headers.get('x-payment-price') ||
     challengeBody.priceUsdc ||

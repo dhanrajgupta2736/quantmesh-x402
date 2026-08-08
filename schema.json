@@ -36,7 +36,8 @@
           "type": "object",
           "properties": {
             "explorerUrl": { "type": "string", "example": "https://lora.algokit.io/testnet/transaction/..." },
-            "workerPayoutGroupTxId": { "type": "string", "example": "ALGORAND_ATOMIC_GROUP_TX_ID_HERE" },
+            "workerPayoutGroupTxId": { "type": ["string", "null"], "example": "ALGORAND_ATOMIC_GROUP_TX_ID_HERE" },
+            "attestationHash": { "type": "string", "example": "a3f9b2c4..." },
             "boxStorageHash": { "type": "string", "example": "a3f9b2c4..." }
           }
         }

@@ -287,6 +287,13 @@ app.get('/api/v1/health', async (c) => {
 });
 
 // ─── Main Orchestrator Endpoint Execution ────────────────────────────
+// 10-second in-memory worker pre-execution cache across probe/retry pairs
+const preExecCache = new Map<string, { resA: any; resB?: any; resC?: any; expiresAt: number }>();
+
+function getCacheKey(tokenSymbol: string, scope: string = 'orchestrate') {
+  return `${scope}:${tokenSymbol.toUpperCase()}:${Math.floor(Date.now() / 10000)}`;
+}
+
 app.post('/api/v1/orchestrate', async (c) => {
   // Rate limit check
   const clientIp = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
@@ -303,18 +310,32 @@ app.post('/api/v1/orchestrate', async (c) => {
 
     console.log(`[Router] Pre-executing Worker Agents for ${tokenSymbol}...`);
 
-    // STEP A: Pre-Execution Phase (Phase 1: Fetch Workers A, B, C in Parallel)
-    const [resA, resB, resC] = await Promise.all([
-      fetch(`${process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment'}?token=${tokenSymbol}`)
-        .then(r => r.ok ? r.json() : null)
-        .catch(() => null),
-      fetch(`${process.env.WORKER_B_URL || 'http://localhost:5002/agent/onchain'}?token=${tokenSymbol}`)
-        .then(r => r.ok ? r.json() : null)
-        .catch(() => null),
-      fetch(`${process.env.WORKER_C_URL || 'http://localhost:5002/agent/ta'}?token=${tokenSymbol}`)
-        .then(r => r.ok ? r.json() : null)
-        .catch(() => null),
-    ]);
+    // STEP A: Pre-Execution Phase (Phase 1: Fetch Workers A, B, C in Parallel or reuse cache)
+    const cacheKey = getCacheKey(tokenSymbol, 'orchestrate');
+    const cached = preExecCache.get(cacheKey);
+    let resA: any, resB: any, resC: any;
+
+    if (cached && cached.expiresAt > Date.now()) {
+      console.log(`[Router] Reusing pre-execution cache for ${tokenSymbol}`);
+      resA = cached.resA;
+      resB = cached.resB;
+      resC = cached.resC;
+    } else {
+      [resA, resB, resC] = await Promise.all([
+        fetch(`${process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment'}?token=${tokenSymbol}`)
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => null),
+        fetch(`${process.env.WORKER_B_URL || 'http://localhost:5002/agent/onchain'}?token=${tokenSymbol}`)
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => null),
+        fetch(`${process.env.WORKER_C_URL || 'http://localhost:5002/agent/ta'}?token=${tokenSymbol}`)
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => null),
+      ]);
+      if (resA && resB && resC) {
+        preExecCache.set(cacheKey, { resA, resB, resC, expiresAt: Date.now() + 10000 });
+      }
+    }
 
     // Abort if Workers A, B, or C failed (Zero fee guarantee)
     if (!resA || !resB || !resC) {
@@ -433,6 +454,7 @@ app.post('/api/v1/orchestrate', async (c) => {
             workerPayoutGroupExplorerUrl: groupExplorerUrl,
             facilitatorVerification: facilitatorResult,
             facilitatorSettlement: settleResult,
+            attestationHash: boxStorageHash,
             boxStorageHash,
           },
         });
@@ -601,6 +623,7 @@ app.post('/api/v1/orchestrate', async (c) => {
               : null,
             facilitatorVerification: facilitatorResult,
             facilitatorSettlement: settleResult,
+            attestationHash: boxStorageHash,
             boxStorageHash,
           },
         });
@@ -635,6 +658,7 @@ app.post('/api/v1/orchestrate', async (c) => {
         workerPayoutGroupExplorerUrl: null,
         facilitatorVerification: facilitatorResult,
         facilitatorSettlement: settleResult,
+        attestationHash: boxStorageHash,
         boxStorageHash,
       },
     });
@@ -660,9 +684,21 @@ app.post('/api/v1/sentiment-only', async (c) => {
   const tokenSymbol = (body?.tokenSymbol || 'ALGO').toUpperCase();
 
   // STEP A: Pre-execute Worker A BEFORE any payment is demanded (zero-fee guarantee)
-  const resA = await fetch(`${process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment'}?token=${tokenSymbol}`)
-    .then(r => r.ok ? r.json() : null)
-    .catch(() => null);
+  const cacheKey = getCacheKey(tokenSymbol, 'sentiment');
+  const cached = preExecCache.get(cacheKey);
+  let resA: any;
+
+  if (cached && cached.expiresAt > Date.now()) {
+    console.log(`[Router] Reusing pre-execution sentiment cache for ${tokenSymbol}`);
+    resA = cached.resA;
+  } else {
+    resA = await fetch(`${process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment'}?token=${tokenSymbol}`)
+      .then(r => r.ok ? r.json() : null)
+      .catch(() => null);
+    if (resA) {
+      preExecCache.set(cacheKey, { resA, expiresAt: Date.now() + 10000 });
+    }
+  }
 
   if (!resA) {
     console.error('[Router] Worker A pre-execution failed for sentiment-only:', tokenSymbol);
@@ -745,6 +781,7 @@ app.post('/api/v1/sentiment-only', async (c) => {
       explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
       facilitatorVerification: facilitatorResult,
       facilitatorSettlement: settleResult,
+      attestationHash: boxStorageHash,
       boxStorageHash,
     },
   });
