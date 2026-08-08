@@ -76,10 +76,11 @@ export async function fetchQuantMeshSignal(
   // x402 STEP 2: READ 402 CHALLENGE — Extract payment parameters
   // ═══════════════════════════════════════════════════════════════════
   console.log('[x402] Step 2: Reading 402 challenge headers...');
-  const payTo = probeRes.headers.get('x-payment-pay-to') || FALLBACK_PAY_TO;
-  const priceStr = probeRes.headers.get('x-payment-price') || FALLBACK_PRICE_USDC;
-
   const challengeBody = await probeRes.json().catch(() => ({}));
+
+  const payTo = probeRes.headers.get('x-payment-pay-to') || challengeBody.payTo || FALLBACK_PAY_TO;
+  const defaultPrice = endpointType === 'sentiment' ? '0.002' : '0.007';
+  const priceStr = probeRes.headers.get('x-payment-price') || challengeBody.priceUsdc || defaultPrice;
   const usdcAsaId = challengeBody.usdcAsaId || TESTNET_USDC_ASA;
   const amountInBaseUnits = Math.round(parseFloat(priceStr) * 1_000_000);
 

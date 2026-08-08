@@ -211,6 +211,18 @@ const routesConfig = {
     },
     description: 'DeFi QuantMesh Fused Market Signal',
   },
+  'POST /api/v1/sentiment-only': {
+    accepts: {
+      scheme: 'exact',
+      network: ALGORAND_TESTNET_CAIP2,
+      payTo: routerAddress,
+      price: '$0.002',
+      extra: {
+        asset: process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID,
+      },
+    },
+    description: 'FinBERT Sentiment Analysis Single-Agent',
+  },
 };
 
 // 4. Apply x402 Payment Middleware (protocol pipeline passthrough —
