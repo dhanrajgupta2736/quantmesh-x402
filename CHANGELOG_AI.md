@@ -8,6 +8,18 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-08T16:57:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Fix FinBERT Sentiment ($0.002) Lute Wallet Price Prompt Bug in Orchestrator `routesConfig` & Client Challenge Extraction.  
+**Files Changed:**
+- `orchestrator/src/index.ts` — Added `'POST /api/v1/sentiment-only'` with `price: '$0.002'` to `routesConfig` so the x402 payment middleware issues the exact `$0.002` HTTP 402 challenge header.
+- `frontend/src/lib/x402Client.ts` — Updated `priceStr` extraction to check `challengeBody.priceUsdc` and fallback to `'0.002'` for sentiment mode, ensuring Lute Wallet prompts for 2,000 µUSDC ($0.002) instead of $0.007.
+- `CHANGELOG_AI.md` — This entry.
+
+**Verification & Deployment Status:**
+- `curl.exe -i -X POST https://api.dhanrajgupta.xyz/api/v1/sentiment-only`: Confirmed `x-payment-price: 0.002` and `priceUsdc: 0.002`.
+- Live Production EC2: Rebuilt & PM2 restarted (`online`).
+- Cloudflare Pages (`qm.dhanrajgupta.xyz`): Updated and deployed via commit `c8f5351`.
+
 ### 2026-08-08T16:52:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Binance Public API Multi-Tier Live Market Integration, Cloudflare Pages Deployment Config (`qm.dhanrajgupta.xyz`), FinBERT Sentiment Single-Agent Endpoint Routing Fix, and Receipt Payout Split Updates.  
 **Files Changed:**
