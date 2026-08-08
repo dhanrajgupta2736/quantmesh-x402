@@ -8,6 +8,16 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-08T20:30:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Applied Combined Audit Findings & Fixes (`6e7c704`). Updated `schema.json` to match exact orchestrator response structure (`clientPaymentTxId` & `workerPayoutGroupTxId`), enforced USDC ASA 10458941 balance requirement in `x402Client.ts` disabling microALGO underpayment fallbacks, optimized `pingWorker` timeout for n8n URLs, updated fallback data strings to `'Data Unavailable'`, updated attestation hash label in `page.tsx`, aligned ports in `deploy-ec2.sh`, and verified `ROUTER_MNEMONIC` live on EC2. Rebuilt and restarted PM2 `orchestrator`.  
+**Files Changed:**
+- `schema.json` — Removed `timeframe` requirement and bare `groupTxId`.
+- `frontend/src/lib/x402Client.ts` — Enforced USDC ASA 10458941 balance check; disabled microALGO fallback.
+- `orchestrator/src/index.ts` — Optimized `/health` pingWorker timeouts; replaced demo fallback strings with `'Data Unavailable'`.
+- `frontend/src/app/page.tsx` — Updated label to `"Cryptographic Attestation Hash:"`.
+- `deploy-ec2.sh` — Aligned worker ports (5001 & 5002).
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-08T19:10:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Full Architecture Page Harmonization (`bf98880`). Converted `frontend/src/app/architecture/page.tsx` to match the warm ink and phosphor amber design system, with Sora display titles, JetBrains Mono step numbers/code blocks, and ink panel styling.  
 **Files Changed:**
