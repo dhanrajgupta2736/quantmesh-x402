@@ -43,8 +43,8 @@ ALGOD_TOKEN=
 ROUTER_WALLET_ADDRESS=HXT5Z6DKIVYOIZB7WHVOGEQVYNGXVMQRMS43WXSGIDYORLE3ZUN63Q36MI
 WORKER_A_URL=http://localhost:5001/agent/sentiment
 WORKER_B_URL=http://localhost:5002/agent/onchain
-WORKER_C_URL=http://localhost:5003/agent/ta
-WORKER_D_URL=http://localhost:5004/agent/fusion
+WORKER_C_URL=http://localhost:5002/agent/ta
+WORKER_D_URL=http://localhost:5001/agent/fusion
 USDC_TESTNET_ASA_ID=10458941
 FACILITATOR_URL=https://facilitator.goplausible.xyz
 EOT

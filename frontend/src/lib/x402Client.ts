@@ -111,27 +111,25 @@ export async function fetchQuantMeshSignal(
     }
   }
 
-  let txn0: algosdk.Transaction;
-  if (hasUsdcOptIn && usdcBalance >= amountInBaseUnits) {
-    txn0 = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-      from: userAddress,
-      sender: userAddress,
-      to: payTo,
-      receiver: payTo,
-      assetIndex: usdcAsaId,
-      amount: amountInBaseUnits,
-      suggestedParams: params,
-    } as any);
-  } else {
-    txn0 = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-      from: userAddress,
-      sender: userAddress,
-      to: payTo,
-      receiver: payTo,
-      amount: amountInBaseUnits,
-      suggestedParams: params,
-    } as any);
+  if (!hasUsdcOptIn) {
+    throw new Error(`USDC Opt-In Required: Please click 'USDC Opt-In' in the header to opt into Testnet USDC ASA (${usdcAsaId}).`);
   }
+
+  if (usdcBalance < amountInBaseUnits) {
+    const reqAmountStr = (amountInBaseUnits / 1_000_000).toFixed(4);
+    const currentBalanceStr = (usdcBalance / 1_000_000).toFixed(4);
+    throw new Error(`Insufficient USDC Balance: Strategy execution requires $${reqAmountStr} USDC (ASA ${usdcAsaId}), but your balance is $${currentBalanceStr} USDC.`);
+  }
+
+  const txn0 = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+    from: userAddress,
+    sender: userAddress,
+    to: payTo,
+    receiver: payTo,
+    assetIndex: usdcAsaId,
+    amount: amountInBaseUnits,
+    suggestedParams: params,
+  } as any);
 
   console.log('[x402] Prompting Lute Wallet to sign payment transaction...');
   let signedTxns: Uint8Array[];

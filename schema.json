@@ -6,16 +6,15 @@
     "request": {
       "type": "object",
       "properties": {
-        "tokenSymbol": { "type": "string", "example": "ALGO" },
-        "timeframe": { "type": "string", "example": "1h" }
+        "tokenSymbol": { "type": "string", "example": "ALGO" }
       },
-      "required": ["tokenSymbol", "timeframe"]
+      "required": ["tokenSymbol"]
     },
     "response": {
       "type": "object",
       "properties": {
         "status": { "type": "string", "example": "success" },
-        "groupTxId": { "type": "string", "example": "ALGORAND_ATOMIC_GROUP_TX_ID_HERE" },
+        "clientPaymentTxId": { "type": "string", "example": "ALGORAND_CLIENT_PAYMENT_TX_ID_HERE" },
         "totalCostUsdc": { "type": "string", "example": "0.0070" },
         "signalFusion": {
           "type": "object",
@@ -36,12 +35,13 @@
         "onChainReceipt": {
           "type": "object",
           "properties": {
-            "explorerUrl": { "type": "string", "example": "https://testnet.algoexplorer.io/tx/..." },
+            "explorerUrl": { "type": "string", "example": "https://lora.algokit.io/testnet/transaction/..." },
+            "workerPayoutGroupTxId": { "type": "string", "example": "ALGORAND_ATOMIC_GROUP_TX_ID_HERE" },
             "boxStorageHash": { "type": "string", "example": "a3f9b2c4..." }
           }
         }
       },
-      "required": ["status", "groupTxId", "signalFusion", "breakdown", "onChainReceipt"]
+      "required": ["status", "clientPaymentTxId", "signalFusion", "breakdown", "onChainReceipt"]
     }
   }
 }

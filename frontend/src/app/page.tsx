@@ -923,9 +923,9 @@ export default function QuantMeshPage() {
                     </div>
                   </div>
 
-                  {/* Attestation Box Storage Hash */}
+                  {/* Attestation Hash */}
                   <div className="p-2.5 rounded-xl bg-[#08090C] border border-[#F0A868]/14">
-                    <span className="text-[#EDE9E1]/50 text-[10px] block">Attestation Box Storage Hash:</span>
+                    <span className="text-[#EDE9E1]/50 text-[10px] block">Cryptographic Attestation Hash:</span>
                     <span className="text-[10px] text-[#B87F4C] truncate block mt-0.5">
                       {signalData.onChainReceipt.boxStorageHash || 'sha256(signal:txId)'}
                     </span>

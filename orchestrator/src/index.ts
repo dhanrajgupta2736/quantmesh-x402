@@ -244,20 +244,34 @@ app.get('/api/v1/health', async (c) => {
 
   const pingWorker = async (name: string, url: string) => {
     const start = Date.now();
+    const isN8n = url.includes('n8n.cloud');
+    if (isN8n) {
+      try {
+        const res = await fetch(`${url}?token=ALGO`, { signal: AbortSignal.timeout(3000) });
+        return {
+          status: res.ok ? ('online' as const) : ('degraded' as const),
+          latencyMs: Date.now() - start,
+        };
+      } catch {
+        return {
+          status: 'offline' as const,
+          latencyMs: Date.now() - start,
+        };
+      }
+    }
+
     try {
-      // Use a lightweight GET/HEAD to check if the worker is alive
       const healthUrl = url.replace(/\/agent\/.*$/, '/health');
-      const res = await fetch(healthUrl, { signal: AbortSignal.timeout(5000) });
+      const res = await fetch(healthUrl, { signal: AbortSignal.timeout(3000) });
       return {
-        status: res.ok ? 'online' as const : 'degraded' as const,
+        status: res.ok ? ('online' as const) : ('degraded' as const),
         latencyMs: Date.now() - start,
       };
     } catch {
-      // Try the actual worker URL as fallback
       try {
-        const res = await fetch(`${url}?token=ALGO`, { signal: AbortSignal.timeout(5000) });
+        const res = await fetch(`${url}?token=ALGO`, { signal: AbortSignal.timeout(3000) });
         return {
-          status: res.ok ? 'online' as const : 'degraded' as const,
+          status: res.ok ? ('online' as const) : ('degraded' as const),
           latencyMs: Date.now() - start,
         };
       } catch {
@@ -338,9 +352,9 @@ app.post('/api/v1/orchestrate', async (c) => {
       body: JSON.stringify({
         token: tokenSymbol,
         sentimentScore,
-        onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || '+18% Net Inflow',
+        onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || 'Data Unavailable',
         onChainScore,
-        technicalIndicator: resC.taSignal || resC.technicalIndicator || 'RSI 58 - Bullish Crossover',
+        technicalIndicator: resC.taSignal || resC.technicalIndicator || 'Data Unavailable',
         taScore,
       }),
     })
@@ -423,8 +437,8 @@ app.post('/api/v1/orchestrate', async (c) => {
           },
           breakdown: {
             sentimentScore: resA.sentimentScore,
-            onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || '+18% Net Inflow',
-            technicalIndicator: resC.taSignal || resC.technicalIndicator || 'RSI 58 - Bullish Crossover',
+            onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || 'Data Unavailable',
+            technicalIndicator: resC.taSignal || resC.technicalIndicator || 'Data Unavailable',
           },
           onChainReceipt: {
             explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
@@ -587,8 +601,8 @@ app.post('/api/v1/orchestrate', async (c) => {
           },
           breakdown: {
             sentimentScore: resA.sentimentScore,
-            onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || '+18% Net Inflow',
-            technicalIndicator: resC.taSignal || resC.technicalIndicator || 'RSI 58 - Bullish Crossover',
+            onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || 'Data Unavailable',
+            technicalIndicator: resC.taSignal || resC.technicalIndicator || 'Data Unavailable',
           },
           onChainReceipt: {
             explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
@@ -625,8 +639,8 @@ app.post('/api/v1/orchestrate', async (c) => {
       },
       breakdown: {
         sentimentScore: resA.sentimentScore,
-        onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || '+18% Net Inflow',
-        technicalIndicator: resC.taSignal || resC.technicalIndicator || 'RSI 58 - Bullish Crossover',
+        onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || 'Data Unavailable',
+        technicalIndicator: resC.taSignal || resC.technicalIndicator || 'Data Unavailable',
       },
       onChainReceipt: {
         explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
