@@ -43,15 +43,20 @@ export async function optInToUSDCAssest(
 export async function fetchQuantMeshSignal(
   tokenSymbol: string,
   userAddress: string,
-  signTransactions: (txns: Uint8Array[], indexesToSign?: number[]) => Promise<Uint8Array[]>
+  signTransactions: (txns: Uint8Array[], indexesToSign?: number[]) => Promise<Uint8Array[]>,
+  endpointType: 'consensus' | 'sentiment' = 'consensus'
 ) {
+  const targetGateway = endpointType === 'sentiment'
+    ? 'https://api.dhanrajgupta.xyz/api/v1/sentiment-only'
+    : 'https://api.dhanrajgupta.xyz/api/v1/orchestrate';
+
   const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
 
   // ═══════════════════════════════════════════════════════════════════
   // x402 STEP 1: PROBE — Send request without payment to get 402 challenge
   // ═══════════════════════════════════════════════════════════════════
-  console.log('[x402] Step 1: Probing orchestrator for 402 payment challenge...');
-  const probeRes = await fetch(ROUTER_GATEWAY, {
+  console.log(`[x402] Step 1: Probing ${endpointType} endpoint for 402 payment challenge...`);
+  const probeRes = await fetch(targetGateway, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ tokenSymbol }),
@@ -151,8 +156,8 @@ export async function fetchQuantMeshSignal(
   // ═══════════════════════════════════════════════════════════════════
   // x402 STEP 4: RETRY — Send request with verified payment transaction ID
   // ═══════════════════════════════════════════════════════════════════
-  console.log(`[x402] Step 4: Retrying request with verified paymentTxId: ${paymentTxId}...`);
-  const paidRes = await fetch(ROUTER_GATEWAY, {
+  console.log(`[x402] Step 4: Retrying request to ${endpointType} with verified paymentTxId: ${paymentTxId}...`);
+  const paidRes = await fetch(targetGateway, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
