@@ -8,6 +8,15 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-08T20:55:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Applied Complete Issue List & Final Fixes (`afa6824`). Unified `ROUTER_ADDRESS` across all endpoints (`/orchestrate` & `/sentiment-only`), implemented zero-fee pre-execution guarantee for `/sentiment-only` (pre-fetching Worker A before issuing HTTP 402 challenge), removed server-side microALGO payment fallback from `verifyRealPayment()`, updated default worker URLs from n8n to local FastAPI service (`5002`), removed dead constants in `x402Client.ts`, updated `computeAttestationHash` naming in `attestation.ts`, and updated `deploy-ec2.sh` & `.env.example`. Rebuilt and restarted PM2 `orchestrator` on AWS EC2.  
+**Files Changed:**
+- `orchestrator/src/index.ts` — Unified `ROUTER_ADDRESS`, zero-fee Worker A pre-execution for `/sentiment-only`, removed ALGO fallback, updated default worker B/C URLs to FastAPI.
+- `orchestrator/src/attestation.ts` — Renamed to `computeAttestationHash` with honest SHA-256 digest docstring.
+- `frontend/src/lib/x402Client.ts` — Removed dead constants `FALLBACK_PRICE_USDC` and `FALLBACK_WORKER_PAYOUT_ADDRESSES`.
+- `deploy-ec2.sh` & `orchestrator/.env.example` — Unified `ROUTER_ADDRESS` and added `ROUTER_MNEMONIC` and `HF_API_TOKEN` placeholders.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-08T20:41:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Updated receipt card header in `frontend/src/app/page.tsx` (`a2ac324`) from `"Verifiable On-Chain Receipt"` to `"Verifiable Payment Receipt"` for 100% accuracy across all contained fields. Tested live EC2 server response (`https://api.dhanrajgupta.xyz/api/v1/orchestrate`), confirming HTTP 402 challenge headers & body.  
 **Files Changed:**
