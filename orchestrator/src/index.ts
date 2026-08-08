@@ -344,10 +344,11 @@ app.post('/api/v1/orchestrate', async (c) => {
       }, 502);
     }
 
-    // STEP C: Check Unified 5-Txn Group or Legacy Payment Proof Header
+    // STEP C: Check Payment Proof (Standard 2-Step Payment TxID or Alternate 5-Txn Group Fallback)
     const unifiedGroup = body?.unifiedGroup;
-    let paymentTxId = c.req.header('x-payment-txn-id');
+    let paymentTxId = c.req.header('x-payment-txn-id') || body?.clientPaymentTxId;
 
+    // [LEGACY / ALTERNATE 5-TXN GROUP FALLBACK]: Handled if client explicitly submits unified group payload
     if (unifiedGroup && routerSecretKey) {
       console.log(`[Router] Processing Unified 5-Txn Group...`);
       try {

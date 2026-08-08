@@ -34,5 +34,6 @@ build_pptx_deck.py
 create_slide_assets.py
 convert_docs.py
 docs/
-goals/
+goals/*
+!goals/AlgoVerse2026_x402_ProblemStatement.docx
 
