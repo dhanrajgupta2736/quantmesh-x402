@@ -453,7 +453,10 @@ app.post('/api/v1/orchestrate', async (c) => {
       c.header('x-payment-usdc-asa-id', String(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID));
       return c.json({
         status: 'payment_required',
-        message: 'x402 Payment Required: $0.007 USDC/ALGO on Algorand Testnet',
+        endpoint: 'orchestrate',
+        message: 'x402 Payment Required: $0.007 USDC/ALGO on Algorand Testnet for Fused Signal',
+        priceUsdc: '0.007',
+        payTo: routerAddress,
         workerPayoutAddresses: WORKER_PAYOUT_ADDRESSES,
         usdcAsaId: Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID),
       }, 402);
