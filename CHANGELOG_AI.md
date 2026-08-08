@@ -8,6 +8,12 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-08T17:30:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Refactored `x402Client.ts` (`eb13a8a`) to read `priceStr` live from HTTP 402 response headers (`x-payment-price`) and body (`challengeBody.priceUsdc`) FIRST, falling back to endpoint default SECOND. Fully aligns implementation with Hackathon Host Yash Diwan's specification.  
+**Files Changed:**
+- `frontend/src/lib/x402Client.ts` — Updated `priceStr` extraction order: `probeRes.headers.get('x-payment-price') || challengeBody.priceUsdc || (endpointType === 'sentiment' ? '0.002' : '0.007')`.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-08T17:10:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Explicit Endpoint Pricing Fix in `x402Client.ts` (`b7ca8a9`). Bound `priceStr` directly to `endpointType` ('0.002' for sentiment, '0.007' for consensus) to guarantee exact Lute Wallet prompt.  
 **Files Changed:**
