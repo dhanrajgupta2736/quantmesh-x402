@@ -1,12 +1,12 @@
 import crypto from 'crypto';
 
 /**
- * Computes a deterministic SHA-256 cryptographic box storage hash 
- * for signal attestation on Algorand Testnet.
+ * Computes a deterministic SHA-256 cryptographic attestation digest
+ * anchoring fused market signals to an on-chain Algorand payment transaction ID.
  * 
  * Format: sha256(tokenSymbol:compositeScore:verdict:paymentTxId:timestamp)
  */
-export function computeBoxStorageHash(
+export function computeAttestationHash(
   tokenSymbol: string,
   compositeScore: number,
   verdict: string,
@@ -17,3 +17,6 @@ export function computeBoxStorageHash(
   const boxStorageHash = crypto.createHash('sha256').update(rawPayload).digest('hex');
   return { boxStorageHash, timestamp };
 }
+
+// Backward compatibility export
+export const computeBoxStorageHash = computeAttestationHash;

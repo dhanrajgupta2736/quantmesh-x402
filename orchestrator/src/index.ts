@@ -6,7 +6,7 @@ import { HTTPFacilitatorClient } from '@x402-avm/core/server';
 import { ExactAvmScheme } from '@x402-avm/avm/exact/server';
 import dotenv from 'dotenv';
 import algosdk from 'algosdk';
-import { computeBoxStorageHash } from './attestation.js';
+import { computeAttestationHash } from './attestation.js';
 import { buildAtomicPaymentGroup, signAndSubmitAtomicGroup, signAndSubmitUnifiedGroup } from './atomicBuilder.js';
 import { verifyViaFacilitator, settleViaFacilitator } from './facilitatorClient.js';
 import { 
@@ -109,18 +109,8 @@ async function verifyRealPayment(
         if (amount < minAmountMicroUsdc) {
           return { valid: false, reason: `Payment amount too low (${amount} < ${minAmountMicroUsdc} micro-USDC).` };
         }
-      } else if (paymentTxn) {
-        // Native ALGO payment (frontend fallback when user has no USDC)
-        const receiver = paymentTxn.receiver ?? '';
-        if (receiver !== expectedRecipient) {
-          return { valid: false, reason: 'ALGO payment was not sent to the router address.' };
-        }
-        const amount = Number(paymentTxn.amount ?? 0);
-        if (amount < minAmountMicroUsdc) {
-          return { valid: false, reason: `ALGO payment amount too low (${amount} < ${minAmountMicroUsdc} microAlgo).` };
-        }
       } else {
-        return { valid: false, reason: 'Transaction is neither an asset transfer nor a payment.' };
+        return { valid: false, reason: 'Transaction is not a valid USDC asset transfer.' };
       }
 
       usedPaymentTxIds.add(txId);
@@ -171,11 +161,8 @@ app.use('*', cors({
 const rawFacilitatorUrl = process.env.FACILITATOR_URL || 'https://facilitator.goplausible.xyz';
 const cleanFacilitatorUrl = rawFacilitatorUrl.replace(/[\[\]]/g, '').trim();
 
-// Ensure valid 58-character Algorand recipient address
-const DEFAULT_ROUTER_ADDRESS = '4DTSNS35EP24IFWIGXSG5NSD3GDDTPHNVGEXSHG67JDEHUHUNFR3KJGPO4';
-const routerAddress = (process.env.ROUTER_WALLET_ADDRESS && process.env.ROUTER_WALLET_ADDRESS.length === 58) 
-  ? process.env.ROUTER_WALLET_ADDRESS 
-  : DEFAULT_ROUTER_ADDRESS;
+// Central recipient router address imported from endpoint.config.ts
+const routerAddress = ROUTER_ADDRESS;
 
 // ─── x402 Protocol Scaffolding ───────────────────────────────────────
 // The @x402-avm SDK provides protocol-compliant type definitions and
@@ -237,8 +224,8 @@ app.get('/api/v1/health', async (c) => {
 
   const workerUrls = {
     sentiment: process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment',
-    onchain: process.env.WORKER_B_URL || 'https://dhanrajgupta.app.n8n.cloud/webhook/agent-onchain',
-    ta: process.env.WORKER_C_URL || 'https://dhanrajgupta.app.n8n.cloud/webhook/agent-ta',
+    onchain: process.env.WORKER_B_URL || 'http://localhost:5002/agent/onchain',
+    ta: process.env.WORKER_C_URL || 'http://localhost:5002/agent/ta',
     fusion: process.env.WORKER_D_URL || 'http://localhost:5001/agent/fusion',
   };
 
@@ -321,10 +308,10 @@ app.post('/api/v1/orchestrate', async (c) => {
       fetch(`${process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment'}?token=${tokenSymbol}`)
         .then(r => r.ok ? r.json() : null)
         .catch(() => null),
-      fetch(`${process.env.WORKER_B_URL || 'https://dhanrajgupta.app.n8n.cloud/webhook/agent-onchain'}?token=${tokenSymbol}`)
+      fetch(`${process.env.WORKER_B_URL || 'http://localhost:5002/agent/onchain'}?token=${tokenSymbol}`)
         .then(r => r.ok ? r.json() : null)
         .catch(() => null),
-      fetch(`${process.env.WORKER_C_URL || 'https://dhanrajgupta.app.n8n.cloud/webhook/agent-ta'}?token=${tokenSymbol}`)
+      fetch(`${process.env.WORKER_C_URL || 'http://localhost:5002/agent/ta'}?token=${tokenSymbol}`)
         .then(r => r.ok ? r.json() : null)
         .catch(() => null),
     ]);
@@ -385,7 +372,7 @@ app.post('/api/v1/orchestrate', async (c) => {
         const { txId, groupHash, confirmedRound } = await signAndSubmitUnifiedGroup(signedClientTxnBytes, workerTxns, routerSecretKey);
         paymentTxId = txId;
 
-        const { boxStorageHash } = computeBoxStorageHash(
+        const { boxStorageHash } = computeAttestationHash(
           tokenSymbol,
           resD.compositeScore,
           resD.verdict,
@@ -524,7 +511,7 @@ app.post('/api/v1/orchestrate', async (c) => {
     console.log(`[Router] Facilitator settlement (legacy): ${JSON.stringify(settleResult)}`);
 
     // STEP D: Compute Cryptographic Attestation Digest
-    const { boxStorageHash } = computeBoxStorageHash(
+    const { boxStorageHash } = computeAttestationHash(
       tokenSymbol,
       resD.compositeScore,
       resD.verdict,
@@ -668,13 +655,26 @@ app.post('/api/v1/sentiment-only', async (c) => {
     return c.json({ status: 'error', message: 'Rate limit exceeded (10 req/min).' }, 429);
   }
 
-  const routerAddress = process.env.ROUTER_ADDRESS || '4DTSNS35EP24IFWIGXSG5NSD3GDDTPHNVGEXSHG67JDEHUHUNFR3KJGPO4';
+  const routerAddress = ROUTER_ADDRESS;
   const body = await c.req.json().catch(() => ({}));
   const tokenSymbol = (body?.tokenSymbol || 'ALGO').toUpperCase();
 
+  // STEP A: Pre-execute Worker A BEFORE any payment is demanded (zero-fee guarantee)
+  const resA = await fetch(`${process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment'}?token=${tokenSymbol}`)
+    .then(r => r.ok ? r.json() : null)
+    .catch(() => null);
+
+  if (!resA) {
+    console.error('[Router] Worker A pre-execution failed for sentiment-only:', tokenSymbol);
+    return c.json({
+      status: 'error',
+      message: 'Sentiment agent pre-execution failed. Zero fee charged.',
+    }, 502);
+  }
+
   let paymentTxId = c.req.header('x-payment-txn-id') || body?.clientPaymentTxId || body?.unifiedGroup?.signedClientTxn;
 
-  // 1. If no payment proof, issue HTTP 402 Challenge ($0.002 USDC)
+  // STEP B: If no payment proof, issue HTTP 402 Challenge ($0.002 USDC) — worker already proven alive
   if (!paymentTxId) {
     c.header('x-payment-pay-to', routerAddress);
     c.header('x-payment-price', '0.002');
@@ -686,16 +686,12 @@ app.post('/api/v1/sentiment-only', async (c) => {
       endpoint: 'sentiment-only',
       message: 'x402 Payment Required: $0.002 USDC/ALGO on Algorand Testnet for FinBERT Sentiment Analysis',
       priceUsdc: '0.002',
+      payTo: routerAddress,
       usdcAsaId: Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID),
     }, 402);
   }
 
-  // 2. Pre-execute Worker A (FinBERT Sentiment)
-  const resA = await fetch(`${process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment'}?token=${tokenSymbol}`)
-    .then(r => r.ok ? r.json() : null)
-    .catch(() => null) || { sentimentScore: 65, source: 'fallback' };
-
-  // 3. Verify Payment
+  // STEP C: Payment proof exists AND worker already succeeded — continue to verification
   const verification = await verifyRealPayment(
     paymentTxId,
     routerAddress,
@@ -733,7 +729,7 @@ app.post('/api/v1/sentiment-only', async (c) => {
     ALGORAND_TESTNET_CAIP2, Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID)
   ).catch(err => ({ success: false, errorReason: `Facilitator settle unavailable: ${err.message}` }));
 
-  const { boxStorageHash } = computeBoxStorageHash(tokenSymbol, resA.sentimentScore, 'SENTIMENT_CHECK', paymentTxId);
+  const { boxStorageHash } = computeAttestationHash(tokenSymbol, resA.sentimentScore, 'SENTIMENT_CHECK', paymentTxId);
 
   return c.json({
     status: 'success',
