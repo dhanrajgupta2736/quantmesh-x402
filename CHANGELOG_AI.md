@@ -8,6 +8,12 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-08T17:10:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Explicit Endpoint Pricing Fix in `x402Client.ts` (`b7ca8a9`). Bound `priceStr` directly to `endpointType` ('0.002' for sentiment, '0.007' for consensus) to guarantee exact Lute Wallet prompt.  
+**Files Changed:**
+- `frontend/src/lib/x402Client.ts` — Updated `priceStr` computation to explicitly evaluate `endpointType === 'sentiment' ? '0.002' : '0.007'`, eliminating stream-consumption header parsing fallbacks.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-08T17:05:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Master Documentation Update in `README.md` reflecting Cloudflare Pages Deployment (`https://qm.dhanrajgupta.xyz`), Dual x402 Endpoints ($0.007 vs $0.002), Performance-Weighted AI Tokenomics Math, and Binance Live Market API Feed.  
 **Files Changed:**
