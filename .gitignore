@@ -20,3 +20,19 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 Thumbs.db
+
+# Slide Decks, Presentations & Hackathon Pitch Documents
+*.pptx
+*.pdf
+*.docx
+presentation.*
+PITCH_DECK.*
+*pitch*
+*Pitch*
+generate_ppt.py
+build_pptx_deck.py
+create_slide_assets.py
+convert_docs.py
+docs/
+goals/
+

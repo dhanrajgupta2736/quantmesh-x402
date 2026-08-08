@@ -8,6 +8,14 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-08T11:43:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Public GitHub Security Cleanup: Removed all PPTX, PDF, DOCX, presentation scripts, pitch deck files, and `docs/` folder from git tracking.  
+**Files Removed from Git:**
+- `docs/` (Entire directory: `AlgoVerse2026_QuantMesh_x402_Official_Pitch.pdf`, `AlgoVerse2026_QuantMesh_x402_Official_Pitch.pptx`, `QuantMesh_x402_Hackathon_Pitch.pptx`, `PITCH_DECK.docx`, `PITCH_DECK.pdf`, `ONE_PAGER_HINGLISH.docx`, `ONE_PAGER_HINGLISH.pdf`, `PROJECT_EXPLAINER_HINGLISH.docx`, `PROJECT_EXPLAINER_HINGLISH.pdf`, `ONE_PAGER_HINGLISH.md`, `PROJECT_EXPLAINER_HINGLISH.md`)
+- Root Presentation & Script Files (`presentation.md`, `presentation.pptx`, `presentation.pdf`, `presentation.html`, `PITCH_DECK.md`, `generate_ppt.py`, `build_pptx_deck.py`, `create_slide_assets.py`, `convert_docs.py`, `goals/AlgoVerse2026_x402_ProblemStatement.docx`)
+- `.gitignore` — Added global exclusion rules for `*.pptx`, `*.pdf`, `*.docx`, `presentation.*`, `PITCH_DECK.*`, `docs/`, and `goals/`.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-08T11:37:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Wired Dynamic Weights (`resD.weights`) into Atomic Worker Payouts & Added Facilitator Gate to `/api/v1/sentiment-only`  
 **Files Changed:**
