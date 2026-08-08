@@ -8,6 +8,15 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-08T21:20:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Final Code Cleanup & Live Health Verification (`5fe1c7b`). Added `USDC` rejection guard in `agent-sentiment-fusion/main.py`, deleted `ALGORAND_INDEXER` dead constant in `agent-onchain-ta/main.py`, cleaned up `boxStorageHash` leaving ONLY `attestationHash` in JSON response objects & `schema.json`, and tested live `/api/v1/health` endpoint on AWS EC2, confirming 100% online status across all 4 worker nodes (sentiment: 34ms, onchain: 17ms, ta: 17ms, fusion: 18ms).  
+**Files Changed:**
+- `agent-sentiment-fusion/main.py` — Added USDC guard and removed `HEADLINE_SEEDS["USDC"]`.
+- `agent-onchain-ta/main.py` — Deleted unused `ALGORAND_INDEXER` constant.
+- `orchestrator/src/index.ts` — Cleaned up `boxStorageHash` key; emits `attestationHash`.
+- `schema.json` & `frontend/src/app/page.tsx` — Emits & renders `attestationHash`.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-08T21:10:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Applied Consolidated Issue List Fixes (`9de2972`). Implemented 10-second in-memory `preExecCache` across probe/retry HTTP request pairs for both `/orchestrate` and `/sentiment-only`, added `attestationHash` key alongside `boxStorageHash` in JSON responses & `schema.json`, updated `WORKER_PAYOUT_ADDRESSES` fallback lookup in `endpoint.config.ts`, added `USDC` stablecoin rejection guard in `agent-onchain-ta/main.py`, uncommented `ROUTER_MNEMONIC` & `HF_API_TOKEN` in `.env.example`, added explicit warning in `deploy-ec2.sh` if `ROUTER_MNEMONIC` is absent, and updated Python FastAPI worker installation logic in `deploy-ec2.sh`.  
 **Files Changed:**
