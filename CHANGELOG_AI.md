@@ -8,6 +8,13 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-09T12:12:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Implemented Dual-Theme System & High-Contrast Aesthetics Upgrade. Added a Theme Mode Switcher toggle button (🌙 Cyber Neon Dark vs ☀️ Sleek Electric Light) in the header navigation bar. Redesigned `globals.css` palette with high-contrast vibrant colors (Electric Cyan, Emerald Green, Amber Gold, Deep Space Navy) to resolve low-contrast dim tones. Updated `data-theme` state management in `frontend/src/app/page.tsx`. Verified zero-error TypeScript build and exported production bundle.  
+**Files Changed:**
+- `frontend/src/app/globals.css` — Defined `--bg-main`, `--line`, `--phosphor`, `--signal-bull`, `--signal-bear` CSS variables for Cyber Dark & Sleek Light mode.
+- `frontend/src/app/page.tsx` — Added Theme Switcher toggle button with `Sun` and `Moon` icons and `theme` state.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-09T11:58:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Configured Root `package.json` Monorepo Build Trigger. Added a root `package.json` with `"build": "npm run build --prefix frontend"` script to ensure Cloudflare Pages git integration automatically builds the Next.js static export inside `frontend/` on every git push. Added `__pycache__/` to `.gitignore`.  
 **Files Changed:**

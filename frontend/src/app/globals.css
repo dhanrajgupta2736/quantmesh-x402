@@ -1,35 +1,68 @@
 @import "tailwindcss";
 
 :root {
-  --ink-950: #08090C;
-  --ink-900: #0D0F14;
-  --ink-800: #14171E;
-  --ink-700: #1C202A;
+  /* Default: Cyber Neon Dark Mode */
+  --bg-main: #0B0F19;
+  --ink-950: #0B0F19;
+  --ink-900: #111827;
+  --ink-800: #1E293B;
+  --ink-700: #334155;
 
-  --line: rgba(240, 168, 104, 0.14);
-  --line-strong: rgba(240, 168, 104, 0.32);
+  --line: rgba(34, 211, 238, 0.2);
+  --line-strong: rgba(34, 211, 238, 0.45);
 
-  --phosphor: #F0A868;
-  --phosphor-dim: #B87F4C;
-  --phosphor-glow: rgba(240, 168, 104, 0.45);
+  --phosphor: #06B6D4;
+  --phosphor-dim: #0284C7;
+  --phosphor-glow: rgba(6, 182, 212, 0.5);
 
-  --signal-bull: #4FAE8C;
-  --signal-bear: #C4685A;
-  --signal-neutral: #8A8578;
+  --accent-gold: #F59E0B;
+  --accent-purple: #A855F7;
 
-  --foreground: #EDE9E1;
+  --signal-bull: #10B981;
+  --signal-bear: #EF4444;
+  --signal-neutral: #94A3B8;
+
+  --foreground: #F8FAFC;
+  --foreground-muted: rgba(248, 250, 252, 0.7);
+  --card-bg: rgba(17, 24, 39, 0.85);
+  --card-hover: rgba(30, 41, 59, 0.9);
+}
+
+[data-theme="light"] {
+  /* Sleek Electric Light Mode */
+  --bg-main: #F8FAFC;
+  --ink-950: #F8FAFC;
+  --ink-900: #FFFFFF;
+  --ink-800: #F1F5F9;
+  --ink-700: #E2E8F0;
+
+  --line: rgba(2, 132, 199, 0.22);
+  --line-strong: rgba(2, 132, 199, 0.5);
+
+  --phosphor: #0284C7;
+  --phosphor-dim: #0369A1;
+  --phosphor-glow: rgba(2, 132, 199, 0.35);
+
+  --accent-gold: #D97706;
+  --accent-purple: #9333EA;
+
+  --signal-bull: #059669;
+  --signal-bear: #DC2626;
+  --signal-neutral: #64748B;
+
+  --foreground: #0F172A;
+  --foreground-muted: rgba(15, 23, 42, 0.75);
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --card-hover: rgba(241, 245, 249, 0.95);
 }
 
 @layer base {
   body {
-    background-color: var(--ink-950);
+    background-color: var(--bg-main);
     color: var(--foreground);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
-    background-image: 
-      radial-gradient(at 15% 15%, rgba(240, 168, 104, 0.035) 0px, transparent 45%),
-      radial-gradient(at 85% 85%, rgba(79, 174, 140, 0.025) 0px, transparent 45%);
-    background-attachment: fixed;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
@@ -43,19 +76,23 @@
 
 /* Instrumentation Glass Panels */
 .ink-panel {
-  background-color: var(--ink-900);
+  background-color: var(--card-bg);
   border: 1px solid var(--line);
+  backdrop-filter: blur(16px);
+  transition: all 0.3s ease;
 }
 
 .ink-card {
-  background-color: var(--ink-800);
+  background-color: var(--card-bg);
   border: 1px solid var(--line);
+  backdrop-filter: blur(12px);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ink-card:hover {
   border-color: var(--line-strong);
-  background-color: var(--ink-700);
+  background-color: var(--card-hover);
+  box-shadow: 0 8px 24px -6px var(--phosphor-glow);
 }
 
 .glow-phosphor {
@@ -91,6 +128,6 @@
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--ink-950); }
+::-webkit-scrollbar-track { background: var(--bg-main); }
 ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--phosphor-dim); }

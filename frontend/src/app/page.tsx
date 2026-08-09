@@ -21,7 +21,9 @@ import {
   Copy,
   Check,
   Globe,
-  GitMerge
+  GitMerge,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 // ─── Score Gauge Component ──────────────────────────────────────────
@@ -147,11 +149,13 @@ export default function QuantMeshPage() {
   const [healthData, setHealthData] = useState<HealthData | null>(null);
   const [copiedTxId, setCopiedTxId] = useState(false);
   const [currentStep, setCurrentStep] = useState<number>(0);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
-  // Prevent SSR Hydration Mismatch
+  // Prevent SSR Hydration Mismatch & Update Theme Attribute
   useEffect(() => {
     setMounted(true);
-  }, []);
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   // Poll Network Health
   const checkHealth = useCallback(async () => {
@@ -340,11 +344,30 @@ export default function QuantMeshPage() {
             {/* Architecture Link */}
             <a
               href="/architecture"
-              className="px-3 py-2 rounded-xl bg-[#14171E] border border-[#F0A868]/14 hover:border-[#F0A868]/32 text-[#EDE9E1]/80 text-xs font-semibold flex items-center gap-1.5 transition-all hidden md:flex"
+              className="px-3 py-2 rounded-xl bg-[var(--ink-800)] border border-[var(--line)] hover:border-[var(--line-strong)] text-[var(--foreground)] text-xs font-semibold flex items-center gap-1.5 transition-all hidden md:flex"
             >
-              <Layers className="w-3.5 h-3.5 text-[#B87F4C]" />
+              <Layers className="w-3.5 h-3.5 text-[var(--phosphor)]" />
               Architecture
             </a>
+
+            {/* Theme Mode Switcher Toggle */}
+            <button
+              onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+              className="px-3 py-2 rounded-xl bg-[var(--ink-800)] border border-[var(--line)] hover:border-[var(--line-strong)] text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+            >
+              {theme === 'dark' ? (
+                <>
+                  <Sun className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="text-amber-400 text-xs">Light</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-3.5 h-3.5 text-cyan-600" />
+                  <span className="text-cyan-600 text-xs">Dark</span>
+                </>
+              )}
+            </button>
 
             {/* Wallet Button */}
             {mounted && (
