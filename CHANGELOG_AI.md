@@ -8,6 +8,25 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-09T17:35:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Applied All 7 Audit Fixes Across Orchestrator Gateway & Frontend.
+1. `orchestrator/src/index.ts`: Added 60s periodic eviction sweep for `workerACache` entries.
+2. `frontend/src/app/page.tsx`: Dynamically derived "ONLINE" badge count from real `healthData?.workers` state rather than hardcoded text.
+3. `frontend/src/app/page.tsx`: Connected `TickerBar` to Binance public 24h ticker endpoint (`api.binance.com/api/v3/ticker/24hr`) for 100% real live crypto market prices.
+4 & 5. `frontend/src/app/page.tsx`: Replaced hardcoded Worker B/C fallback strings with honest `'Data Unavailable'`.
+6. `frontend/src/app/page.tsx`: Updated Facilitator badge in receipt to dynamically reflect `onChainReceipt?.facilitatorVerification?.isValid !== false` (GoPlausible Verified ✓ vs Soft-Pass ⚠).
+7. `orchestrator/src/index.ts`: Aligned `workerACache` TTL from 15_000ms to 12_000ms to match frontend health-poll interval.  
+**Files Changed:**
+- `orchestrator/src/index.ts` — Added `workerACache` 60s eviction sweep & updated TTL to 12_000ms.
+- `frontend/src/app/page.tsx` — Added Binance live market ticker fetch, dynamic online badge count, honest worker fallbacks, facilitator verification state check.
+- `CHANGELOG_AI.md` — This entry.
+
+### 2026-08-09T17:19:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Converted System Architecture Flowchart to 16:9 Widescreen Landscape PNG for PowerPoint. Re-formatted the architecture diagram into a Left-to-Right (`flowchart LR`) widescreen 16:9 aspect ratio, reducing vertical height and expanding horizontally across 4 distinct subgraphs (Frontend, Gateway, Settlement, Facilitator) so it fits perfectly on a single PowerPoint presentation slide (`architecture_diagram.png`).  
+**Files Updated:**
+- `architecture_diagram.png` — 16:9 Widescreen landscape architecture flowchart PNG image optimized for PPT slides.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-09T12:53:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Resolved SSR Hydration Mismatch, Upgraded Neutral/Score Color Palette, & Enabled All 4 Worker Execution Animations. 
 1. Fixed React SSR Hydration Mismatch error by precomputing static rounded SVG tick mark coordinates (`STATIC_TICK_MARKS`) outside the render cycle, eliminating float precision differences between Server and Client.

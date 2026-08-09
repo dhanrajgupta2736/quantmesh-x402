@@ -663,8 +663,14 @@ app.post('/api/v1/orchestrate', async (c) => {
  * POST /api/v1/sentiment-only — Single FinBERT Sentiment Agent ($0.002 USDC)
  * ═══════════════════════════════════════════════════════════════════
  */
-// 15-second scoped cache for Worker A in /sentiment-only probe/retry flow
+// 12-second scoped cache for Worker A in /sentiment-only probe/retry flow
 const workerACache = new Map<string, { result: any; expiresAt: number }>();
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of workerACache.entries()) {
+    if (now > entry.expiresAt) workerACache.delete(key);
+  }
+}, 60_000);
 
 app.post('/api/v1/sentiment-only', async (c) => {
   const ip = c.req.header('x-forwarded-for') || '127.0.0.1';
@@ -686,7 +692,7 @@ app.post('/api/v1/sentiment-only', async (c) => {
       }).then(r => r.ok ? r.json() : null).catch(() => null);
 
   if (resA && !cached) {
-    workerACache.set(cacheKey, { result: resA, expiresAt: Date.now() + 15_000 });
+    workerACache.set(cacheKey, { result: resA, expiresAt: Date.now() + 12_000 });
   }
 
   if (!resA) {

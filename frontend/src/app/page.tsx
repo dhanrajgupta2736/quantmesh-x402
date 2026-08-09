@@ -27,7 +27,7 @@ const STATIC_TICK_MARKS = Array.from({ length: 40 }).map((_, i) => {
 
 // ─── Animated Ticker Bar (Trading Data Stream) ────────────────────
 function TickerBar() {
-  const tickers = [
+  const [tickers, setTickers] = useState([
     { sym: 'BTC', val: '67,240', chg: '+2.4%', up: true },
     { sym: 'ETH', val: '3,512', chg: '+1.8%', up: true },
     { sym: 'SOL', val: '178.9', chg: '-0.6%', up: false },
@@ -36,7 +36,35 @@ function TickerBar() {
     { sym: 'LINK', val: '14.8', chg: '+0.9%', up: true },
     { sym: 'DOGE', val: '0.124', chg: '+5.2%', up: true },
     { sym: 'SUI', val: '1.47', chg: '+3.1%', up: true },
-  ];
+  ]);
+
+  useEffect(() => {
+    async function fetchLivePrices() {
+      try {
+        const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'ALGOUSDT', 'AVAXUSDT', 'LINKUSDT', 'DOGEUSDT', 'SUIUSDT'];
+        const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=${JSON.stringify(symbols)}`);
+        if (res.ok) {
+          const data = await res.json();
+          const mapped = data.map((d: any) => {
+            const sym = d.symbol.replace('USDT', '');
+            const price = parseFloat(d.lastPrice);
+            const valStr = price >= 10 ? price.toLocaleString('en-US', { maximumFractionDigits: 2 }) : price.toFixed(3);
+            const pct = parseFloat(d.priceChangePercent);
+            const up = pct >= 0;
+            const chgStr = `${up ? '+' : ''}${pct.toFixed(1)}%`;
+            return { sym, val: valStr, chg: chgStr, up };
+          });
+          if (mapped.length > 0) setTickers(mapped);
+        }
+      } catch {
+        // Fallback to static defaults
+      }
+    }
+    fetchLivePrices();
+    const interval = setInterval(fetchLivePrices, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
   const doubled = [...tickers, ...tickers];
 
   return (
@@ -497,7 +525,7 @@ export default function QuantMeshPage() {
                   <Activity className="w-3 h-3 text-[var(--accent)]" /> Sub-Agent Swarm
                 </span>
                 <span className="text-[9px] font-bold text-[#34D399] bg-[#34D399]/10 px-1.5 py-0.5 rounded border border-[#34D399]/30 font-mono-brand">
-                  4 ONLINE
+                  {Object.values(healthData?.workers ?? {}).filter((w: any) => w.status === 'online').length || 4} ONLINE
                 </span>
               </div>
               
@@ -564,7 +592,7 @@ export default function QuantMeshPage() {
                 {activeEndpoint === 'consensus' && signalData.endpoint !== 'sentiment-only' && (
                   <>
                     {(() => {
-                      const flowStr = signalData.breakdown?.onChainWhaleFlow ?? '+18% Net Inflow';
+                      const flowStr = signalData.breakdown?.onChainWhaleFlow ?? 'Data Unavailable';
                       const isR = flowStr.includes('-') || flowStr.toLowerCase().includes('outflow');
                       const isB = flowStr.includes('+') || flowStr.toLowerCase().includes('inflow');
                       const label = isR ? 'BEARISH' : isB ? 'BULLISH' : 'NEUTRAL';
@@ -585,7 +613,7 @@ export default function QuantMeshPage() {
                       );
                     })()}
                     {(() => {
-                      const taStr = signalData.breakdown?.technicalIndicator ?? 'RSI 58 Bullish';
+                      const taStr = signalData.breakdown?.technicalIndicator ?? 'Data Unavailable';
                       const isR = taStr.toLowerCase().includes('bearish');
                       const isB = taStr.toLowerCase().includes('bullish');
                       const label = isR ? 'BEARISH' : isB ? 'BULLISH' : 'NEUTRAL';
@@ -629,7 +657,11 @@ export default function QuantMeshPage() {
                   </div>
                   <div className="p-2 rounded-lg aurora-inner flex items-center justify-between">
                     <span className="text-[var(--text-muted)]">Facilitator:</span>
-                    <span className="text-[#34D399] font-bold">GoPlausible Verified ✓</span>
+                    <span className={signalData.onChainReceipt?.facilitatorVerification?.isValid !== false ? 'text-[#34D399] font-bold' : 'text-[#FBBF24] font-bold'}>
+                      {signalData.onChainReceipt?.facilitatorVerification?.isValid !== false
+                        ? 'GoPlausible Verified ✓'
+                        : 'GoPlausible Soft-Pass ⚠'}
+                    </span>
                   </div>
                   {(signalData.workerPayoutGroupTxId || signalData.onChainReceipt?.workerPayoutExplorerUrl) && (
                     <div className="p-2 rounded-lg aurora-inner flex items-center justify-between">
