@@ -30,12 +30,12 @@ fi
 # 4. Setup Python Worker Agents (FastAPI Services)
 echo "--> [4/8] Installing & starting Python FastAPI worker services..."
 cd "$REPO_DIR/agent-sentiment-fusion"
-pip3 install -r requirements.txt || true
+pip3 install --break-system-packages -r requirements.txt
 pm2 delete sentiment-fusion-worker 2>/dev/null || true
 pm2 start "uvicorn main:app --host 0.0.0.0 --port 5001" --name "sentiment-fusion-worker"
 
 cd "$REPO_DIR/agent-onchain-ta"
-pip3 install -r requirements.txt || true
+pip3 install --break-system-packages -r requirements.txt
 pm2 delete onchain-ta-worker 2>/dev/null || true
 pm2 start "uvicorn main:app --host 0.0.0.0 --port 5002" --name "onchain-ta-worker"
 
@@ -53,7 +53,7 @@ ALGOD_SERVER=https://testnet-api.algonode.cloud
 ALGOD_PORT=443
 ALGOD_TOKEN=
 ROUTER_ADDRESS=4DTSNS35EP24IFWIGXSG5NSD3GDDTPHNVGEXSHG67JDEHUHUNFR3KJGPO4
-# ROUTER_MNEMONIC=your_twenty_five_word_algorand_mnemonic_phrase_here
+ROUTER_MNEMONIC=your_twenty_five_word_algorand_mnemonic_phrase_here
 # HF_API_TOKEN=your_huggingface_token_here
 WORKER_A_URL=http://localhost:5001/agent/sentiment
 WORKER_B_URL=http://localhost:5002/agent/onchain
@@ -64,14 +64,15 @@ FACILITATOR_URL=https://facilitator.goplausible.xyz
 EOT
 fi
 
-if ! grep -q "^ROUTER_MNEMONIC=" .env; then
+if ! grep -q "^ROUTER_MNEMONIC=" .env || grep -q "^ROUTER_MNEMONIC=your_twenty_five_word" .env; then
   echo ""
   echo "========================================================================="
   echo " ⚠️ WARNING: ROUTER_MNEMONIC is not set in orchestrator/.env"
   echo " The atomic worker payout (this project's core feature) will be SKIPPED"
   echo " on every request until you edit orchestrator/.env and set this manually."
   echo "========================================================================="
-  echo ""
+  echo " Deploy halted. Edit orchestrator/.env, set ROUTER_MNEMONIC, then re-run."
+  exit 1
 fi
 
 # 6. Start Service with PM2 Process Manager

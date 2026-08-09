@@ -16,6 +16,23 @@
         "status": { "type": "string", "example": "success" },
         "clientPaymentTxId": { "type": "string", "example": "ALGORAND_CLIENT_PAYMENT_TX_ID_HERE" },
         "totalCostUsdc": { "type": "string", "example": "0.0070" },
+        "dynamicSplit": {
+          "type": "object",
+          "properties": {
+            "amountA": { "type": "number", "example": 2021 },
+            "amountB": { "type": "number", "example": 1979 },
+            "amountC": { "type": "number", "example": 1000 },
+            "amountD": { "type": "number", "example": 1000 },
+            "weights": {
+              "type": "object",
+              "properties": {
+                "sentiment": { "type": "number", "example": 0.35 },
+                "onchain": { "type": "number", "example": 0.34 },
+                "ta": { "type": "number", "example": 0.31 }
+              }
+            }
+          }
+        },
         "signalFusion": {
           "type": "object",
           "properties": {

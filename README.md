@@ -192,10 +192,10 @@ Returns real-time latency and health status of all sub-agent workers:
   "status": "healthy",
   "uptime": "46h 12m",
   "workers": {
-    "sentiment": { "status": "online", "latencyMs": 120 },
-    "onchain": { "status": "online", "latencyMs": 340 },
-    "ta": { "status": "online", "latencyMs": 280 },
-    "fusion": { "status": "online", "latencyMs": 15 }
+    "sentiment": { "status": "online", "latencyMs": 34 },
+    "onchain": { "status": "online", "latencyMs": 17 },
+    "ta": { "status": "online", "latencyMs": 17 },
+    "fusion": { "status": "online", "latencyMs": 18 }
   }
 }
 ```

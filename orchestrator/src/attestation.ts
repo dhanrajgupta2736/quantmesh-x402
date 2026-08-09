@@ -11,11 +11,11 @@ export function computeAttestationHash(
   compositeScore: number,
   verdict: string,
   paymentTxId: string
-): { boxStorageHash: string; timestamp: number } {
+): { attestationHash: string; timestamp: number } {
   const timestamp = Math.floor(Date.now() / 1000);
   const rawPayload = `${tokenSymbol.toUpperCase()}:${compositeScore}:${verdict}:${paymentTxId}:${timestamp}`;
-  const boxStorageHash = crypto.createHash('sha256').update(rawPayload).digest('hex');
-  return { boxStorageHash, timestamp };
+  const attestationHash = crypto.createHash('sha256').update(rawPayload).digest('hex');
+  return { attestationHash, timestamp };
 }
 
 // Backward compatibility export
