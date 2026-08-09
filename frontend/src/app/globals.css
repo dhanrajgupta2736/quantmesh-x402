@@ -1,56 +1,62 @@
 @import "tailwindcss";
 
 :root {
-  /* Signature Phosphor Dark Mode (Default) */
-  --bg-main: #08090C;
-  --ink-950: #08090C;
-  --ink-900: #0D0F14;
-  --ink-800: #14171E;
-  --ink-700: #1C202A;
+  /* Cyber Obsidian Navy Theme (Vibrant High-Contrast) */
+  --bg-main: #090D16;
+  --ink-950: #090D16;
+  --ink-900: #0F172A;
+  --ink-800: #1E293B;
+  --ink-700: #334155;
 
-  --line: rgba(240, 168, 104, 0.16);
-  --line-strong: rgba(240, 168, 104, 0.35);
+  --line: rgba(56, 189, 248, 0.2);
+  --line-strong: rgba(56, 189, 248, 0.45);
 
-  --phosphor: #F0A868;
-  --phosphor-dim: #B87F4C;
-  --phosphor-glow: rgba(240, 168, 104, 0.45);
+  --phosphor: #38BDF8;
+  --phosphor-dim: #0284C7;
+  --phosphor-glow: rgba(56, 189, 248, 0.45);
 
-  --signal-bull: #4FAE8C;
-  --signal-bear: #C4685A;
-  --signal-neutral: #8A8578;
+  --accent-gold: #F59E0B;
+  --accent-purple: #A855F7;
 
-  --foreground: #EDE9E1;
-  --foreground-muted: rgba(237, 233, 225, 0.65);
-  --card-bg: #0D0F14;
-  --card-inner: #08090C;
-  --card-hover: #14171E;
+  --signal-bull: #10B981;
+  --signal-bear: #F43F5E;
+  --signal-neutral: #94A3B8;
+
+  --foreground: #F8FAFC;
+  --foreground-muted: #94A3B8;
+  --card-bg: rgba(15, 23, 42, 0.85);
+  --card-inner: rgba(30, 41, 59, 0.6);
+  --card-hover: rgba(51, 65, 85, 0.8);
   --text-heading: #FFFFFF;
 }
 
 [data-theme="light"] {
-  /* Sleek Modern Light Mode - Crisp & Cohesive */
-  --bg-main: #F1F5F9;
-  --ink-950: #F1F5F9;
+  /* Sleek Electric Light Mode - Ultra Crisp Slate White */
+  --bg-main: #F8FAFC;
+  --ink-950: #F8FAFC;
   --ink-900: #FFFFFF;
-  --ink-800: #F8FAFC;
+  --ink-800: #F1F5F9;
   --ink-700: #E2E8F0;
 
-  --line: rgba(217, 119, 6, 0.22);
-  --line-strong: rgba(217, 119, 6, 0.45);
+  --line: rgba(2, 132, 199, 0.22);
+  --line-strong: rgba(2, 132, 199, 0.5);
 
-  --phosphor: #D97706;
-  --phosphor-dim: #B45309;
-  --phosphor-glow: rgba(217, 119, 6, 0.22);
+  --phosphor: #0284C7;
+  --phosphor-dim: #0369A1;
+  --phosphor-glow: rgba(2, 132, 199, 0.25);
+
+  --accent-gold: #D97706;
+  --accent-purple: #9333EA;
 
   --signal-bull: #059669;
-  --signal-bear: #DC2626;
+  --signal-bear: #E11D48;
   --signal-neutral: #64748B;
 
-  --foreground: #1E293B;
+  --foreground: #0F172A;
   --foreground-muted: #64748B;
   --card-bg: #FFFFFF;
-  --card-inner: #F8FAFC;
-  --card-hover: #F1F5F9;
+  --card-inner: #F1F5F9;
+  --card-hover: #E2E8F0;
   --text-heading: #0F172A;
 }
 
@@ -60,6 +66,10 @@
     color: var(--foreground);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
+    background-image: 
+      radial-gradient(at 15% 15%, rgba(56, 189, 248, 0.06) 0px, transparent 45%),
+      radial-gradient(at 85% 85%, rgba(168, 85, 247, 0.05) 0px, transparent 45%);
+    background-attachment: fixed;
     transition: background-color 0.25s ease, color 0.25s ease;
   }
 }
@@ -76,13 +86,15 @@
 .ink-panel {
   background-color: var(--card-bg);
   border: 1px solid var(--line);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
   transition: all 0.25s ease;
 }
 
 .ink-card {
   background-color: var(--card-inner);
   border: 1px solid var(--line);
+  backdrop-filter: blur(12px);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

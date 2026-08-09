@@ -36,11 +36,11 @@ function ScoreGauge({ score, size = 170 }: { score: number | null; size?: number
 
   // 5 Color Threshold Bands per Design Specification
   const getColor = (s: number) => {
-    if (s >= 70) return { stroke: '#4FAE8C', label: 'text-[#4FAE8C]', glow: 'rgba(79, 174, 140, 0.4)' };
-    if (s >= 55) return { stroke: '#4FAE8C', label: 'text-[#4FAE8C]/90', glow: 'rgba(79, 174, 140, 0.25)' };
-    if (s >= 45) return { stroke: '#8A8578', label: 'text-[#8A8578]', glow: 'rgba(138, 133, 120, 0.3)' };
-    if (s >= 30) return { stroke: '#C4685A', label: 'text-[#C4685A]/90', glow: 'rgba(196, 104, 90, 0.25)' };
-    return { stroke: '#C4685A', label: 'text-[#C4685A]', glow: 'rgba(196, 104, 90, 0.4)' };
+    if (s >= 70) return { stroke: '#10B981', label: 'text-[#10B981]', glow: 'rgba(16, 185, 129, 0.5)' };
+    if (s >= 55) return { stroke: '#10B981', label: 'text-[#10B981]/90', glow: 'rgba(16, 185, 129, 0.3)' };
+    if (s >= 45) return { stroke: '#94A3B8', label: 'text-[#94A3B8]', glow: 'rgba(148, 163, 184, 0.3)' };
+    if (s >= 30) return { stroke: '#F43F5E', label: 'text-[#F43F5E]/90', glow: 'rgba(244, 63, 94, 0.3)' };
+    return { stroke: '#F43F5E', label: 'text-[#F43F5E]', glow: 'rgba(244, 63, 94, 0.5)' };
   };
 
   const colors = getColor(normalizedScore);
@@ -48,7 +48,7 @@ function ScoreGauge({ score, size = 170 }: { score: number | null; size?: number
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
       <svg viewBox="0 0 100 100" className="transform -rotate-90" style={{ width: size, height: size }}>
-        <circle cx="50" cy="50" r={radius} fill="none" stroke="rgba(28, 32, 42, 0.8)" strokeWidth="7" />
+        <circle cx="50" cy="50" r={radius} fill="none" stroke="rgba(30, 41, 59, 0.8)" strokeWidth="7" />
         {score !== null && (
           <circle
             cx="50" cy="50" r={radius}
@@ -67,10 +67,10 @@ function ScoreGauge({ score, size = 170 }: { score: number | null; size?: number
         )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={`text-4xl md:text-5xl font-extrabold font-mono-brand tracking-tighter ${score !== null ? colors.label : 'text-[#8A8578]/40'}`}>
+        <span className={`text-4xl md:text-5xl font-extrabold font-mono-brand tracking-tighter ${score !== null ? colors.label : 'text-[#94A3B8]/40'}`}>
           {score !== null ? score : '--'}
         </span>
-        <span className="text-[10px] uppercase tracking-widest text-[#EDE9E1]/50 font-bold mt-0.5 font-sora">
+        <span className="text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] font-bold mt-0.5 font-sora">
           / 100 SCORE
         </span>
       </div>
@@ -81,10 +81,10 @@ function ScoreGauge({ score, size = 170 }: { score: number | null; size?: number
 // ─── Status Pulse Dot ─────────────────────────────────────────────
 function StatusDot({ status }: { status: 'online' | 'offline' | 'degraded' | 'unknown' }) {
   const colorMap = {
-    online: 'bg-[#4FAE8C]',
-    degraded: 'bg-[#F0A868]',
-    offline: 'bg-[#C4685A]',
-    unknown: 'bg-[#8A8578]',
+    online: 'bg-[#10B981]',
+    degraded: 'bg-[#F59E0B]',
+    offline: 'bg-[#F43F5E]',
+    unknown: 'bg-[#94A3B8]',
   };
   return (
     <span className="flex h-2.5 w-2.5 relative">
