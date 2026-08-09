@@ -781,6 +781,25 @@ app.post('/api/v1/sentiment-only', async (c) => {
   });
 });
 
+/**
+ * Public proxy endpoint for live 24h market prices from Binance.
+ * No payment required — unthrottled public market data relay with 5s timeout.
+ */
+app.get('/api/v1/prices', async (c) => {
+  try {
+    const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'ALGOUSDT', 'AVAXUSDT', 'LINKUSDT', 'DOGEUSDT', 'SUIUSDT'];
+    const res = await fetch(
+      `https://api.binance.com/api/v3/ticker/24hr?symbols=${encodeURIComponent(JSON.stringify(symbols))}`,
+      { signal: AbortSignal.timeout(5000) }
+    );
+    if (!res.ok) throw new Error(`Binance responded with status ${res.status}`);
+    const data = await res.json();
+    return c.json({ status: 'success', tickers: data });
+  } catch (err: any) {
+    return c.json({ status: 'error', message: err.message }, 502);
+  }
+});
+
 const port = Number(process.env.PORT) || 4000;
 serve({
   fetch: app.fetch,

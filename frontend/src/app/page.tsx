@@ -27,6 +27,7 @@ const STATIC_TICK_MARKS = Array.from({ length: 40 }).map((_, i) => {
 
 // ─── Animated Ticker Bar (Trading Data Stream) ────────────────────
 function TickerBar() {
+  const [isLive, setIsLive] = useState(false);
   const [tickers, setTickers] = useState([
     { sym: 'BTC', val: '67,240', chg: '+2.4%', up: true },
     { sym: 'ETH', val: '3,512', chg: '+1.8%', up: true },
@@ -39,41 +40,54 @@ function TickerBar() {
   ]);
 
   useEffect(() => {
+    let isMounted = true;
     async function fetchLivePrices() {
       try {
-        const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'ALGOUSDT', 'AVAXUSDT', 'LINKUSDT', 'DOGEUSDT', 'SUIUSDT'];
-        const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=${JSON.stringify(symbols)}`);
-        if (res.ok) {
-          const data = await res.json();
-          const mapped = data.map((d: any) => {
-            const sym = d.symbol.replace('USDT', '');
-            const price = parseFloat(d.lastPrice);
-            const valStr = price >= 10 ? price.toLocaleString('en-US', { maximumFractionDigits: 2 }) : price.toFixed(3);
-            const pct = parseFloat(d.priceChangePercent);
-            const up = pct >= 0;
-            const chgStr = `${up ? '+' : ''}${pct.toFixed(1)}%`;
-            return { sym, val: valStr, chg: chgStr, up };
-          });
-          if (mapped.length > 0) setTickers(mapped);
+        const apiUrl = process.env.NEXT_PUBLIC_ORCHESTRATOR_URL 
+          ? `${process.env.NEXT_PUBLIC_ORCHESTRATOR_URL}/api/v1/prices`
+          : 'https://api.dhanrajgupta.xyz/api/v1/prices';
+
+        const res = await fetch(apiUrl, { signal: AbortSignal.timeout(5000) });
+        if (res.ok && isMounted) {
+          const body = await res.json();
+          const data = body.tickers || body;
+          if (Array.isArray(data)) {
+            const mapped = data.map((d: any) => {
+              const sym = d.symbol.replace('USDT', '');
+              const price = parseFloat(d.lastPrice);
+              const valStr = price >= 10 ? price.toLocaleString('en-US', { maximumFractionDigits: 2 }) : price.toFixed(3);
+              const pct = parseFloat(d.priceChangePercent);
+              const up = pct >= 0;
+              const chgStr = `${up ? '+' : ''}${pct.toFixed(1)}%`;
+              return { sym, val: valStr, chg: chgStr, up };
+            });
+            if (mapped.length > 0) {
+              setTickers(mapped);
+              setIsLive(true);
+            }
+          }
+        } else if (isMounted) {
+          setIsLive(false);
         }
       } catch {
-        // Fallback to static defaults
+        if (isMounted) setIsLive(false);
       }
     }
+
     fetchLivePrices();
     const interval = setInterval(fetchLivePrices, 15000);
-    return () => clearInterval(interval);
+    return () => { isMounted = false; clearInterval(interval); };
   }, []);
 
   const doubled = [...tickers, ...tickers];
 
   return (
-    <div className="w-full overflow-hidden border-b border-[var(--border)] bg-[var(--surface-1)]/50 backdrop-blur-sm">
+    <div className="w-full overflow-hidden border-b border-[var(--border)] bg-[var(--surface-1)]/50 backdrop-blur-sm relative flex items-center">
       <div className="animate-data-stream flex items-center gap-8 py-1.5 px-4 whitespace-nowrap" style={{ width: 'max-content' }}>
         {doubled.map((t, i) => (
           <div key={`ticker-${i}`} className="flex items-center gap-2 text-[11px] font-mono-brand">
             <span className="text-[var(--text-muted)] font-bold">{t.sym}</span>
-            <span className="text-[var(--text-secondary)]">${t.val}</span>
+            <span className="text-[var(--text-secondary)]">{isLive ? `$${t.val}` : `~${t.val}`}</span>
             <span className={`flex items-center gap-0.5 ${t.up ? 'text-[var(--bull)]' : 'text-[var(--bear)]'}`}>
               {t.up ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
               {t.chg}
@@ -81,6 +95,11 @@ function TickerBar() {
           </div>
         ))}
       </div>
+      {!isLive && (
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-mono-brand text-[var(--text-muted)] bg-[var(--surface-2)] px-1.5 py-0.5 rounded border border-[var(--border)] hidden sm:inline">
+          INDICATIVE
+        </span>
+      )}
     </div>
   );
 }

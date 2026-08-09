@@ -8,6 +8,16 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-09T17:56:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Implemented Orchestrator Ticker Proxy (`GET /api/v1/prices`) with 5s Timeout, SSR Hydration Guard, & `isLive` State Tracking.
+1. `orchestrator/src/index.ts`: Added public `GET /api/v1/prices` proxy endpoint with `AbortSignal.timeout(5000)` to relay Binance 24h ticker data server-side from AWS EC2, avoiding client-side CORS or geo-blocking.
+2. `frontend/src/app/page.tsx`: Updated `TickerBar` to fetch live prices from the orchestrator proxy URL with a 5000ms timeout.
+3. `frontend/src/app/page.tsx`: Added `isMounted` SSR hydration guard in `useEffect` and `isLive` state tracking with subtle `INDICATIVE` badge on fallback.  
+**Files Changed:**
+- `orchestrator/src/index.ts` — Added `GET /api/v1/prices` public proxy endpoint.
+- `frontend/src/app/page.tsx` — Updated `TickerBar` with proxy fetch, `isMounted` guard, and `isLive` indicator.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-09T17:54:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Added Redirect Links & Explorer Buttons for Worker Payout Group Transactions. Added clickable redirect links (with copy buttons and external link icons) to the Payout Group row in the receipt card, as well as a dedicated **"Group Payout (Lora)"** button at the bottom of the card targeting `https://lora.algokit.io/testnet/transaction/${workerPayoutGroupTxId}`.  
 **Files Changed:**
