@@ -1,4 +1,5 @@
 'use client';
+// QuantMesh x402 Terminal UI - Dual-Theme & x402 Consensus Engine
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '@txnlab/use-wallet-react';
