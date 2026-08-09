@@ -8,6 +8,12 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-09T17:54:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Added Redirect Links & Explorer Buttons for Worker Payout Group Transactions. Added clickable redirect links (with copy buttons and external link icons) to the Payout Group row in the receipt card, as well as a dedicated **"Group Payout (Lora)"** button at the bottom of the card targeting `https://lora.algokit.io/testnet/transaction/${workerPayoutGroupTxId}`.  
+**Files Changed:**
+- `frontend/src/app/page.tsx` — Added interactive payout group redirect link and "Group Payout (Lora)" explorer button.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-09T17:35:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Applied All 7 Audit Fixes Across Orchestrator Gateway & Frontend.
 1. `orchestrator/src/index.ts`: Added 60s periodic eviction sweep for `workerACache` entries.

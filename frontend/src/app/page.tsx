@@ -666,7 +666,21 @@ export default function QuantMeshPage() {
                   {(signalData.workerPayoutGroupTxId || signalData.onChainReceipt?.workerPayoutExplorerUrl) && (
                     <div className="p-2 rounded-lg aurora-inner flex items-center justify-between">
                       <span className="text-[var(--text-muted)]">Payout Group:</span>
-                      <span className="text-[#06B6D4]">{(signalData.workerPayoutGroupTxId || signalData.clientPaymentTxId)?.slice(0, 10)}...</span>
+                      <div className="flex items-center gap-1.5">
+                        <a 
+                          href={signalData.onChainReceipt?.workerPayoutExplorerUrl || `https://lora.algokit.io/testnet/transaction/${signalData.workerPayoutGroupTxId}`} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="text-[#06B6D4] hover:underline flex items-center gap-1 font-mono-brand font-bold"
+                          title="View Worker Payout Group Transaction on Lora Explorer"
+                        >
+                          {(signalData.workerPayoutGroupTxId || signalData.clientPaymentTxId)?.slice(0, 10)}...
+                          <ExternalLink className="w-3 h-3 text-[#06B6D4]" />
+                        </a>
+                        <button onClick={() => handleCopyTx(signalData.workerPayoutGroupTxId || signalData.clientPaymentTxId)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer">
+                          {copiedTxId ? <Check className="w-3.5 h-3.5 text-[#34D399]" /> : <Copy className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -698,10 +712,18 @@ export default function QuantMeshPage() {
                   </div>
                 </div>
 
-                <a href={signalData.onChainReceipt.explorerUrl} target="_blank" rel="noreferrer"
-                  className="w-full py-2 rounded-xl aurora-inner text-[#34D399] text-xs font-bold flex items-center justify-center gap-1.5 transition-all font-heading hover:border-[#34D399]" style={{ borderColor: 'rgba(52,211,153,0.4)' }}>
-                  <ExternalLink className="w-3.5 h-3.5" /> View on Block Explorer (Lora)
-                </a>
+                <div className="flex flex-col sm:flex-row items-center gap-2 pt-1 font-heading">
+                  <a href={signalData.onChainReceipt.explorerUrl} target="_blank" rel="noreferrer"
+                    className="flex-1 w-full py-2 rounded-xl aurora-inner text-[#34D399] hover:text-[#34D399]/90 text-xs font-bold flex items-center justify-center gap-1.5 transition-all hover:border-[#34D399]" style={{ borderColor: 'rgba(52,211,153,0.4)' }}>
+                    <ExternalLink className="w-3 h-3" /> Client Tx (Lora)
+                  </a>
+                  {(signalData.workerPayoutGroupTxId || signalData.onChainReceipt?.workerPayoutExplorerUrl) && (
+                    <a href={signalData.onChainReceipt?.workerPayoutExplorerUrl || `https://lora.algokit.io/testnet/transaction/${signalData.workerPayoutGroupTxId}`} target="_blank" rel="noreferrer"
+                      className="flex-1 w-full py-2 rounded-xl aurora-inner text-[#06B6D4] hover:text-[#06B6D4]/90 text-xs font-bold flex items-center justify-center gap-1.5 transition-all hover:border-[#06B6D4]" style={{ borderColor: 'rgba(6,182,212,0.4)' }}>
+                      <ExternalLink className="w-3 h-3" /> Group Payout (Lora)
+                    </a>
+                  )}
+                </div>
               </div>
             )}
           </div>
