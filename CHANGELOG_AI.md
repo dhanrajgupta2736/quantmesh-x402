@@ -8,6 +8,14 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-09T12:35:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Complete Frontend Visual Overhaul — "Midnight Aurora" Design System. Redesigned entire frontend from scratch: new Electric Violet (#8B5CF6) + Vivid Cyan (#06B6D4) color palette, Space Grotesk typography for headings, gradient primary buttons with glow animations, frosted glass header, aurora-panel/aurora-card surface components, CSS custom properties for full dark/light theming, radial gradient mesh background, and streamlined token pill selector. All business logic (wallet, x402, health polling, signal execution) completely preserved.  
+**Files Changed:**
+- `frontend/src/app/globals.css` — Full Midnight Aurora design system with CSS vars, surface classes, button classes, animations.
+- `frontend/src/app/layout.tsx` — Replaced Sora with Space Grotesk, updated body classes to use CSS vars.
+- `frontend/src/app/page.tsx` — Complete visual overhaul of ~1000 lines: all hardcoded hex replaced with CSS vars, new aurora-panel/aurora-card classes, gradient execute button, accent strip, frosted glass header.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-09T12:26:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Upgraded Theme to Cyber Obsidian Navy & Electric Sky Blue Palette. Designed a high-end obsidian space navy background (`#090D16`), electric cyan borders (`#38BDF8`), mint green indicators (`#10B981`), and vivid crimson bearish tokens (`#F43F5E`). Updated `ScoreGauge`, `StatusDot`, glass panels, and button glows across `frontend/src/app/globals.css` and `frontend/src/app/page.tsx`. Verified zero-error build and static export.  
 **Files Changed:**
