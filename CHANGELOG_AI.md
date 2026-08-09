@@ -8,6 +8,13 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-09T11:58:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Configured Root `package.json` Monorepo Build Trigger. Added a root `package.json` with `"build": "npm run build --prefix frontend"` script to ensure Cloudflare Pages git integration automatically builds the Next.js static export inside `frontend/` on every git push. Added `__pycache__/` to `.gitignore`.  
+**Files Changed:**
+- `package.json` — Created root package.json with frontend build prefix script.
+- `.gitignore` — Added `__pycache__/` and `*.pyc`.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-09T11:45:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Applied Session Final Audit Fixes. Added 15-second scoped `workerACache` in `/sentiment-only` preventing duplicate Worker A calls during probe/retry HTTP request flow. Added `AbortSignal.timeout(8000)` to all worker `fetch()` calls in `/orchestrate` and `/sentiment-only`. Removed dead `ROUTER_GATEWAY` constant and replaced hardcoded `payTo` fallback with strict error check in `x402Client.ts`. Added Certbot SSL verification automation to `deploy-ec2.sh`. Built static export, committed, and deployed live to AWS EC2.  
 **Files Changed:**
