@@ -8,6 +8,19 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-09T18:02:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Fixed Cloudflare Pages CSS Compilation & Static Export Bundle.
+1. Identified root cause of unstyled static export: `postcss.config.mjs` was unrecognized by Next.js PostCSS loader, preventing Tailwind compilation during Cloudflare Pages builds.
+2. Replaced `postcss.config.mjs` with `postcss.config.js` and `tailwind.config.ts`.
+3. Replaced `@import "tailwindcss";` in `globals.css` with standard `@tailwind base; @tailwind components; @tailwind utilities;` directives.
+4. Verified successful generation of 25.4 KB compiled CSS bundle (`2170nxtkrhqqm.css`) during static export.  
+**Files Changed:**
+- `frontend/postcss.config.js` — Created standard PostCSS config.
+- `frontend/tailwind.config.ts` — Created Tailwind content configuration.
+- `frontend/src/app/globals.css` — Standardized `@tailwind` directives.
+- `frontend/postcss.config.mjs` — Removed unrecognized `.mjs` config file.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-09T17:56:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Implemented Orchestrator Ticker Proxy (`GET /api/v1/prices`) with 5s Timeout, SSR Hydration Guard, & `isLive` State Tracking.
 1. `orchestrator/src/index.ts`: Added public `GET /api/v1/prices` proxy endpoint with `AbortSignal.timeout(5000)` to relay Binance 24h ticker data server-side from AWS EC2, avoiding client-side CORS or geo-blocking.
