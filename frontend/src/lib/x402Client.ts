@@ -1,6 +1,5 @@
 import algosdk from 'algosdk';
 
-const ROUTER_GATEWAY = 'https://api.dhanrajgupta.xyz/api/v1/orchestrate';
 const TESTNET_USDC_ASA = 10458941;
 
 
@@ -71,7 +70,8 @@ export async function fetchQuantMeshSignal(
   const challengeBody = await probeRes.json().catch(() => ({}));
 
   // Read payTo, price, and asset parameters directly from HTTP 402 headers & body (Host compliant pattern)
-  const payTo = probeRes.headers.get('x-payment-pay-to') || challengeBody.payTo || '4DTSNS35EP24IFWIGXSG5NSD3GDDTPHNVGEXSHG67JDEHUHUNFR3KJGPO4';
+  const payTo = probeRes.headers.get('x-payment-pay-to') || challengeBody.payTo;
+  if (!payTo) throw new Error('x402: Server 402 response missing payTo address.');
   const priceStr =
     probeRes.headers.get('x-payment-price') ||
     challengeBody.priceUsdc ||

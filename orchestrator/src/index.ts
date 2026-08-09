@@ -312,13 +312,19 @@ app.post('/api/v1/orchestrate', async (c) => {
 
     // STEP A: Pre-Execution Phase (Phase 1: Fetch Workers A, B, C in Parallel)
     const [resA, resB, resC] = await Promise.all([
-      fetch(`${process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment'}?token=${tokenSymbol}`)
+      fetch(`${process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment'}?token=${tokenSymbol}`, {
+        signal: AbortSignal.timeout(8000),
+      })
         .then(r => r.ok ? r.json() : null)
         .catch(() => null),
-      fetch(`${process.env.WORKER_B_URL || 'http://localhost:5002/agent/onchain'}?token=${tokenSymbol}`)
+      fetch(`${process.env.WORKER_B_URL || 'http://localhost:5002/agent/onchain'}?token=${tokenSymbol}`, {
+        signal: AbortSignal.timeout(8000),
+      })
         .then(r => r.ok ? r.json() : null)
         .catch(() => null),
-      fetch(`${process.env.WORKER_C_URL || 'http://localhost:5002/agent/ta'}?token=${tokenSymbol}`)
+      fetch(`${process.env.WORKER_C_URL || 'http://localhost:5002/agent/ta'}?token=${tokenSymbol}`, {
+        signal: AbortSignal.timeout(8000),
+      })
         .then(r => r.ok ? r.json() : null)
         .catch(() => null),
     ]);
@@ -343,6 +349,7 @@ app.post('/api/v1/orchestrate', async (c) => {
     const resD = await fetch(fusionUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(8000),
       body: JSON.stringify({
         token: tokenSymbol,
         sentimentScore,
@@ -656,6 +663,9 @@ app.post('/api/v1/orchestrate', async (c) => {
  * POST /api/v1/sentiment-only — Single FinBERT Sentiment Agent ($0.002 USDC)
  * ═══════════════════════════════════════════════════════════════════
  */
+// 15-second scoped cache for Worker A in /sentiment-only probe/retry flow
+const workerACache = new Map<string, { result: any; expiresAt: number }>();
+
 app.post('/api/v1/sentiment-only', async (c) => {
   const ip = c.req.header('x-forwarded-for') || '127.0.0.1';
   if (!checkRateLimit(ip)) {
@@ -667,9 +677,17 @@ app.post('/api/v1/sentiment-only', async (c) => {
   const tokenSymbol = (body?.tokenSymbol || 'ALGO').toUpperCase();
 
   // STEP A: Pre-execute Worker A BEFORE any payment is demanded (zero-fee guarantee)
-  const resA = await fetch(`${process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment'}?token=${tokenSymbol}`)
-    .then(r => r.ok ? r.json() : null)
-    .catch(() => null);
+  const cacheKey = tokenSymbol;
+  const cached = workerACache.get(cacheKey);
+  const resA = (cached && cached.expiresAt > Date.now())
+    ? cached.result
+    : await fetch(`${process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment'}?token=${tokenSymbol}`, {
+        signal: AbortSignal.timeout(8000),
+      }).then(r => r.ok ? r.json() : null).catch(() => null);
+
+  if (resA && !cached) {
+    workerACache.set(cacheKey, { result: resA, expiresAt: Date.now() + 15_000 });
+  }
 
   if (!resA) {
     console.error('[Router] Worker A pre-execution failed for sentiment-only:', tokenSymbol);

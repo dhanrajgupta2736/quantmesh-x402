@@ -8,6 +8,14 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-09T11:45:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Applied Session Final Audit Fixes. Added 15-second scoped `workerACache` in `/sentiment-only` preventing duplicate Worker A calls during probe/retry HTTP request flow. Added `AbortSignal.timeout(8000)` to all worker `fetch()` calls in `/orchestrate` and `/sentiment-only`. Removed dead `ROUTER_GATEWAY` constant and replaced hardcoded `payTo` fallback with strict error check in `x402Client.ts`. Added Certbot SSL verification automation to `deploy-ec2.sh`. Built static export, committed, and deployed live to AWS EC2.  
+**Files Changed:**
+- `orchestrator/src/index.ts` — Added 15s `workerACache` for `/sentiment-only` and 8000ms `AbortSignal.timeout` on all worker fetches.
+- `frontend/src/lib/x402Client.ts` — Removed `ROUTER_GATEWAY` and enforced strict `payTo` header/body check.
+- `deploy-ec2.sh` — Added automated Certbot SSL check.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-09T11:28:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Applied Final 4 Issue Fixes. Uncommented `HF_API_TOKEN` and added `exit 1` deployment halt check in `deploy-ec2.sh` if `HF_API_TOKEN` is unpopulated. Fixed typo in public function `optInToUSDCAsset` across `x402Client.ts` and `page.tsx`. Added 5-minute periodic eviction sweep to `rateLimitMap` in `orchestrator/src/index.ts`. Removed stale ALGO payment comment and dead `paymentTxn` variable from `verifyRealPayment()`. Verified TypeScript compilation across orchestrator & frontend, built static export, and deployed to AWS EC2.  
 **Files Changed:**

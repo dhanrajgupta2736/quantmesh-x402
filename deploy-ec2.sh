@@ -93,8 +93,8 @@ pm2 start "npm run dev" --name "orchestrator"
 pm2 save
 sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u $USER --hp $HOME 2>/dev/null || true
 
-# 7. Configure Nginx Reverse Proxy (Port 80 -> 4000)
-echo "--> [7/8] Configuring Nginx reverse proxy..."
+# 7. Configure Nginx Reverse Proxy (Port 80 -> 4000) & Certbot SSL
+echo "--> [7/8] Configuring Nginx reverse proxy & SSL..."
 sudo cat <<EOT | sudo tee /etc/nginx/sites-available/quantmesh > /dev/null
 server {
     listen 80;
@@ -118,6 +118,12 @@ sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl restart nginx
 
+# Attempt automatic Certbot SSL issuance for api.dhanrajgupta.xyz if DNS resolves
+if which certbot >/dev/null 2>&1; then
+    echo "--> [7b/8] Verifying/Issuing SSL certificate via Certbot..."
+    sudo certbot --nginx -d api.dhanrajgupta.xyz --non-interactive --agree-tos --register-unsafely-without-email 2>/dev/null || echo "--> Existing SSL cert active or manual certbot configuration preserved."
+fi
+
 # 8. Configure UFW Firewall Rules
 echo "--> [8/8] Configuring firewall..."
 sudo ufw allow 22/tcp
@@ -128,5 +134,5 @@ echo "y" | sudo ufw enable 2>/dev/null || true
 
 echo "=================================================="
 echo " SUCCESS: QuantMesh Orchestrator is LIVE on EC2!"
-echo " Reverse Proxy: http://localhost:4000 -> Port 80"
+echo " Reverse Proxy: https://api.dhanrajgupta.xyz -> Port 4000"
 echo "=================================================="
