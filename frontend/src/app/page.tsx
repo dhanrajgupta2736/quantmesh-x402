@@ -351,22 +351,16 @@ export default function QuantMeshPage() {
               Architecture
             </a>
 
-            {/* Theme Mode Switcher Toggle */}
+            {/* Compact Theme Mode Switcher Toggle */}
             <button
               onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-              className="px-3 py-2 rounded-xl bg-[var(--ink-800)] border border-[var(--line)] hover:border-[var(--line-strong)] text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+              className="w-8 h-8 rounded-xl bg-[#0D0F14] border border-[#F0A868]/20 hover:border-[#F0A868]/50 text-[#F0A868] hover:bg-[#14171E] flex items-center justify-center transition-all cursor-pointer shadow-sm"
               title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
             >
               {theme === 'dark' ? (
-                <>
-                  <Sun className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="text-amber-400 text-xs">Light</span>
-                </>
+                <Sun className="w-4 h-4 text-[#F0A868]" />
               ) : (
-                <>
-                  <Moon className="w-3.5 h-3.5 text-cyan-600" />
-                  <span className="text-cyan-600 text-xs">Dark</span>
-                </>
+                <Moon className="w-4 h-4 text-[#D97706]" />
               )}
             </button>
 
