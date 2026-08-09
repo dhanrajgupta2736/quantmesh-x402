@@ -8,6 +8,17 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-09T11:15:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Implemented Consolidated Final Issue List (`a860af4` / `370ea38`). Updated `deploy-ec2.sh` to use `pip3 install --break-system-packages`, uncommented `ROUTER_MNEMONIC` in default `.env`, and added `exit 1` script halt if `ROUTER_MNEMONIC` is unpopulated. Completely removed `preExecCache` & `getCacheKey` in `orchestrator/src/index.ts` restoring clean stateless per-request pre-execution. Added `python-dotenv>=1.0.0` and `load_dotenv()` to `agent-sentiment-fusion`. Updated `computeAttestationHash` return type to `{ attestationHash: string; timestamp: number }` in `attestation.ts`, updated `orchestrator/src/index.ts` to use `attestationHash` property shorthand, documented `dynamicSplit` in `schema.json`, and updated `README.md` health check example with exact live production latency numbers. Verified live health endpoint (all 4 workers online: 9ms sentiment, 7ms onchain, 7ms ta, 8ms fusion).  
+**Files Changed:**
+- `deploy-ec2.sh` — Added `--break-system-packages`, uncommented `ROUTER_MNEMONIC`, and added `exit 1` halt.
+- `orchestrator/src/index.ts` — Removed `preExecCache`, `getCacheKey`, and updated `attestationHash` shorthand.
+- `orchestrator/src/attestation.ts` — Updated return type to `{ attestationHash: string; timestamp: number }`.
+- `agent-sentiment-fusion/requirements.txt` & `main.py` — Added `python-dotenv` & `load_dotenv()`.
+- `schema.json` — Documented `dynamicSplit` object properties & examples.
+- `README.md` — Updated health example latency numbers.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-08T21:20:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Final Code Cleanup & Live Health Verification (`5fe1c7b`). Added `USDC` rejection guard in `agent-sentiment-fusion/main.py`, deleted `ALGORAND_INDEXER` dead constant in `agent-onchain-ta/main.py`, cleaned up `boxStorageHash` leaving ONLY `attestationHash` in JSON response objects & `schema.json`, and tested live `/api/v1/health` endpoint on AWS EC2, confirming 100% online status across all 4 worker nodes (sentiment: 34ms, onchain: 17ms, ta: 17ms, fusion: 18ms).  
 **Files Changed:**
