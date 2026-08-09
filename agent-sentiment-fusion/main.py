@@ -3,6 +3,7 @@ from typing import Optional
 
 import httpx
 from fastapi import FastAPI, Query, HTTPException
+from pydantic import BaseModel
 from dotenv import load_dotenv
 
 load_dotenv()
