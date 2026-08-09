@@ -54,7 +54,7 @@ ALGOD_PORT=443
 ALGOD_TOKEN=
 ROUTER_ADDRESS=4DTSNS35EP24IFWIGXSG5NSD3GDDTPHNVGEXSHG67JDEHUHUNFR3KJGPO4
 ROUTER_MNEMONIC=your_twenty_five_word_algorand_mnemonic_phrase_here
-# HF_API_TOKEN=your_huggingface_token_here
+HF_API_TOKEN=your_huggingface_token_here
 WORKER_A_URL=http://localhost:5001/agent/sentiment
 WORKER_B_URL=http://localhost:5002/agent/onchain
 WORKER_C_URL=http://localhost:5002/agent/ta
@@ -72,6 +72,17 @@ if ! grep -q "^ROUTER_MNEMONIC=" .env || grep -q "^ROUTER_MNEMONIC=your_twenty_f
   echo " on every request until you edit orchestrator/.env and set this manually."
   echo "========================================================================="
   echo " Deploy halted. Edit orchestrator/.env, set ROUTER_MNEMONIC, then re-run."
+  exit 1
+fi
+
+if ! grep -q "^HF_API_TOKEN=" .env || grep -q "^HF_API_TOKEN=your_huggingface_token" .env; then
+  echo ""
+  echo "========================================================================="
+  echo " ⚠️ WARNING: HF_API_TOKEN is not set in orchestrator/.env"
+  echo " FinBERT will fall back to a deterministic hash-based score (source: \"fallback\")"
+  echo " instead of real model inference until you set this manually."
+  echo "========================================================================="
+  echo " Deploy halted. Edit orchestrator/.env, set HF_API_TOKEN, then re-run."
   exit 1
 fi
 

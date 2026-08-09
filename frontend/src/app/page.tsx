@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '@txnlab/use-wallet-react';
-import { fetchQuantMeshSignal, optInToUSDCAssest } from '@/lib/x402Client';
+import { fetchQuantMeshSignal, optInToUSDCAsset } from '@/lib/x402Client';
 import { 
   Zap, 
   ShieldCheck, 
@@ -185,7 +185,7 @@ export default function QuantMeshPage() {
     setSuccessMsg(null);
 
     try {
-      const txId = await optInToUSDCAssest(activeAddress, async (txns: Uint8Array[]) => {
+      const txId = await optInToUSDCAsset(activeAddress, async (txns: Uint8Array[]) => {
         const signed = await signTransactions(txns);
         return signed.filter((t): t is Uint8Array => t !== null);
       });

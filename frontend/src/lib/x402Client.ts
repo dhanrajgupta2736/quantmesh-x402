@@ -5,7 +5,7 @@ const TESTNET_USDC_ASA = 10458941;
 
 
 
-export async function optInToUSDCAssest(
+export async function optInToUSDCAsset(
   userAddress: string,
   signTransactions: (txns: Uint8Array[]) => Promise<Uint8Array[]>
 ) {

@@ -8,6 +8,14 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-09T11:28:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Applied Final 4 Issue Fixes. Uncommented `HF_API_TOKEN` and added `exit 1` deployment halt check in `deploy-ec2.sh` if `HF_API_TOKEN` is unpopulated. Fixed typo in public function `optInToUSDCAsset` across `x402Client.ts` and `page.tsx`. Added 5-minute periodic eviction sweep to `rateLimitMap` in `orchestrator/src/index.ts`. Removed stale ALGO payment comment and dead `paymentTxn` variable from `verifyRealPayment()`. Verified TypeScript compilation across orchestrator & frontend, built static export, and deployed to AWS EC2.  
+**Files Changed:**
+- `deploy-ec2.sh` — Uncommented `HF_API_TOKEN` in template and added `exit 1` halt check.
+- `frontend/src/lib/x402Client.ts` & `frontend/src/app/page.tsx` — Renamed `optInToUSDCAssest` to `optInToUSDCAsset`.
+- `orchestrator/src/index.ts` — Added 5-minute eviction interval for `rateLimitMap` and cleaned up `verifyRealPayment()`.
+- `CHANGELOG_AI.md` — This entry.
+
 ### 2026-08-09T11:15:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Implemented Consolidated Final Issue List (`a860af4` / `370ea38`). Updated `deploy-ec2.sh` to use `pip3 install --break-system-packages`, uncommented `ROUTER_MNEMONIC` in default `.env`, and added `exit 1` script halt if `ROUTER_MNEMONIC` is unpopulated. Completely removed `preExecCache` & `getCacheKey` in `orchestrator/src/index.ts` restoring clean stateless per-request pre-execution. Added `python-dotenv>=1.0.0` and `load_dotenv()` to `agent-sentiment-fusion`. Updated `computeAttestationHash` return type to `{ attestationHash: string; timestamp: number }` in `attestation.ts`, updated `orchestrator/src/index.ts` to use `attestationHash` property shorthand, documented `dynamicSplit` in `schema.json`, and updated `README.md` health check example with exact live production latency numbers. Verified live health endpoint (all 4 workers online: 9ms sentiment, 7ms onchain, 7ms ta, 8ms fusion).  
 **Files Changed:**

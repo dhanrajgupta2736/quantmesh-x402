@@ -90,10 +90,7 @@ async function verifyRealPayment(
         return { valid: false, reason: 'Transaction exists but is not yet confirmed.' };
       }
 
-      // Accept BOTH USDC ASA transfers AND native ALGO payments
-      // The frontend sends whichever the user's wallet can handle
       const assetTransfer = txn.assetTransferTransaction ?? txn['asset-transfer-transaction'];
-      const paymentTxn = txn.paymentTransaction ?? txn['payment-transaction'];
 
       if (assetTransfer) {
         // USDC ASA Transfer
@@ -148,6 +145,16 @@ function checkRateLimit(ip: string): boolean {
   entry.count++;
   return true;
 }
+
+// Periodic sweep to prune expired rate limit entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of rateLimitMap.entries()) {
+    if (now > entry.resetAt) {
+      rateLimitMap.delete(ip);
+    }
+  }
+}, 5 * 60_000);
 
 // Enable CORS for all frontend browser requests
 app.use('*', cors({
