@@ -234,26 +234,14 @@ app.get('/api/v1/health', async (c) => {
     onchain: process.env.WORKER_B_URL || 'http://localhost:5002/agent/onchain',
     ta: process.env.WORKER_C_URL || 'http://localhost:5002/agent/ta',
     fusion: process.env.WORKER_D_URL || 'http://localhost:5001/agent/fusion',
+    regime: process.env.WORKER_E_URL || 'http://localhost:5002/agent/regime',
+    news: process.env.WORKER_F_URL || 'http://localhost:5003/agent/news',
+    feargreed: process.env.WORKER_G_URL || 'http://localhost:5002/agent/feargreed',
+    funding: process.env.WORKER_H_URL || 'http://localhost:5002/agent/funding',
   };
 
   const pingWorker = async (name: string, url: string) => {
     const start = Date.now();
-    const isN8n = url.includes('n8n.cloud');
-    if (isN8n) {
-      try {
-        const res = await fetch(`${url}?token=ALGO`, { signal: AbortSignal.timeout(3000) });
-        return {
-          status: res.ok ? ('online' as const) : ('degraded' as const),
-          latencyMs: Date.now() - start,
-        };
-      } catch {
-        return {
-          status: 'offline' as const,
-          latencyMs: Date.now() - start,
-        };
-      }
-    }
-
     try {
       const healthUrl = url.replace(/\/agent\/.*$/, '/health');
       const res = await fetch(healthUrl, { signal: AbortSignal.timeout(3000) });
@@ -277,19 +265,23 @@ app.get('/api/v1/health', async (c) => {
     }
   };
 
-  const [sentiment, onchain, ta, fusion] = await Promise.all([
+  const [sentiment, onchain, ta, fusion, regime, news, feargreed, funding] = await Promise.all([
     pingWorker('sentiment', workerUrls.sentiment),
     pingWorker('onchain', workerUrls.onchain),
     pingWorker('ta', workerUrls.ta),
     pingWorker('fusion', workerUrls.fusion),
+    pingWorker('regime', workerUrls.regime),
+    pingWorker('news', workerUrls.news),
+    pingWorker('feargreed', workerUrls.feargreed),
+    pingWorker('funding', workerUrls.funding),
   ]);
 
-  const allOnline = [sentiment, onchain, ta, fusion].every(w => w.status === 'online');
+  const allOnline = [sentiment, onchain, ta, fusion, regime, news, feargreed, funding].every(w => w.status === 'online');
 
   return c.json({
     status: allOnline ? 'healthy' : 'degraded',
     uptime: `${hours}h ${minutes}m`,
-    workers: { sentiment, onchain, ta, fusion },
+    workers: { sentiment, onchain, ta, fusion, regime, news, feargreed, funding },
   });
 });
 
@@ -310,8 +302,8 @@ app.post('/api/v1/orchestrate', async (c) => {
 
     console.log(`[Router] Pre-executing Worker Agents for ${tokenSymbol}...`);
 
-    // STEP A: Pre-Execution Phase (Phase 1: Fetch Workers A, B, C in Parallel)
-    const [resA, resB, resC] = await Promise.all([
+    // STEP A: Pre-Execution Phase (Phase 1: Fetch Workers A, B, C, E, F, G, H in Parallel)
+    const [resA, resB, resC, resE, resF, resG, resH] = await Promise.all([
       fetch(`${process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment'}?token=${tokenSymbol}`, {
         signal: AbortSignal.timeout(8000),
       })
@@ -327,9 +319,29 @@ app.post('/api/v1/orchestrate', async (c) => {
       })
         .then(r => r.ok ? r.json() : null)
         .catch(() => null),
+      fetch(`${process.env.WORKER_E_URL || 'http://localhost:5002/agent/regime'}?token=${tokenSymbol}`, {
+        signal: AbortSignal.timeout(8000),
+      })
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null),
+      fetch(`${process.env.WORKER_F_URL || 'http://localhost:5003/agent/news'}?token=${tokenSymbol}`, {
+        signal: AbortSignal.timeout(8000),
+      })
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null),
+      fetch(`${process.env.WORKER_G_URL || 'http://localhost:5002/agent/feargreed'}?token=${tokenSymbol}`, {
+        signal: AbortSignal.timeout(8000),
+      })
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null),
+      fetch(`${process.env.WORKER_H_URL || 'http://localhost:5002/agent/funding'}?token=${tokenSymbol}`, {
+        signal: AbortSignal.timeout(8000),
+      })
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null),
     ]);
 
-    // Abort if Workers A, B, or C failed (Zero fee guarantee)
+    // Abort if core Workers A, B, or C failed (Zero fee guarantee)
     if (!resA || !resB || !resC) {
       console.error('[Router] Worker agent pre-execution failed:', { resA, resB, resC });
       return c.json({
@@ -342,7 +354,6 @@ app.post('/api/v1/orchestrate', async (c) => {
     const fusionUrl = process.env.WORKER_D_URL || 'http://localhost:5001/agent/fusion';
 
     const sentimentScore = resA.sentimentScore ?? 78;
-    // n8n on-chain agent sends the field as "whaleScore" — accept both field names
     const onChainScore = resB.whaleScore ?? resB.onChainScore ?? (resB.whaleFlow?.includes('+') ? 75 : 50);
     const taScore = resC.taScore ?? (resC.taSignal?.includes('Bullish') ? 70 : 50);
 
@@ -357,6 +368,10 @@ app.post('/api/v1/orchestrate', async (c) => {
         onChainScore,
         technicalIndicator: resC.taSignal || resC.technicalIndicator || 'Data Unavailable',
         taScore,
+        regimeScore: resE?.regimeScore ?? null,
+        newsScore: resF?.newsScore ?? null,
+        fearGreedScore: resG?.fearGreedScore ?? null,
+        fundingScore: resH?.fundingScore ?? null,
       }),
     })
       .then(r => r.ok ? r.json() : null)
@@ -440,6 +455,18 @@ app.post('/api/v1/orchestrate', async (c) => {
             sentimentScore: resA.sentimentScore,
             onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || 'Data Unavailable',
             technicalIndicator: resC.taSignal || resC.technicalIndicator || 'Data Unavailable',
+            regime: resE?.regime || 'Data Unavailable',
+            regimeScore: resE?.regimeScore ?? null,
+            suggestedPositionSize: resE?.suggestedPositionSize || null,
+            stopLossLevel: resE?.stopLossLevel || null,
+            newsCatalyst: resF?.catalystType || 'Data Unavailable',
+            newsScore: resF?.newsScore ?? null,
+            fearGreedIndex: resG?.fearGreedIndex ?? null,
+            fearGreedClassification: resG?.classification || 'Data Unavailable',
+            fearGreedScore: resG?.fearGreedScore ?? null,
+            fundingRate: resH?.fundingRate ?? null,
+            liquidationPressure: resH?.liquidationPressure || 'Data Unavailable',
+            fundingScore: resH?.fundingScore ?? null,
           },
           onChainReceipt: {
             explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
@@ -604,6 +631,18 @@ app.post('/api/v1/orchestrate', async (c) => {
             sentimentScore: resA.sentimentScore,
             onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || 'Data Unavailable',
             technicalIndicator: resC.taSignal || resC.technicalIndicator || 'Data Unavailable',
+            regime: resE?.regime || 'Data Unavailable',
+            regimeScore: resE?.regimeScore ?? null,
+            suggestedPositionSize: resE?.suggestedPositionSize || null,
+            stopLossLevel: resE?.stopLossLevel || null,
+            newsCatalyst: resF?.catalystType || 'Data Unavailable',
+            newsScore: resF?.newsScore ?? null,
+            fearGreedIndex: resG?.fearGreedIndex ?? null,
+            fearGreedClassification: resG?.classification || 'Data Unavailable',
+            fearGreedScore: resG?.fearGreedScore ?? null,
+            fundingRate: resH?.fundingRate ?? null,
+            liquidationPressure: resH?.liquidationPressure || 'Data Unavailable',
+            fundingScore: resH?.fundingScore ?? null,
           },
           onChainReceipt: {
             explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
@@ -642,6 +681,18 @@ app.post('/api/v1/orchestrate', async (c) => {
         sentimentScore: resA.sentimentScore,
         onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || 'Data Unavailable',
         technicalIndicator: resC.taSignal || resC.technicalIndicator || 'Data Unavailable',
+        regime: resE?.regime || 'Data Unavailable',
+        regimeScore: resE?.regimeScore ?? null,
+        suggestedPositionSize: resE?.suggestedPositionSize || null,
+        stopLossLevel: resE?.stopLossLevel || null,
+        newsCatalyst: resF?.catalystType || 'Data Unavailable',
+        newsScore: resF?.newsScore ?? null,
+        fearGreedIndex: resG?.fearGreedIndex ?? null,
+        fearGreedClassification: resG?.classification || 'Data Unavailable',
+        fearGreedScore: resG?.fearGreedScore ?? null,
+        fundingRate: resH?.fundingRate ?? null,
+        liquidationPressure: resH?.liquidationPressure || 'Data Unavailable',
+        fundingScore: resH?.fundingScore ?? null,
       },
       onChainReceipt: {
         explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
@@ -780,6 +831,74 @@ app.post('/api/v1/sentiment-only', async (c) => {
     },
   });
 });
+
+// ─── SQL Optimizer Endpoint (Standalone, x402 paid) ──────────────
+app.post('/api/v1/sql-optimize', async (c) => {
+  const clientIp = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
+  if (!checkRateLimit(clientIp)) {
+    return c.json({ status: 'error', message: 'Rate limit exceeded.' }, 429);
+  }
+  
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const { query, dialect } = body;
+    
+    if (!query || query.length < 10) {
+      return c.json({ status: 'error', message: 'Query too short to analyze (min 10 chars).' }, 400);
+    }
+    
+    const res = await fetch(
+      process.env.SQL_OPTIMIZER_URL || 'http://localhost:5004/agent/sql-optimize',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, dialect: dialect || 'postgresql' }),
+        signal: AbortSignal.timeout(10000),
+      }
+    );
+    
+    if (!res.ok) throw new Error(`SQL optimizer returned status ${res.status}`);
+    const result = await res.json();
+    return c.json({ status: 'success', ...result });
+  } catch (err: any) {
+    return c.json({ status: 'error', message: err.message }, 502);
+  }
+});
+
+
+// ─── Content Detector Endpoint (Standalone, x402 paid) ──────────
+app.post('/api/v1/content-detect', async (c) => {
+  const clientIp = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
+  if (!checkRateLimit(clientIp)) {
+    return c.json({ status: 'error', message: 'Rate limit exceeded.' }, 429);
+  }
+  
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const { text } = body;
+    
+    if (!text || text.length < 50) {
+      return c.json({ status: 'error', message: 'Text too short (min 50 chars).' }, 400);
+    }
+    
+    const res = await fetch(
+      process.env.CONTENT_DETECTOR_URL || 'http://localhost:5005/agent/content-detect',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+        signal: AbortSignal.timeout(10000),
+      }
+    );
+    
+    if (!res.ok) throw new Error(`Content detector returned status ${res.status}`);
+    const result = await res.json();
+    return c.json({ status: 'success', ...result });
+  } catch (err: any) {
+    return c.json({ status: 'error', message: err.message }, 502);
+  }
+});
+
 
 /**
  * Public proxy endpoint for live 24h market prices from Binance.

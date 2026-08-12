@@ -118,6 +118,10 @@ class FusionInput(BaseModel):
     onChainScore: Optional[float] = None
     technicalIndicator: Optional[str] = None
     taScore: Optional[float] = None
+    regimeScore: Optional[float] = None
+    newsScore: Optional[float] = None
+    fearGreedScore: Optional[float] = None
+    fundingScore: Optional[float] = None
 
 
 @app.post("/agent/fusion")
@@ -127,9 +131,6 @@ async def get_fusion(payload: FusionInput):
     ta = payload.taScore if payload.taScore is not None else 50
 
     # --- Dynamic Adaptive Weights ---
-    # Scores far from 50 (neutral) carry stronger signal conviction,
-    # so we weight them higher. A score of 20 or 80 is a strong signal;
-    # a score of 50 is wishy-washy and gets down-weighted.
     def signal_strength(score: float) -> float:
         """Returns 0.0-1.0 measuring how far from neutral (50) this score is."""
         return abs(score - 50) / 50.0
@@ -138,24 +139,39 @@ async def get_fusion(payload: FusionInput):
     str_o = signal_strength(onchain)
     str_t = signal_strength(ta)
 
-    # Base weights: equal starting point
-    w_s = 0.33 + 0.15 * str_s   # sentiment: 0.33 to 0.48
-    w_o = 0.34 + 0.15 * str_o   # onchain:   0.34 to 0.49
-    w_t = 0.33 + 0.15 * str_t   # ta:        0.33 to 0.48
+    w_s = 0.33 + 0.15 * str_s
+    w_o = 0.34 + 0.15 * str_o
+    w_t = 0.33 + 0.15 * str_t
 
-    # Penalise workers that returned no real data (used default 50)
     if payload.onChainScore is None:
         w_o *= 0.5
     if payload.taScore is None:
         w_t *= 0.5
 
-    # Normalise so weights sum to 1.0
     total_w = w_s + w_o + w_t
     w_s /= total_w
     w_o /= total_w
     w_t /= total_w
 
-    composite = round(sentiment * w_s + onchain * w_o + ta * w_t)
+    core_composite = sentiment * w_s + onchain * w_o + ta * w_t
+
+    # --- Extra Workers (E, F, G, H) ---
+    extra_scores = []
+    if payload.regimeScore is not None:
+        extra_scores.append(("regime", payload.regimeScore))
+    if payload.newsScore is not None:
+        extra_scores.append(("news", payload.newsScore))
+    if payload.fearGreedScore is not None:
+        extra_scores.append(("feargreed", payload.fearGreedScore))
+    if payload.fundingScore is not None:
+        extra_scores.append(("funding", payload.fundingScore))
+
+    if extra_scores:
+        # Core workers: 70% weight, Extra workers: 30% weight
+        extra_avg = sum(s for _, s in extra_scores) / len(extra_scores)
+        composite = round(core_composite * 0.70 + extra_avg * 0.30)
+    else:
+        composite = round(core_composite)
 
     if composite >= 70:
         verdict = "STRONG BUY"
@@ -169,38 +185,40 @@ async def get_fusion(payload: FusionInput):
         verdict = "STRONG SELL"
 
     # --- Real-time Confidence Score ---
-    # Based on two factors:
-    #   1) Inter-agent agreement (low variance = high confidence)
-    #   2) Data availability (more real inputs = higher confidence)
-    scores = [sentiment, onchain, ta]
-    mean = sum(scores) / len(scores)
-    variance = sum((s - mean) ** 2 for s in scores) / len(scores)
-    std_dev = variance ** 0.5  # 0 = perfect agreement, ~33 = max disagreement
+    all_scores = [sentiment, onchain, ta] + [s for _, s in extra_scores]
+    mean = sum(all_scores) / len(all_scores)
+    variance = sum((s - mean) ** 2 for s in all_scores) / len(all_scores)
+    std_dev = variance ** 0.5
 
-    # Agreement factor: 100% when all agents agree, drops as they diverge
-    # std_dev of 0 → 1.0 agreement, std_dev of 30+ → ~0.0 agreement
     agreement = max(0.0, 1.0 - (std_dev / 30.0))
-
-    # Data availability factor
     real_inputs = 1 + sum([
         payload.onChainScore is not None,
         payload.taScore is not None,
+        payload.regimeScore is not None,
+        payload.newsScore is not None,
+        payload.fearGreedScore is not None,
+        payload.fundingScore is not None,
     ])
-    availability = real_inputs / 3.0  # 0.33 to 1.0
+    availability = real_inputs / 7.0
 
-    # Final confidence: weighted combination (70% agreement, 30% availability)
     confidence = round((agreement * 0.70 + availability * 0.30) * 100)
-    confidence = max(10, min(99, confidence))  # clamp to 10-99%
+    confidence = max(10, min(99, confidence))
+
+    weights_dict = {
+        "sentiment": round(w_s * (0.70 if extra_scores else 1.0), 3),
+        "onchain": round(w_o * (0.70 if extra_scores else 1.0), 3),
+        "ta": round(w_t * (0.70 if extra_scores else 1.0), 3),
+    }
+    if extra_scores:
+        extra_w = round(0.30 / len(extra_scores), 3)
+        for name, _ in extra_scores:
+            weights_dict[name] = extra_w
 
     return {
         "compositeScore": composite,
         "verdict": verdict,
         "confidencePct": confidence,
-        "weights": {
-            "sentiment": round(w_s, 3),
-            "onchain": round(w_o, 3),
-            "ta": round(w_t, 3),
-        },
+        "weights": weights_dict,
     }
 
 
