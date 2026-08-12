@@ -256,7 +256,20 @@ function ExecutionPipeline({ step, loading }: { step: number; loading: boolean }
 
 // ─── Interfaces & Supported Assets ──────────────────────────────────
 interface WorkerHealth { status: 'online' | 'offline' | 'degraded' | 'unknown'; latencyMs: number; }
-interface HealthData { status: string; uptime: string; workers: { sentiment: WorkerHealth; onchain: WorkerHealth; ta: WorkerHealth; fusion: WorkerHealth; }; }
+interface HealthData { 
+  status: string; 
+  uptime: string; 
+  workers: { 
+    sentiment: WorkerHealth; 
+    onchain: WorkerHealth; 
+    ta: WorkerHealth; 
+    fusion: WorkerHealth; 
+    regime: WorkerHealth;
+    news: WorkerHealth;
+    feargreed: WorkerHealth;
+    funding: WorkerHealth;
+  }; 
+}
 interface SignalHistoryEntry { id: string; token: string; compositeScore: number; verdict: string; txId: string; timestamp: string; cost: string; }
 
 const SUPPORTED_TOKENS = [
@@ -276,6 +289,10 @@ const WORKER_META = [
   { key: 'onchain' as const, label: 'Worker B: On-Chain Whale Flow', sub: 'CoinGecko Liquidity', color: '#06B6D4' },
   { key: 'ta' as const, label: 'Worker C: Technical Indicators', sub: 'RSI, SMA & MACD', color: '#F59E0B' },
   { key: 'fusion' as const, label: 'Worker D: Consensus Fusion', sub: 'Weighted Engine', color: '#10B981' },
+  { key: 'regime' as const, label: 'Worker E: Market Regime', sub: 'Binance ADX & Volatility', color: '#EC4899' },
+  { key: 'news' as const, label: 'Worker F: News Catalyst', sub: 'CryptoPanic Classifier', color: '#F97316' },
+  { key: 'feargreed' as const, label: 'Worker G: Fear & Greed', sub: 'Alternative.me Indicator', color: '#EF4444' },
+  { key: 'funding' as const, label: 'Worker H: Funding & Perps', sub: 'Binance Futures Engine', color: '#14B8A6' },
 ];
 
 // ═══════════════════════════════════════════════════════════════════
@@ -298,6 +315,15 @@ export default function QuantMeshPage() {
   const [copiedTxId, setCopiedTxId] = useState(false);
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  // Standalone tools state
+  const [sqlQuery, setSqlQuery] = useState("SELECT * FROM users WHERE name LIKE '%john%' ORDER BY created_at");
+  const [sqlResult, setSqlResult] = useState<any>(null);
+  const [sqlLoading, setSqlLoading] = useState(false);
+
+  const [contentText, setContentText] = useState("QuantMesh is an autonomous decentralized network of paid AI worker agents on Algorand. Each agent specializes in a distinct market intelligence task.");
+  const [contentResult, setContentResult] = useState<any>(null);
+  const [contentLoading, setContentLoading] = useState(false);
 
   // Prevent hydration mismatch
   useEffect(() => { 
@@ -358,6 +384,36 @@ export default function QuantMeshPage() {
       console.error('[QuantMesh] Execution error:', err);
       setCurrentStep(0); setError(err.message || 'Execution failed or signature was cancelled.');
     } finally { setLoading(false); }
+  };
+
+  const handleTestSql = async () => {
+    setSqlLoading(true); setSqlResult(null);
+    try {
+      const res = await fetch('https://api.dhanrajgupta.xyz/api/v1/sql-optimize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: sqlQuery }),
+      });
+      const data = await res.json();
+      setSqlResult(data);
+    } catch (err: any) {
+      setSqlResult({ status: 'error', message: err.message });
+    } finally { setSqlLoading(false); }
+  };
+
+  const handleTestContent = async () => {
+    setContentLoading(true); setContentResult(null);
+    try {
+      const res = await fetch('https://api.dhanrajgupta.xyz/api/v1/content-detect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: contentText }),
+      });
+      const data = await res.json();
+      setContentResult(data);
+    } catch (err: any) {
+      setContentResult({ status: 'error', message: err.message });
+    } finally { setContentLoading(false); }
   };
 
   const convictionPct = signalData?.signalFusion?.confidencePct ?? 0;
@@ -652,6 +708,72 @@ export default function QuantMeshPage() {
                         </div>
                       );
                     })()}
+
+                    {/* Worker E: Regime */}
+                    {signalData.breakdown?.regime && (
+                      <div className="aurora-card p-4 space-y-2 animate-stagger" style={{ animationDelay: '250ms' }}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase font-heading">Worker E · Regime</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border text-[#EC4899] bg-[#EC4899]/10 border-[#EC4899]/40 font-heading">
+                            {signalData.breakdown.regime}
+                          </span>
+                        </div>
+                        <div className="text-xl font-bold text-[var(--text-primary)] font-mono-brand">
+                          {signalData.breakdown.suggestedPositionSize || '2-4% Position'}
+                        </div>
+                        <div className="text-[10px] text-[#EC4899] font-mono-brand">
+                          Stop Loss: {signalData.breakdown.stopLossLevel || '-1.5%'}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Worker F: News Catalyst */}
+                    {signalData.breakdown?.newsCatalyst && (
+                      <div className="aurora-card p-4 space-y-2 animate-stagger" style={{ animationDelay: '300ms' }}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase font-heading">Worker F · News</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border text-[#F97316] bg-[#F97316]/10 border-[#F97316]/40 font-heading">
+                            {signalData.breakdown.newsCatalyst}
+                          </span>
+                        </div>
+                        <div className="text-xl font-bold text-[var(--text-primary)] font-mono-brand">
+                          {signalData.breakdown.newsScore !== null ? `${signalData.breakdown.newsScore} / 100` : 'Neutral Catalyst'}
+                        </div>
+                        <div className="text-[10px] text-[#F97316] font-mono-brand">CryptoPanic News Classifier</div>
+                      </div>
+                    )}
+
+                    {/* Worker G: Fear & Greed */}
+                    {signalData.breakdown?.fearGreedIndex !== undefined && signalData.breakdown?.fearGreedIndex !== null && (
+                      <div className="aurora-card p-4 space-y-2 animate-stagger" style={{ animationDelay: '350ms' }}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase font-heading">Worker G · Fear & Greed</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border text-[#EF4444] bg-[#EF4444]/10 border-[#EF4444]/40 font-heading">
+                            {signalData.breakdown.fearGreedClassification || 'Neutral'}
+                          </span>
+                        </div>
+                        <div className="text-xl font-bold text-[var(--text-primary)] font-mono-brand">
+                          Index: {signalData.breakdown.fearGreedIndex} <span className="text-xs text-[var(--text-muted)]">/ 100</span>
+                        </div>
+                        <div className="text-[10px] text-[#EF4444] font-mono-brand">Alternative.me Sentiment</div>
+                      </div>
+                    )}
+
+                    {/* Worker H: Funding Rate */}
+                    {signalData.breakdown?.liquidationPressure && (
+                      <div className="aurora-card p-4 space-y-2 animate-stagger" style={{ animationDelay: '400ms' }}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase font-heading">Worker H · Funding</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border text-[#14B8A6] bg-[#14B8A6]/10 border-[#14B8A6]/40 font-heading">
+                            {signalData.breakdown.liquidationPressure}
+                          </span>
+                        </div>
+                        <div className="text-xl font-bold text-[var(--text-primary)] font-mono-brand">
+                          {signalData.breakdown.fundingRate !== null ? `${signalData.breakdown.fundingRate}%` : 'Spot Asset'}
+                        </div>
+                        <div className="text-[10px] text-[#14B8A6] font-mono-brand">Binance Futures Perps</div>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -747,6 +869,116 @@ export default function QuantMeshPage() {
             )}
           </div>
         )}
+
+        {/* ─ Row 3: Standalone Paid x402 Agent Micro-Services ────────────── */}
+        <div className="aurora-panel rounded-3xl p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 bg-[var(--accent-subtle)] border border-[var(--accent-border)] rounded-xl">
+                <Sparkles className="w-5 h-5 text-[var(--accent)]" />
+              </div>
+              <div>
+                <h3 className="text-base font-extrabold text-[var(--text-primary)] font-heading">Standalone Paid x402 Micro-Services</h3>
+                <p className="text-xs text-[var(--text-muted)]">Independent specialized AI agents accessible via pay-per-use endpoints</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold font-mono-brand text-[#06B6D4] bg-[#06B6D4]/10 px-2.5 py-1 rounded-lg border border-[#06B6D4]/30 hidden sm:inline">
+              x402 Micro-Paid Services
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* SQL Optimizer Tool */}
+            <div className="aurora-card p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-[var(--text-primary)] font-heading flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-[#06B6D4]" /> SQL Query Optimizer Agent
+                </span>
+                <span className="text-[9px] font-bold font-mono-brand text-[#34D399] bg-[#34D399]/10 px-1.5 py-0.5 rounded border border-[#34D399]/30">ONLINE</span>
+              </div>
+              <p className="text-xs text-[var(--text-muted)]">Rule-based query analyzer for missing indexes, SELECT *, and wildcard bottlenecks.</p>
+              <textarea
+                value={sqlQuery}
+                onChange={(e) => setSqlQuery(e.target.value)}
+                rows={3}
+                className="w-full p-3 rounded-xl aurora-inner font-mono-brand text-xs text-[var(--text-primary)] border border-[var(--border)] focus:outline-none focus:border-[var(--accent)]"
+                placeholder="Enter SQL Query..."
+              />
+              <button
+                onClick={handleTestSql}
+                disabled={sqlLoading}
+                className="w-full py-2.5 rounded-xl btn-primary text-xs font-bold font-heading flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {sqlLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4 fill-white" />}
+                Analyze SQL Query
+              </button>
+
+              {sqlResult && (
+                <div className="p-3 rounded-xl aurora-inner space-y-2 text-xs font-mono-brand animate-fade-up">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-muted)]">Optimization Score:</span>
+                    <span className="font-bold text-[#34D399]">{sqlResult.optimizationScore} / 100</span>
+                  </div>
+                  {sqlResult.issues?.map((issue: any, idx: number) => (
+                    <div key={`sql-issue-${idx}`} className="p-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border)] space-y-1">
+                      <div className="flex items-center justify-between text-[10px] font-bold">
+                        <span className="text-[#FB7185]">{issue.title}</span>
+                        <span className="text-[var(--text-muted)]">{issue.severity}</span>
+                      </div>
+                      <p className="text-[10px] text-[var(--text-muted)]">{issue.suggestion}</p>
+                    </div>
+                  ))}
+                  {sqlResult.indexSuggestions?.map((idxSugg: any, idx: number) => (
+                    <div key={`sql-idx-${idx}`} className="text-[10px] text-[#06B6D4]">
+                      💡 {idxSugg.suggestion}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Content Detector Tool */}
+            <div className="aurora-card p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-[var(--text-primary)] font-heading flex items-center gap-2">
+                  <Brain className="w-4 h-4 text-[#8B5CF6]" /> AI Content & Plagiarism Detector
+                </span>
+                <span className="text-[9px] font-bold font-mono-brand text-[#34D399] bg-[#34D399]/10 px-1.5 py-0.5 rounded border border-[#34D399]/30">ONLINE</span>
+              </div>
+              <p className="text-xs text-[var(--text-muted)]">Measures text burstiness, vocabulary richness (TTR), and sentence length patterns.</p>
+              <textarea
+                value={contentText}
+                onChange={(e) => setContentText(e.target.value)}
+                rows={3}
+                className="w-full p-3 rounded-xl aurora-inner font-mono-brand text-xs text-[var(--text-primary)] border border-[var(--border)] focus:outline-none focus:border-[var(--accent)]"
+                placeholder="Enter text to analyze..."
+              />
+              <button
+                onClick={handleTestContent}
+                disabled={contentLoading}
+                className="w-full py-2.5 rounded-xl btn-primary text-xs font-bold font-heading flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {contentLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
+                Detect AI Content
+              </button>
+
+              {contentResult && (
+                <div className="p-3 rounded-xl aurora-inner space-y-2 text-xs font-mono-brand animate-fade-up">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-muted)]">AI Probability:</span>
+                    <span className="font-bold text-[#8B5CF6]">{(contentResult.aiProbability * 100).toFixed(1)}% ({contentResult.verdict})</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-[10px] text-[var(--text-muted)]">
+                    <div>Burstiness: <span className="text-[var(--text-primary)]">{contentResult.metrics?.burstiness}</span></div>
+                    <div>Vocab Richness (TTR): <span className="text-[var(--text-primary)]">{contentResult.metrics?.vocabularyRichness}</span></div>
+                    <div>Avg Sent Length: <span className="text-[var(--text-primary)]">{contentResult.metrics?.avgSentenceLength} w</span></div>
+                    <div>Confidence: <span className="text-[var(--text-primary)]">{contentResult.confidence}%</span></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
         {/* ─ Zero Fee Status Banner ──────────────────────────────────── */}
         <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-2xl aurora-card">

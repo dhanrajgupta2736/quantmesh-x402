@@ -8,6 +8,15 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-12T18:57:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Updated Frontend UI (`frontend/src/app/page.tsx`) to Render All 8 Workers & Standalone Tools.
+1. **Worker Definitions:** Updated `WORKER_META` array and `HealthData` interface in `page.tsx` to list all 8 worker agents (A: Sentiment, B: Whale Flow, C: Technicals, D: Fusion, E: Regime, F: News, G: Fear & Greed, H: Funding Rate).
+2. **Signal Breakdown Grid:** Added breakdown card components in `page.tsx` for Workers E, F, G, H displaying position sizing, stop-loss levels, news catalysts, Fear & Greed index, and perp funding rates.
+3. **Standalone Paid Tools UI:** Added interactive micro-services UI section for SQL Query Optimizer and AI Content / Plagiarism Detector on demand.
+4. **Verification:** Ran `npx tsc --noEmit` on frontend (0 errors), verified 10-minute automated PM2 log health check on EC2 (all 6 processes online), tested live SSL endpoints.
+**Files:** `frontend/src/app/page.tsx`, `CHANGELOG_AI.md`.
+**Platform:** Antigravity IDE | **Model:** Gemini 3.6 Flash
+
 ### 2026-08-12T18:33:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Created Comprehensive Implementation Plan for 6 New Agents & Endpoints.
 1. **Research Phase:** Read `agent list.docx`, analyzed existing architecture (orchestrator, agent-onchain-ta, agent-sentiment-fusion), checked EC2 PM2 layout, verified API availability (CryptoPanic, Alternative.me F&G, Binance Futures).
