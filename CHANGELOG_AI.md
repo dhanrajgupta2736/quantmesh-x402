@@ -8,6 +8,17 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-12T18:33:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Created Comprehensive Implementation Plan for 6 New Agents & Endpoints.
+1. **Research Phase:** Read `agent list.docx`, analyzed existing architecture (orchestrator, agent-onchain-ta, agent-sentiment-fusion), checked EC2 PM2 layout, verified API availability (CryptoPanic, Alternative.me F&G, Binance Futures).
+2. **Dropped X Social Sentiment (Worker I):** Confirmed X/Twitter API has no free tier as of 2026 — pay-per-use at $0.005/post read makes it economically unviable for a $0.007/call endpoint.
+3. **Plan covers 4 new consensus workers** (E: Regime Classifier, F: News Catalyst, G: Fear & Greed, H: Funding Rate) that integrate into existing `/api/v1/orchestrate` pipeline.
+4. **Plan covers 2 standalone endpoints** (SQL Optimizer, AI Content Detector) as separate x402-paid services.
+5. Includes complete Python implementation code, orchestrator TypeScript integration, Fusion agent update, EC2 deployment commands, PM2 process setup, port allocation, and verification checklist.
+6. All work specified on `feature/new-agents` branch — not `main`.
+**Files:** `implementation_plan.md` (artifact), `CHANGELOG_AI.md` (this file).
+**Platform:** Antigravity IDE | **Model:** Gemini 3.6 Flash
+
 ### 2026-08-09T18:02:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Fixed Cloudflare Pages CSS Compilation & Static Export Bundle.
 1. Identified root cause of unstyled static export: `postcss.config.mjs` was unrecognized by Next.js PostCSS loader, preventing Tailwind compilation during Cloudflare Pages builds.
