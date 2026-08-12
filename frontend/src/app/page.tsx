@@ -593,7 +593,7 @@ export default function QuantMeshPage() {
               <ExecutionPipeline step={currentStep} loading={loading} />
             </div>
 
-            {/* Right: Worker Agent Status (All 4 animate during execution!) */}
+            {/* Right: Worker Agent Status (All 8 animate during execution!) */}
             <div className="lg:col-span-3 flex flex-col gap-2">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] font-heading flex items-center gap-1.5">
@@ -604,26 +604,28 @@ export default function QuantMeshPage() {
                 </span>
               </div>
               
-              {WORKER_META.map((w, i) => {
-                const isWorkerDone = Boolean(signalData);
-                const isWorkerActive = loading;
+              <div className="flex flex-col gap-2 max-h-[340px] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
+                {WORKER_META.map((w, i) => {
+                  const isWorkerDone = Boolean(signalData);
+                  const isWorkerActive = loading;
 
-                return (
-                  <div key={w.key} className="aurora-card p-2.5 flex items-center gap-2.5 animate-stagger" style={{ animationDelay: `${i * 80}ms` }}>
-                    <WorkerRing active={isWorkerActive} isDone={isWorkerDone} workerIdx={i + 1} />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[11px] font-bold text-[var(--text-primary)] font-heading truncate">{w.label}</div>
-                      <div className="text-[9px] text-[var(--text-muted)] truncate">{w.sub}</div>
+                  return (
+                    <div key={w.key} className="aurora-card p-2.5 flex items-center gap-2.5 animate-stagger shrink-0" style={{ animationDelay: `${i * 80}ms` }}>
+                      <WorkerRing active={isWorkerActive} isDone={isWorkerDone} workerIdx={i + 1} />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[11px] font-bold text-[var(--text-primary)] font-heading truncate">{w.label}</div>
+                        <div className="text-[9px] text-[var(--text-muted)] truncate">{w.sub}</div>
+                      </div>
+                      <div className="flex flex-col items-end gap-0.5 shrink-0">
+                        <StatusDot status={healthData?.workers?.[w.key]?.status || 'online'} />
+                        <span className="text-[9px] font-mono-brand font-bold" style={{ color: w.color }}>
+                          {healthData?.workers?.[w.key]?.latencyMs || (12 + i * 4)}ms
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col items-end gap-0.5 shrink-0">
-                      <StatusDot status={healthData?.workers?.[w.key]?.status || 'online'} />
-                      <span className="text-[9px] font-mono-brand font-bold" style={{ color: w.color }}>
-                        {healthData?.workers?.[w.key]?.latencyMs || (12 + i * 4)}ms
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
 
           </div>
@@ -634,11 +636,11 @@ export default function QuantMeshPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-up">
             
             {/* Worker Breakdown Cards */}
-            <div className={`space-y-3 ${signalData.onChainReceipt ? 'lg:col-span-7' : 'lg:col-span-12'}`}>
+            <div className={`space-y-3 ${signalData.onChainReceipt ? 'lg:col-span-8' : 'lg:col-span-12'}`}>
               <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--accent)] font-heading flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" /> Multi-Agent Signal Breakdown
               </h3>
-              <div className={`grid gap-3 ${isSentimentMode ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-3'}`}>
+              <div className={`grid gap-3 ${isSentimentMode ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'}`}>
                 {/* Worker A */}
                 {(() => {
                   const score = signalData.breakdown?.sentimentScore ?? signalData.sentiment?.score ?? 50;
