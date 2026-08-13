@@ -8,11 +8,12 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
-### 2026-08-13T13:10:00+05:30 — Antigravity (Gemini 3.6 Flash)
-**Summary:** Added try/catch error handling around x402Client fetch requests to catch network connection failures gracefully.
-1. **Network Fetch Handling** — `x402Client.ts`: Wrapped both Probe (Step 1) and Payment Retry (Step 4) `fetch()` calls in `try...catch` blocks to present clear user-facing error messages when the backend Orchestrator server is unreachable or offline instead of unhandled `TypeError: Failed to fetch`.
+### 2026-08-13T13:15:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Started local Orchestrator daemon service and added automatic production endpoint fallback logic to x402Client.
+1. **Orchestrator Service Daemon** — Launched orchestrator service (`quantmesh-orchestrator`) in the background on port `4000` (`http://localhost:4000`).
+2. **Endpoint Fallback Logic** — `x402Client.ts`: Added automatic fallback to production endpoint (`https://api.dhanrajgupta.xyz`) if local port 4000 probe fails, ensuring continuous availability.
 **Files Changed:**
-- `frontend/src/lib/x402Client.ts` — Added try/catch around `fetch` calls.
+- `frontend/src/lib/x402Client.ts` — Implemented `activeGateway` fallback logic.
 - `CHANGELOG_AI.md` — Appended audit log entry.
 
 ### 2026-08-13T12:46:00+05:30 — Antigravity (Claude Opus 4.6 Thinking)

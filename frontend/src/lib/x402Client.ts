@@ -63,6 +63,7 @@ export async function fetchQuantMeshSignal(
   // ═══════════════════════════════════════════════════════════════════
   console.log(`[x402] Step 1: Probing ${endpointType} endpoint for 402 payment challenge...`);
   let probeRes: Response;
+  let activeGateway = targetGateway;
   try {
     probeRes = await fetch(targetGateway, {
       method: 'POST',
@@ -70,7 +71,21 @@ export async function fetchQuantMeshSignal(
       body: JSON.stringify({ tokenSymbol }),
     });
   } catch (fetchErr: any) {
-    throw new Error(`Orchestrator Service Unreachable (${targetGateway}). Please ensure the orchestrator backend server is running.`);
+    const fallbackBase = 'https://api.dhanrajgupta.xyz';
+    const fallbackGateway = endpointType === 'sentiment'
+      ? `${fallbackBase}/api/v1/sentiment-only`
+      : `${fallbackBase}/api/v1/orchestrate`;
+    console.warn(`[x402] Primary target ${targetGateway} unreachable. Attempting fallback ${fallbackGateway}...`);
+    try {
+      probeRes = await fetch(fallbackGateway, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tokenSymbol }),
+      });
+      activeGateway = fallbackGateway;
+    } catch (fallbackErr: any) {
+      throw new Error(`Orchestrator Service Unreachable (${targetGateway} & ${fallbackGateway}). Please ensure the orchestrator backend server is running.`);
+    }
   }
 
   // Read the body ONCE and reuse the parsed result throughout
@@ -175,7 +190,7 @@ export async function fetchQuantMeshSignal(
   console.log(`[x402] Step 4: Retrying request to ${endpointType} with verified paymentTxId: ${paymentTxId}...`);
   let paidRes: Response;
   try {
-    paidRes = await fetch(targetGateway, {
+    paidRes = await fetch(activeGateway, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -187,7 +202,7 @@ export async function fetchQuantMeshSignal(
       }),
     });
   } catch (paidErr: any) {
-    throw new Error(`Orchestrator Backend Disconnected during payment verification (${targetGateway}). Payment TxID: ${paymentTxId}`);
+    throw new Error(`Orchestrator Backend Disconnected during payment verification (${activeGateway}). Payment TxID: ${paymentTxId}`);
   }
 
   const paidData = await paidRes.json().catch(() => ({}));
