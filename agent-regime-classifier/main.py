@@ -5,6 +5,7 @@ import httpx
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+import random
 
 load_dotenv()
 
@@ -19,7 +20,6 @@ app.add_middleware(
 )
 
 # Standard token pairs on Binance
-BINANCE_PAIRS = {
     "BTC": "BTCUSDT",
     "ETH": "ETHUSDT",
     "SOL": "SOLUSDT",
@@ -174,7 +174,12 @@ async def get_regime(token: str = Query(..., description="Token symbol (e.g. BTC
         # Determine Position Size
         # Determine Position Size and Simple Advice
         if regime == "TRENDING_BULLISH":
-            simple_advice = "Strong upward trend. Good time to buy and hold."
+            advices = [
+                f"Strong upward trend for {token_upper}. Good time to buy and hold.",
+                f"{token_upper} is showing solid bullish momentum. Favorable for long positions.",
+                f"Clear uptrend detected. Consider riding the wave up for {token_upper}."
+            ]
+            simple_advice = random.choice(advices)
             if volatility_index < 0.03:
                 pos_size = "3-5% of portfolio"
             elif volatility_index < 0.06:
@@ -183,19 +188,44 @@ async def get_regime(token: str = Query(..., description="Token symbol (e.g. BTC
                 pos_size = "1-2% of portfolio"
         elif regime == "TRENDING_BEARISH":
             pos_size = "0-1% of portfolio (hedge)"
-            simple_advice = "Downward trend. Better to wait or sell."
+            advices = [
+                f"Downward trend on {token_upper}. Better to wait or sell.",
+                f"{token_upper} is facing heavy selling pressure. Avoid buying right now.",
+                f"Bearish momentum detected. Consider hedging your {token_upper} exposure."
+            ]
+            simple_advice = random.choice(advices)
         elif regime == "RANGING":
             pos_size = "1-2% of portfolio (scalp)"
-            simple_advice = "Price is bouncing around. Buy low, sell high, or just wait."
+            advices = [
+                f"{token_upper} is bouncing around in a range. Buy low, sell high, or just wait.",
+                f"No clear trend for {token_upper} right now. Range-bound trading applies.",
+                f"{token_upper} is moving sideways. Wait for a clear breakout before committing large capital."
+            ]
+            simple_advice = random.choice(advices)
         elif regime == "VOLATILE_RANGE":
             pos_size = "0.5-1% of portfolio"
-            simple_advice = "Risky right now. Price is moving wildly. Best to stay out."
+            advices = [
+                f"Risky right now. {token_upper} price is moving wildly. Best to stay out.",
+                f"High turbulence in a sideways channel for {token_upper}. Caution advised.",
+                f"Choppy and volatile market for {token_upper}. Might be better to wait for calmer waters."
+            ]
+            simple_advice = random.choice(advices)
         elif regime == "HIGH_VOLATILITY":
             pos_size = "0.5-1% of portfolio (reduce exposure)"
-            simple_advice = "Very risky right now. High turbulence. Best to stay out."
+            advices = [
+                f"Very risky right now. High turbulence on {token_upper}. Best to stay out.",
+                f"Extreme price swings detected for {token_upper}. Capital preservation is key.",
+                f"Market conditions for {token_upper} are highly unstable. Stay on the sidelines."
+            ]
+            simple_advice = random.choice(advices)
         else:
             pos_size = "2-4% of portfolio"
-            simple_advice = "Very quiet market. Not much happening."
+            advices = [
+                f"Very quiet market for {token_upper}. Not much happening.",
+                f"{token_upper} volume and volatility are dead. Wait for action to return.",
+                f"Stagnant price action on {token_upper}. Patience is required."
+            ]
+            simple_advice = random.choice(advices)
             
         # Stop Loss Calculation
         stop_loss_pct = round(volatility_index * 100 * 1.5, 1)
