@@ -11,6 +11,7 @@ export interface WorkerPayoutAmounts {
   amountB?: number;
   amountC?: number;
   amountD?: number;
+  amountE?: number;
 }
 
 export interface AtomicPayoutConfig extends WorkerPayoutAmounts {
@@ -19,6 +20,7 @@ export interface AtomicPayoutConfig extends WorkerPayoutAmounts {
   workerBAddress: string;
   workerCAddress: string;
   workerDAddress: string;
+  workerEAddress: string;
   usdcAssetId: number;
 }
 
@@ -31,6 +33,7 @@ export async function buildAtomicPaymentGroup(config: AtomicPayoutConfig) {
     { to: config.workerBAddress, amount: config.amountB ?? 2000 },
     { to: config.workerCAddress, amount: config.amountC ?? 1000 },
     { to: config.workerDAddress, amount: config.amountD ?? 1000 },
+    { to: config.workerEAddress, amount: config.amountE ?? 800 },
   ];
 
   const txns: algosdk.Transaction[] = payouts.map(payout =>
@@ -51,19 +54,20 @@ export async function buildAtomicPaymentGroup(config: AtomicPayoutConfig) {
   return txns;
 }
 
-export interface Unified5TxnConfig extends WorkerPayoutAmounts {
+export interface Unified6TxnConfig extends WorkerPayoutAmounts {
   userAddress: string;
   routerAddress: string;
   workerAAddress: string;
   workerBAddress: string;
   workerCAddress: string;
   workerDAddress: string;
+  workerEAddress: string;
   usdcAssetId: number;
   clientAmountUsdcUnits?: number; // default 7000 ($0.007)
   isUsdc?: boolean;
 }
 
-export async function buildUnified5TxnGroup(config: Unified5TxnConfig) {
+export async function buildUnified6TxnGroup(config: Unified6TxnConfig) {
   const params = await algodClient.getTransactionParams().do();
   const clientAmt = config.clientAmountUsdcUnits || 7000;
 
@@ -96,6 +100,7 @@ export async function buildUnified5TxnGroup(config: Unified5TxnConfig) {
     { to: config.workerBAddress, amount: config.amountB ?? 2000 },
     { to: config.workerCAddress, amount: config.amountC ?? 1000 },
     { to: config.workerDAddress, amount: config.amountD ?? 1000 },
+    { to: config.workerEAddress, amount: config.amountE ?? 800 },
   ];
 
   const workerTxns: algosdk.Transaction[] = payouts.map(p =>

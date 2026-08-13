@@ -401,12 +401,16 @@ function AgentSwarmVisualizer({ loading, token, step }: { loading: boolean; toke
             <linearGradient id="beam-c" x1="190" y1="120" x2="190" y2="70" gradientUnits="userSpaceOnUse">
               <stop stopColor="#F59E0B" /><stop offset="1" stopColor="#10B981" />
             </linearGradient>
+            <linearGradient id="beam-e" x1="60" y1="120" x2="190" y2="70" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#EC4899" /><stop offset="1" stopColor="#10B981" />
+            </linearGradient>
           </defs>
 
           {/* Connection Beams */}
           <line x1="50" y1="30" x2="190" y2="70" stroke="url(#beam-a)" strokeWidth={loading ? '2.5' : '1'} strokeOpacity={loading ? '0.9' : '0.4'} strokeDasharray="6 4" className={loading ? 'animate-particle-flow' : ''} />
           <line x1="330" y1="30" x2="190" y2="70" stroke="url(#beam-b)" strokeWidth={loading ? '2.5' : '1'} strokeOpacity={loading ? '0.9' : '0.4'} strokeDasharray="6 4" className={loading ? 'animate-particle-flow' : ''} />
           <line x1="190" y1="120" x2="190" y2="70" stroke="url(#beam-c)" strokeWidth={loading ? '2.5' : '1'} strokeOpacity={loading ? '0.9' : '0.4'} strokeDasharray="6 4" className={loading ? 'animate-particle-flow' : ''} />
+          <line x1="60" y1="120" x2="190" y2="70" stroke="url(#beam-e)" strokeWidth={loading ? '2.5' : '1'} strokeOpacity={loading ? '0.9' : '0.4'} strokeDasharray="6 4" className={loading ? 'animate-particle-flow' : ''} />
 
           {/* Center Fusion Hub Node (Worker D) */}
           <g transform="translate(190, 70)">
@@ -439,14 +443,23 @@ function AgentSwarmVisualizer({ loading, token, step }: { loading: boolean; toke
             {loading && step === 3 && <circle r="19" fill="none" stroke="#F59E0B" strokeWidth="1.2" strokeDasharray="3 3" className="animate-halo-spin" />}
             <text textAnchor="middle" dy="3.5" fill="#F59E0B" fontSize="9" fontWeight="bold" fontFamily="monospace">C</text>
           </g>
+
+          {/* Worker E Node */}
+          <g transform="translate(60, 120)">
+            <circle r="16" fill="var(--surface-2)" stroke="#EC4899" strokeWidth="1.8" />
+            <circle r="11" fill="var(--bg-main)" />
+            {loading && step === 4 && <circle r="19" fill="none" stroke="#EC4899" strokeWidth="1.2" strokeDasharray="3 3" className="animate-halo-spin" />}
+            <text textAnchor="middle" dy="3.5" fill="#EC4899" fontSize="9" fontWeight="bold" fontFamily="monospace">E</text>
+          </g>
         </svg>
       </div>
 
-      <div className="grid grid-cols-4 gap-1 pt-2 border-t border-[var(--border)] text-[9px] font-mono-brand text-center">
+      <div className="grid grid-cols-5 gap-1 pt-2 border-t border-[var(--border)] text-[9px] font-mono-brand text-center">
         <div className="text-[var(--accent-light)] font-bold">Worker A (NLP)</div>
         <div className="text-[var(--cyan)] font-bold">Worker B (Whale)</div>
         <div className="text-[var(--neutral)] font-bold">Worker C (TA)</div>
         <div className="text-[var(--bull)] font-bold">Worker D (Fusion)</div>
+        <div className="text-[#EC4899] font-bold">Worker E (Regime)</div>
       </div>
     </div>
   );
@@ -488,7 +501,7 @@ function ExecutionPipeline({ step, loading }: { step: number; loading: boolean }
 
 // ─── Interfaces & Supported Assets ──────────────────────────────────
 interface WorkerHealth { status: 'online' | 'offline' | 'degraded' | 'unknown'; latencyMs: number; }
-interface HealthData { status: string; uptime: string; workers: { sentiment: WorkerHealth; onchain: WorkerHealth; ta: WorkerHealth; fusion: WorkerHealth; }; }
+interface HealthData { status: string; uptime: string; workers: { sentiment: WorkerHealth; onchain: WorkerHealth; ta: WorkerHealth; fusion: WorkerHealth; regime: WorkerHealth; }; }
 interface SignalHistoryEntry { id: string; token: string; compositeScore: number; verdict: string; txId: string; timestamp: string; cost: string; }
 
 const SUPPORTED_TOKENS = [
@@ -508,6 +521,7 @@ const WORKER_META = [
   { key: 'onchain' as const, label: 'Worker B: On-Chain Whale Flow', sub: 'CoinGecko Liquidity', color: '#06B6D4' },
   { key: 'ta' as const, label: 'Worker C: Technical Indicators', sub: 'RSI, SMA & MACD', color: '#F59E0B' },
   { key: 'fusion' as const, label: 'Worker D: Consensus Fusion', sub: 'Weighted Engine', color: '#10B981' },
+  { key: 'regime' as const, label: 'Worker E: Regime Classifier', sub: 'ATR, ADX & Position Sizing', color: '#EC4899' },
 ];
 
 // ═══════════════════════════════════════════════════════════════════
@@ -594,15 +608,17 @@ export default function QuantMeshPage() {
   };
 
   const isSentimentMode = activeEndpoint === 'sentiment' || signalData?.endpoint === 'sentiment-only';
-  const amountA = isSentimentMode ? 2000 : (signalData?.dynamicSplit?.amountA ?? 2000);
-  const amountB = isSentimentMode ? 0 : (signalData?.dynamicSplit?.amountB ?? 1800);
-  const amountC = isSentimentMode ? 0 : (signalData?.dynamicSplit?.amountC ?? 1200);
-  const amountD = isSentimentMode ? 0 : (signalData?.dynamicSplit?.amountD ?? 1000);
-  const totalPool = isSentimentMode ? 2000 : (amountA + amountB + amountC + amountD || 6000);
+  const amountA = isSentimentMode ? 2000 : (signalData?.dynamicSplit?.amountA ?? 1600);
+  const amountB = isSentimentMode ? 0 : (signalData?.dynamicSplit?.amountB ?? 1600);
+  const amountC = isSentimentMode ? 0 : (signalData?.dynamicSplit?.amountC ?? 900);
+  const amountD = isSentimentMode ? 0 : (signalData?.dynamicSplit?.amountD ?? 900);
+  const amountE = isSentimentMode ? 0 : (signalData?.dynamicSplit?.amountE ?? 800);
+  const totalPool = isSentimentMode ? 2000 : (amountA + amountB + amountC + amountD + amountE || 7000);
   const pctA = ((amountA / totalPool) * 100).toFixed(1);
   const pctB = ((amountB / totalPool) * 100).toFixed(1);
   const pctC = ((amountC / totalPool) * 100).toFixed(1);
   const pctD = ((amountD / totalPool) * 100).toFixed(1);
+  const pctE = ((amountE / totalPool) * 100).toFixed(1);
 
   const rawVerdict = signalData?.signalFusion?.verdict ?? signalData?.sentiment?.sentimentVerdict;
   const isBull = rawVerdict?.includes('BUY') || rawVerdict === 'BULLISH';
@@ -728,7 +744,7 @@ export default function QuantMeshPage() {
                     className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                       activeEndpoint === 'consensus' ? 'btn-primary text-white' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                     }`}>
-                    <GitMerge className="w-3.5 h-3.5 shrink-0" /> 4-Agent ($0.007)
+                    <GitMerge className="w-3.5 h-3.5 shrink-0" /> 5-Agent ($0.007)
                   </button>
                   <button 
                     onClick={() => { setActiveEndpoint('sentiment'); setSignalData(null); setError(null); setSuccessMsg(null); setCurrentStep(0); }}
@@ -800,12 +816,12 @@ export default function QuantMeshPage() {
                 {loading ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                    <span>Processing Handshake {currentStep}/4...</span>
+                    <span>Processing x402 Handshake {currentStep}/4...</span>
                   </>
                 ) : (
                   <>
                     <Zap className="w-4 h-4 fill-white" />
-                    <span>Execute {activeEndpoint === 'consensus' ? '4-Agent Strategy ($0.0070)' : 'FinBERT Sentiment ($0.0020)'}</span>
+                    <span>Execute {activeEndpoint === 'consensus' ? '5-Agent Strategy ($0.0070)' : 'FinBERT Sentiment ($0.0020)'}</span>
                   </>
                 )}
               </button>
@@ -978,6 +994,35 @@ export default function QuantMeshPage() {
                             </div>
                           );
                         })()}
+                        {(() => {
+                          const regimeStr = signalData.breakdown?.regime ?? 'Data Unavailable';
+                          const isR = regimeStr.toLowerCase().includes('bearish') || regimeStr.toLowerCase().includes('distribution');
+                          const isB = regimeStr.toLowerCase().includes('bullish') || regimeStr.toLowerCase().includes('accumulation');
+                          const label = isR ? 'BEARISH' : isB ? 'BULLISH' : 'NEUTRAL';
+                          const badgeStyle = isB 
+                            ? 'text-[var(--bull)] bg-[var(--bull-bg)] border-[var(--bull-border)]' 
+                            : isR 
+                            ? 'text-[var(--bear)] bg-[var(--bear-bg)] border-[var(--bear-border)]' 
+                            : 'text-[var(--neutral)] bg-[var(--surface-2)] border-[var(--border)]';
+                          return (
+                            <div className="fintech-card p-4 space-y-2 col-span-1 sm:col-span-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase font-heading">Worker E · Regime Classifier</span>
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${badgeStyle} font-heading`}>{label}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="text-xl font-bold text-[#EC4899] font-mono-brand truncate">{regimeStr}</div>
+                                  <div className="text-[10px] text-[var(--text-muted)] font-mono-brand">Volatility Index: {signalData.breakdown?.volatilityIndex ?? 'N/A'}</div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-[12px] font-bold text-[var(--text-primary)] font-mono-brand">Pos Size: {signalData.breakdown?.suggestedPositionSize ?? 'N/A'}</div>
+                                  <div className="text-[10px] text-[var(--bear)] font-mono-brand">Stop Loss: {signalData.breakdown?.stopLossLevel ?? 'N/A'}</div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </>
                     )}
                   </div>
@@ -1013,23 +1058,25 @@ export default function QuantMeshPage() {
                     <div className="p-3.5 rounded-xl fintech-inner space-y-2.5">
                       <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] font-heading font-bold">
                         <span>DYNAMIC WORKER PAYOUT SPLIT</span>
-                        <span className="text-[var(--accent-light)]">{isSentimentMode ? '1 Worker ($0.0020)' : '4 Workers ($0.0070)'}</span>
+                        <span className="text-[var(--accent-light)]">{isSentimentMode ? '1 Worker ($0.0020)' : '5 Workers ($0.0070)'}</span>
                       </div>
                       
                       <div className="w-full h-3.5 rounded-md bg-[var(--surface-3)] overflow-hidden flex p-0.5 gap-0.5 border border-[var(--border)]">
-                        <div title={`Worker A: ${amountA}µ (${pctA}%)`} className="h-full rounded-sm bg-[var(--seg-a)] text-white font-mono-brand font-bold text-[8px] flex items-center justify-center transition-all" style={{ width: `${pctA}%` }}>
+                        <div title={`Worker A: ${amountA}µ (${pctA}%)`} className="h-full rounded-sm bg-[#7C3AED] text-white font-mono-brand font-bold text-[8px] flex items-center justify-center transition-all" style={{ width: `${pctA}%` }}>
                           {Number(pctA) >= 15 && `${amountA}µ`}
                         </div>
-                        {Number(pctB) > 0 && <div title={`Worker B: ${amountB}µ (${pctB}%)`} className="h-full rounded-sm bg-[var(--seg-b)] text-white font-mono-brand font-bold text-[8px] flex items-center justify-center transition-all" style={{ width: `${pctB}%` }}>{Number(pctB) >= 15 && `${amountB}µ`}</div>}
-                        {Number(pctC) > 0 && <div title={`Worker C: ${amountC}µ (${pctC}%)`} className="h-full rounded-sm bg-[var(--seg-c)] text-white font-mono-brand font-bold text-[8px] flex items-center justify-center transition-all" style={{ width: `${pctC}%` }}>{Number(pctC) >= 15 && `${amountC}µ`}</div>}
-                        {Number(pctD) > 0 && <div title={`Worker D: ${amountD}µ (${pctD}%)`} className="h-full rounded-sm bg-[var(--seg-d)] text-white font-mono-brand font-bold text-[8px] flex items-center justify-center transition-all" style={{ width: `${pctD}%` }}>{Number(pctD) >= 15 && `${amountD}µ`}</div>}
+                        {Number(pctB) > 0 && <div title={`Worker B: ${amountB}µ (${pctB}%)`} className="h-full rounded-sm bg-[#06B6D4] text-white font-mono-brand font-bold text-[8px] flex items-center justify-center transition-all" style={{ width: `${pctB}%` }}>{Number(pctB) >= 15 && `${amountB}µ`}</div>}
+                        {Number(pctC) > 0 && <div title={`Worker C: ${amountC}µ (${pctC}%)`} className="h-full rounded-sm bg-[#F59E0B] text-white font-mono-brand font-bold text-[8px] flex items-center justify-center transition-all" style={{ width: `${pctC}%` }}>{Number(pctC) >= 15 && `${amountC}µ`}</div>}
+                        {Number(pctD) > 0 && <div title={`Worker D: ${amountD}µ (${pctD}%)`} className="h-full rounded-sm bg-[#10B981] text-white font-mono-brand font-bold text-[8px] flex items-center justify-center transition-all" style={{ width: `${pctD}%` }}>{Number(pctD) >= 15 && `${amountD}µ`}</div>}
+                        {Number(pctE) > 0 && <div title={`Worker E: ${amountE}µ (${pctE}%)`} className="h-full rounded-sm bg-[#EC4899] text-white font-mono-brand font-bold text-[8px] flex items-center justify-center transition-all" style={{ width: `${pctE}%` }}>{Number(pctE) >= 15 && `${amountE}µ`}</div>}
                       </div>
 
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] font-mono-brand text-[var(--text-muted)]">
-                        <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--seg-a)]" />Worker A: {amountA}µ ({pctA}%)</div>
-                        <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--seg-b)]" />Worker B: {amountB}µ ({pctB}%)</div>
-                        <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--seg-c)]" />Worker C: {amountC}µ ({pctC}%)</div>
-                        <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--seg-d)]" />Worker D: {amountD}µ ({pctD}%)</div>
+                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1 text-[10px] font-mono-brand text-[var(--text-muted)]">
+                        <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#7C3AED]" />Worker A: {amountA}µ ({pctA}%)</div>
+                        <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#06B6D4]" />Worker B: {amountB}µ ({pctB}%)</div>
+                        <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />Worker C: {amountC}µ ({pctC}%)</div>
+                        <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />Worker D: {amountD}µ ({pctD}%)</div>
+                        <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#EC4899]" />Worker E: {amountE}µ ({pctE}%)</div>
                       </div>
                     </div>
 
@@ -1070,7 +1117,7 @@ export default function QuantMeshPage() {
 
                   <span className="text-xs font-bold text-[var(--bull)] bg-[var(--bull-bg)] px-3 py-1.5 rounded-xl border border-[var(--bull-border)] font-mono-brand flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-[var(--bull)] animate-pulse-dot" />
-                    {Object.values(healthData?.workers ?? {}).filter((w: any) => w.status === 'online').length || 4} / 4 ONLINE
+                    {Object.values(healthData?.workers ?? {}).filter((w: any) => w.status === 'online').length || 5} / 5 ONLINE
                   </span>
                 </div>
 

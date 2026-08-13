@@ -118,6 +118,11 @@ class FusionInput(BaseModel):
     onChainScore: Optional[float] = None
     technicalIndicator: Optional[str] = None
     taScore: Optional[float] = None
+    regime: Optional[str] = None
+    regimeScore: Optional[float] = None
+    volatilityIndex: Optional[float] = None
+    suggestedPositionSize: Optional[str] = None
+    stopLossLevel: Optional[str] = None
 
 
 @app.post("/agent/fusion")
@@ -125,6 +130,7 @@ async def get_fusion(payload: FusionInput):
     sentiment = payload.sentimentScore
     onchain = payload.onChainScore if payload.onChainScore is not None else 50
     ta = payload.taScore if payload.taScore is not None else 50
+    regime = payload.regimeScore if payload.regimeScore is not None else 50
 
     # --- Dynamic Adaptive Weights ---
     # Scores far from 50 (neutral) carry stronger signal conviction,
@@ -137,25 +143,30 @@ async def get_fusion(payload: FusionInput):
     str_s = signal_strength(sentiment)
     str_o = signal_strength(onchain)
     str_t = signal_strength(ta)
+    str_r = signal_strength(regime)
 
     # Base weights: equal starting point
-    w_s = 0.33 + 0.15 * str_s   # sentiment: 0.33 to 0.48
-    w_o = 0.34 + 0.15 * str_o   # onchain:   0.34 to 0.49
-    w_t = 0.33 + 0.15 * str_t   # ta:        0.33 to 0.48
+    w_s = 0.25 + 0.10 * str_s   # sentiment: 0.25 to 0.35
+    w_o = 0.25 + 0.10 * str_o   # onchain:   0.25 to 0.35
+    w_t = 0.25 + 0.10 * str_t   # ta:        0.25 to 0.35
+    w_r = 0.25 + 0.10 * str_r   # regime:    0.25 to 0.35
 
     # Penalise workers that returned no real data (used default 50)
     if payload.onChainScore is None:
         w_o *= 0.5
     if payload.taScore is None:
         w_t *= 0.5
+    if payload.regimeScore is None:
+        w_r *= 0.5
 
     # Normalise so weights sum to 1.0
-    total_w = w_s + w_o + w_t
+    total_w = w_s + w_o + w_t + w_r
     w_s /= total_w
     w_o /= total_w
     w_t /= total_w
+    w_r /= total_w
 
-    composite = round(sentiment * w_s + onchain * w_o + ta * w_t)
+    composite = round(sentiment * w_s + onchain * w_o + ta * w_t + regime * w_r)
 
     if composite >= 70:
         verdict = "STRONG BUY"
@@ -172,7 +183,7 @@ async def get_fusion(payload: FusionInput):
     # Based on two factors:
     #   1) Inter-agent agreement (low variance = high confidence)
     #   2) Data availability (more real inputs = higher confidence)
-    scores = [sentiment, onchain, ta]
+    scores = [sentiment, onchain, ta, regime]
     mean = sum(scores) / len(scores)
     variance = sum((s - mean) ** 2 for s in scores) / len(scores)
     std_dev = variance ** 0.5  # 0 = perfect agreement, ~33 = max disagreement
@@ -185,8 +196,9 @@ async def get_fusion(payload: FusionInput):
     real_inputs = 1 + sum([
         payload.onChainScore is not None,
         payload.taScore is not None,
+        payload.regimeScore is not None,
     ])
-    availability = real_inputs / 3.0  # 0.33 to 1.0
+    availability = real_inputs / 4.0  # 0.25 to 1.0
 
     # Final confidence: weighted combination (70% agreement, 30% availability)
     confidence = round((agreement * 0.70 + availability * 0.30) * 100)
@@ -200,6 +212,7 @@ async def get_fusion(payload: FusionInput):
             "sentiment": round(w_s, 3),
             "onchain": round(w_o, 3),
             "ta": round(w_t, 3),
+            "regime": round(w_r, 3),
         },
     }
 

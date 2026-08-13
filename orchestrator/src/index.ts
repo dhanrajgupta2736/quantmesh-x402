@@ -234,6 +234,7 @@ app.get('/api/v1/health', async (c) => {
     onchain: process.env.WORKER_B_URL || 'http://localhost:5002/agent/onchain',
     ta: process.env.WORKER_C_URL || 'http://localhost:5002/agent/ta',
     fusion: process.env.WORKER_D_URL || 'http://localhost:5001/agent/fusion',
+    regime: process.env.WORKER_E_URL || 'http://localhost:5003/agent/regime',
   };
 
   const pingWorker = async (name: string, url: string) => {
@@ -277,19 +278,20 @@ app.get('/api/v1/health', async (c) => {
     }
   };
 
-  const [sentiment, onchain, ta, fusion] = await Promise.all([
+  const [sentiment, onchain, ta, fusion, regime] = await Promise.all([
     pingWorker('sentiment', workerUrls.sentiment),
     pingWorker('onchain', workerUrls.onchain),
     pingWorker('ta', workerUrls.ta),
     pingWorker('fusion', workerUrls.fusion),
+    pingWorker('regime', workerUrls.regime),
   ]);
 
-  const allOnline = [sentiment, onchain, ta, fusion].every(w => w.status === 'online');
+  const allOnline = [sentiment, onchain, ta, fusion, regime].every(w => w.status === 'online');
 
   return c.json({
     status: allOnline ? 'healthy' : 'degraded',
     uptime: `${hours}h ${minutes}m`,
-    workers: { sentiment, onchain, ta, fusion },
+    workers: { sentiment, onchain, ta, fusion, regime },
   });
 });
 
@@ -310,8 +312,8 @@ app.post('/api/v1/orchestrate', async (c) => {
 
     console.log(`[Router] Pre-executing Worker Agents for ${tokenSymbol}...`);
 
-    // STEP A: Pre-Execution Phase (Phase 1: Fetch Workers A, B, C in Parallel)
-    const [resA, resB, resC] = await Promise.all([
+    // STEP A: Pre-Execution Phase (Phase 1: Fetch Workers A, B, C, E in Parallel)
+    const [resA, resB, resC, resE] = await Promise.all([
       fetch(`${process.env.WORKER_A_URL || 'http://localhost:5001/agent/sentiment'}?token=${tokenSymbol}`, {
         signal: AbortSignal.timeout(8000),
       })
@@ -327,11 +329,16 @@ app.post('/api/v1/orchestrate', async (c) => {
       })
         .then(r => r.ok ? r.json() : null)
         .catch(() => null),
+      fetch(`${process.env.WORKER_E_URL || 'http://localhost:5003/agent/regime'}?token=${tokenSymbol}`, {
+        signal: AbortSignal.timeout(8000),
+      })
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null),
     ]);
 
-    // Abort if Workers A, B, or C failed (Zero fee guarantee)
-    if (!resA || !resB || !resC) {
-      console.error('[Router] Worker agent pre-execution failed:', { resA, resB, resC });
+    // Abort if Workers A, B, C, or E failed (Zero fee guarantee)
+    if (!resA || !resB || !resC || !resE) {
+      console.error('[Router] Worker agent pre-execution failed:', { resA, resB, resC, resE });
       return c.json({
         status: 'error',
         message: 'Sub-agent pre-execution failed. Zero fee charged.',
@@ -357,6 +364,11 @@ app.post('/api/v1/orchestrate', async (c) => {
         onChainScore,
         technicalIndicator: resC.taSignal || resC.technicalIndicator || 'Data Unavailable',
         taScore,
+        regime: resE.regime,
+        regimeScore: resE.regimeScore,
+        volatilityIndex: resE.volatilityIndex,
+        suggestedPositionSize: resE.suggestedPositionSize,
+        stopLossLevel: resE.stopLossLevel,
       }),
     })
       .then(r => r.ok ? r.json() : null)
@@ -551,12 +563,12 @@ app.post('/api/v1/orchestrate', async (c) => {
         // fusion response. C (TA) keeps its fixed share since fusion doesn't score
         // it separately in `weights` the way it does sentiment/onchain — falls back
         // to the original static split if weights are missing for any reason.
-        const W_COMBINED_AB = 4000; // micro-USDC, was 2000+2000 fixed
+        const W_COMBINED_AB = 3200; // micro-USDC, was 2000+2000 fixed
         const wSentiment = resD.weights?.sentiment;
         const wOnchain = resD.weights?.onchain;
 
-        let amountA = 2000;
-        let amountB = 2000;
+        let amountA = 1600;
+        let amountB = 1600;
         if (typeof wSentiment === 'number' && typeof wOnchain === 'number' && (wSentiment + wOnchain) > 0) {
           const share = wSentiment / (wSentiment + wOnchain);
           amountA = Math.round(W_COMBINED_AB * share);
@@ -571,14 +583,18 @@ app.post('/api/v1/orchestrate', async (c) => {
           workerBAddress: WORKER_PAYOUT_ADDRESSES.B,
           workerCAddress: WORKER_PAYOUT_ADDRESSES.C,
           workerDAddress: WORKER_PAYOUT_ADDRESSES.D,
+          workerEAddress: WORKER_PAYOUT_ADDRESSES.E,
           amountA,
           amountB,
+          amountC: 900,
+          amountD: 900,
+          amountE: 800,
           usdcAssetId: Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID),
         });
         const { workerPayoutGroupTxId: txId, groupHash } = await signAndSubmitAtomicGroup(unsignedGroup, routerSecretKey);
         workerPayoutGroupTxId = txId;
         workerPayoutStatus = 'success';
-        workerPayoutNote = `All 4 workers paid atomically in one group (Dynamic Split: A=${amountA}, B=${amountB}, C=1000, D=1000 micro-USDC).`;
+          workerPayoutNote = `All 5 workers paid atomically in one group (Dynamic Split: A=${amountA}, B=${amountB}, C=900, D=900, E=800 micro-USDC).`;
 
         return c.json({
           status: 'success',
@@ -591,8 +607,9 @@ app.post('/api/v1/orchestrate', async (c) => {
           dynamicSplit: {
             amountA,
             amountB,
-            amountC: 1000,
-            amountD: 1000,
+            amountC: 900,
+            amountD: 900,
+            amountE: 800,
             weights: resD.weights || { sentiment: 0.35, onchain: 0.35, ta: 0.30 },
           },
           signalFusion: {
@@ -604,6 +621,11 @@ app.post('/api/v1/orchestrate', async (c) => {
             sentimentScore: resA.sentimentScore,
             onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || 'Data Unavailable',
             technicalIndicator: resC.taSignal || resC.technicalIndicator || 'Data Unavailable',
+            regime: resE.regime,
+            volatilityIndex: resE.volatilityIndex,
+            suggestedPositionSize: resE.suggestedPositionSize,
+            stopLossLevel: resE.stopLossLevel,
+            regimeScore: resE.regimeScore,
           },
           onChainReceipt: {
             explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
@@ -642,6 +664,11 @@ app.post('/api/v1/orchestrate', async (c) => {
         sentimentScore: resA.sentimentScore,
         onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || 'Data Unavailable',
         technicalIndicator: resC.taSignal || resC.technicalIndicator || 'Data Unavailable',
+        regime: resE.regime,
+        volatilityIndex: resE.volatilityIndex,
+        suggestedPositionSize: resE.suggestedPositionSize,
+        stopLossLevel: resE.stopLossLevel,
+        regimeScore: resE.regimeScore,
       },
       onChainReceipt: {
         explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
