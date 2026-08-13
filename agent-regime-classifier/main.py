@@ -60,6 +60,8 @@ def generate_fallback_regime(token: str):
     
     return {
         "regime": regime,
+        "regimeAnalysis": f"Deterministic fallback regime: {regime}",
+        "simpleAdvice": "Fallback data active. Trade with caution.",
         "volatilityIndex": round(volatility, 3),
         "suggestedPositionSize": pos,
         "stopLossLevel": f"-{stop_loss}%",
@@ -170,7 +172,9 @@ async def get_regime(token: str = Query(..., description="Token symbol (e.g. BTC
             trend_dir = "UNKNOWN"
             
         # Determine Position Size
+        # Determine Position Size and Simple Advice
         if regime == "TRENDING_BULLISH":
+            simple_advice = "Strong upward trend. Good time to buy and hold."
             if volatility_index < 0.03:
                 pos_size = "3-5% of portfolio"
             elif volatility_index < 0.06:
@@ -179,14 +183,19 @@ async def get_regime(token: str = Query(..., description="Token symbol (e.g. BTC
                 pos_size = "1-2% of portfolio"
         elif regime == "TRENDING_BEARISH":
             pos_size = "0-1% of portfolio (hedge)"
+            simple_advice = "Downward trend. Better to wait or sell."
         elif regime == "RANGING":
             pos_size = "1-2% of portfolio (scalp)"
+            simple_advice = "Price is bouncing around. Buy low, sell high, or just wait."
         elif regime == "VOLATILE_RANGE":
             pos_size = "0.5-1% of portfolio"
+            simple_advice = "Risky right now. Price is moving wildly. Best to stay out."
         elif regime == "HIGH_VOLATILITY":
             pos_size = "0.5-1% of portfolio (reduce exposure)"
+            simple_advice = "Very risky right now. High turbulence. Best to stay out."
         else:
             pos_size = "2-4% of portfolio"
+            simple_advice = "Very quiet market. Not much happening."
             
         # Stop Loss Calculation
         stop_loss_pct = round(volatility_index * 100 * 1.5, 1)
@@ -205,9 +214,18 @@ async def get_regime(token: str = Query(..., description="Token symbol (e.g. BTC
             score = 50
             
         score = round(max(0, min(100, score)))
+        # Generate detailed analysis string
+        analysis = (
+            f"The market regime for {token_upper} is {regime.replace('_', ' ')}. "
+            f"With ADX at {round(adx, 1)} and ATR at {round(atr, 4)}, the trend direction is {trend_dir}. "
+            f"The Volatility Index is {round(volatility_index, 3)}. "
+            f"Suggested position size is {pos_size}, with a stop loss level of -{stop_loss_pct}%."
+        )
         
         return {
             "regime": regime,
+            "regimeAnalysis": analysis,
+            "simpleAdvice": simple_advice,
             "volatilityIndex": round(volatility_index, 3),
             "suggestedPositionSize": pos_size,
             "stopLossLevel": f"-{stop_loss_pct}%",

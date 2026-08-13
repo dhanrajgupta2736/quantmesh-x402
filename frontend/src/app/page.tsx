@@ -544,6 +544,7 @@ export default function QuantMeshPage() {
   const [copiedTxId, setCopiedTxId] = useState(false);
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   // Prevent hydration mismatch
   useEffect(() => { 
@@ -962,12 +963,16 @@ export default function QuantMeshPage() {
                             ? 'text-[var(--bear)] bg-[var(--bear-bg)] border-[var(--bear-border)]' 
                             : 'text-[var(--neutral)] bg-[var(--surface-2)] border-[var(--border)]';
                           return (
-                            <div className="fintech-card p-4 space-y-2">
+                            <div 
+                              className="fintech-card p-4 space-y-2 cursor-pointer transition-all hover:border-[var(--accent-border-strong)]"
+                              onClick={() => setExpandedCard(expandedCard === 'B' ? null : 'B')}
+                              title="Click to expand details"
+                            >
                               <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase font-heading">Worker B · Whale Flow</span>
                                 <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${badgeStyle} font-heading`}>{label}</span>
                               </div>
-                              <div className="text-xl font-bold text-[var(--text-primary)] font-mono-brand truncate">{flowStr}</div>
+                              <div className={`text-xl font-bold text-[var(--text-primary)] font-mono-brand ${expandedCard === 'B' ? 'whitespace-normal text-sm' : 'truncate'}`}>{flowStr}</div>
                               <div className="text-[10px] text-[var(--cyan)] font-mono-brand">CoinGecko Liquidity</div>
                             </div>
                           );
@@ -984,12 +989,16 @@ export default function QuantMeshPage() {
                             ? 'text-[var(--bear)] bg-[var(--bear-bg)] border-[var(--bear-border)]' 
                             : 'text-[var(--neutral)] bg-[var(--surface-2)] border-[var(--border)]';
                           return (
-                            <div className="fintech-card p-4 space-y-2">
+                            <div 
+                              className="fintech-card p-4 space-y-2 cursor-pointer transition-all hover:border-[var(--accent-border-strong)]"
+                              onClick={() => setExpandedCard(expandedCard === 'C' ? null : 'C')}
+                              title="Click to expand details"
+                            >
                               <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase font-heading">Worker C · Technicals</span>
                                 <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${badgeStyle} font-heading`}>{label}</span>
                               </div>
-                              <div className="text-xl font-bold text-[var(--text-primary)] font-mono-brand truncate">{taStr}</div>
+                              <div className={`text-xl font-bold text-[var(--text-primary)] font-mono-brand ${expandedCard === 'C' ? 'whitespace-normal text-sm' : 'truncate'}`}>{taStr}</div>
                               <div className="text-[10px] text-[var(--neutral)] font-mono-brand">RSI, SMA & MACD Engine</div>
                             </div>
                           );
@@ -1005,17 +1014,30 @@ export default function QuantMeshPage() {
                             ? 'text-[var(--bear)] bg-[var(--bear-bg)] border-[var(--bear-border)]' 
                             : 'text-[var(--neutral)] bg-[var(--surface-2)] border-[var(--border)]';
                           return (
-                            <div className="fintech-card p-4 space-y-2 col-span-1 sm:col-span-3">
+                            <div 
+                              className="fintech-card p-4 space-y-2 col-span-1 sm:col-span-3 cursor-pointer transition-all hover:border-[var(--accent-border-strong)]"
+                              onClick={() => setExpandedCard(expandedCard === 'E' ? null : 'E')}
+                              title="Click to expand details"
+                            >
                               <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase font-heading">Worker E · Regime Classifier</span>
                                 <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${badgeStyle} font-heading`}>{label}</span>
                               </div>
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <div className="text-xl font-bold text-[#EC4899] font-mono-brand truncate">{regimeStr}</div>
-                                  <div className="text-[10px] text-[var(--text-muted)] font-mono-brand">Volatility Index: {signalData.breakdown?.volatilityIndex ?? 'N/A'}</div>
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1 pr-4">
+                                  <div className={`font-bold text-[#EC4899] font-mono-brand ${expandedCard === 'E' ? 'whitespace-normal text-sm' : 'text-xl truncate'}`}>
+                                    {expandedCard === 'E' && signalData.breakdown?.regimeAnalysis ? signalData.breakdown.regimeAnalysis : regimeStr}
+                                  </div>
+                                  {!expandedCard && (
+                                    <div className="text-[10px] text-[var(--text-muted)] font-mono-brand mt-1">Volatility Index: {signalData.breakdown?.volatilityIndex ?? 'N/A'}</div>
+                                  )}
+                                  {expandedCard === 'E' && signalData.breakdown?.simpleAdvice && (
+                                    <div className="mt-3 p-2.5 bg-[var(--surface-1)] rounded-lg text-xs text-[var(--text-primary)] font-bold border border-[var(--border)] font-heading">
+                                      💡 For Beginners: <span className="font-normal text-[var(--text-secondary)] ml-1">{signalData.breakdown.simpleAdvice}</span>
+                                    </div>
+                                  )}
                                 </div>
-                                <div className="text-right">
+                                <div className="text-right shrink-0">
                                   <div className="text-[12px] font-bold text-[var(--text-primary)] font-mono-brand">Pos Size: {signalData.breakdown?.suggestedPositionSize ?? 'N/A'}</div>
                                   <div className="text-[10px] text-[var(--bear)] font-mono-brand">Stop Loss: {signalData.breakdown?.stopLossLevel ?? 'N/A'}</div>
                                 </div>
