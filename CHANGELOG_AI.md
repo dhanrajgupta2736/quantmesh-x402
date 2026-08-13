@@ -1270,3 +1270,9 @@ This document tracks all code edits, structural changes, and schema updates made
 - Model: Antigravity
 - Files changed: agent-regime-classifier/main.py, frontend/src/app/page.tsx, orchestrator/src/endpoint.config.ts, orchestrator/src/index.ts
 - Summary: Added dynamic and beginner-friendly advice string to Regime Classifier output. Fixed atomic payout structure by ensuring Worker E address fallback exists, preventing silent drops of the worker payout transaction group. Merged va branch into main and pushed to remote.
+
+## 2026-08-13 10:56:00 UTC
+- Platform: Windows (Algorand QuantMesh)
+- Model: Claude Opus 4.6
+- Files changed: agent-sentiment-fusion/main.py, orchestrator/src/index.ts, frontend/src/app/page.tsx, orchestrator/src/endpoint.config.ts
+- Summary: Added Actionable Trade Strategy feature - Fusion agent now computes entry/SL/TP1/TP2 from live ATR and price. Fixed Data Unavailable bug in all 3 orchestrator breakdown payloads by adding missing regime fields. Added Trade Setup card to frontend UI. Merged to main.

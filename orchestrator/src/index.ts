@@ -369,6 +369,9 @@ app.post('/api/v1/orchestrate', async (c) => {
         volatilityIndex: resE.volatilityIndex,
         suggestedPositionSize: resE.suggestedPositionSize,
         stopLossLevel: resE.stopLossLevel,
+        currentPrice: resC.currentPrice ?? null,
+        atr: resE.atr ?? null,
+        rsi: resC.rsi ?? null,
       }),
     })
       .then(r => r.ok ? r.json() : null)
@@ -452,6 +455,14 @@ app.post('/api/v1/orchestrate', async (c) => {
             sentimentScore: resA.sentimentScore,
             onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || 'Data Unavailable',
             technicalIndicator: resC.taSignal || resC.technicalIndicator || 'Data Unavailable',
+            regime: resE.regime,
+            regimeAnalysis: resE.regimeAnalysis,
+            simpleAdvice: resE.simpleAdvice,
+            volatilityIndex: resE.volatilityIndex,
+            suggestedPositionSize: resE.suggestedPositionSize,
+            stopLossLevel: resE.stopLossLevel,
+            regimeScore: resE.regimeScore,
+            tradeSetup: resD.tradeSetup || null,
           },
           onChainReceipt: {
             explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
@@ -628,6 +639,7 @@ app.post('/api/v1/orchestrate', async (c) => {
             suggestedPositionSize: resE.suggestedPositionSize,
             stopLossLevel: resE.stopLossLevel,
             regimeScore: resE.regimeScore,
+            tradeSetup: resD.tradeSetup || null,
           },
           onChainReceipt: {
             explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,
@@ -667,10 +679,13 @@ app.post('/api/v1/orchestrate', async (c) => {
         onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || 'Data Unavailable',
         technicalIndicator: resC.taSignal || resC.technicalIndicator || 'Data Unavailable',
         regime: resE.regime,
+        regimeAnalysis: resE.regimeAnalysis,
+        simpleAdvice: resE.simpleAdvice,
         volatilityIndex: resE.volatilityIndex,
         suggestedPositionSize: resE.suggestedPositionSize,
         stopLossLevel: resE.stopLossLevel,
         regimeScore: resE.regimeScore,
+        tradeSetup: resD.tradeSetup || null,
       },
       onChainReceipt: {
         explorerUrl: `https://lora.algokit.io/testnet/transaction/${paymentTxId}`,

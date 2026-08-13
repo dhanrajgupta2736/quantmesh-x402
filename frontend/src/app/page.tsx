@@ -1045,6 +1045,53 @@ export default function QuantMeshPage() {
                             </div>
                           );
                         })()}
+                        {/* Trade Strategy Card */}
+                        {signalData.breakdown?.tradeSetup && (
+                          <div className="fintech-card p-4 space-y-3 col-span-1 sm:col-span-3 border border-[var(--accent-border-strong)]">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase font-heading flex items-center gap-1.5">
+                                <Zap className="w-3 h-3 text-[#F59E0B]" /> Actionable Trade Setup
+                              </span>
+                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border font-heading ${
+                                signalData.breakdown.tradeSetup.direction === 'LONG'
+                                  ? 'text-[var(--bull)] bg-[var(--bull-bg)] border-[var(--bull-border)]'
+                                  : signalData.breakdown.tradeSetup.direction === 'SHORT'
+                                  ? 'text-[var(--bear)] bg-[var(--bear-bg)] border-[var(--bear-border)]'
+                                  : 'text-[var(--neutral)] bg-[var(--surface-2)] border-[var(--border)]'
+                              }`}>
+                                {signalData.breakdown.tradeSetup.direction}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                              <div className="bg-[var(--surface-1)] rounded-lg p-2.5 border border-[var(--border)]">
+                                <div className="text-[9px] text-[var(--text-muted)] font-heading uppercase">Entry Price</div>
+                                <div className="text-sm font-bold text-[var(--text-primary)] font-mono-brand">${signalData.breakdown.tradeSetup.entryPrice}</div>
+                              </div>
+                              <div className="bg-[var(--surface-1)] rounded-lg p-2.5 border border-[var(--bear-border)]">
+                                <div className="text-[9px] text-[var(--bear)] font-heading uppercase">Stop Loss</div>
+                                <div className="text-sm font-bold text-[var(--bear)] font-mono-brand">${signalData.breakdown.tradeSetup.stopLoss}</div>
+                              </div>
+                              <div className="bg-[var(--surface-1)] rounded-lg p-2.5 border border-[var(--bull-border)]">
+                                <div className="text-[9px] text-[var(--bull)] font-heading uppercase">Take Profit 1</div>
+                                <div className="text-sm font-bold text-[var(--bull)] font-mono-brand">${signalData.breakdown.tradeSetup.takeProfit1}</div>
+                              </div>
+                              <div className="bg-[var(--surface-1)] rounded-lg p-2.5 border border-[var(--bull-border)]">
+                                <div className="text-[9px] text-[var(--bull)] font-heading uppercase">Take Profit 2</div>
+                                <div className="text-sm font-bold text-[var(--bull)] font-mono-brand">${signalData.breakdown.tradeSetup.takeProfit2}</div>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between text-[10px] font-mono-brand">
+                              <span className="text-[var(--text-muted)]">Risk/Reward: <span className="text-[var(--text-primary)] font-bold">{signalData.breakdown.tradeSetup.riskReward}</span></span>
+                              <span className="text-[var(--text-muted)]">Timeframe: <span className="text-[var(--text-primary)] font-bold">{signalData.breakdown.tradeSetup.timeframe}</span></span>
+                              <span className="text-[var(--text-muted)]">Confidence: <span className="text-[var(--text-primary)] font-bold">{signalData.breakdown.tradeSetup.confidence}%</span></span>
+                            </div>
+                            {signalData.breakdown.tradeSetup.rationale && (
+                              <div className="text-[11px] text-[var(--text-secondary)] font-heading leading-relaxed border-t border-[var(--border)] pt-2 mt-1">
+                                📋 {signalData.breakdown.tradeSetup.rationale}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </>
                     )}
                   </div>

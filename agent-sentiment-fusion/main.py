@@ -123,6 +123,9 @@ class FusionInput(BaseModel):
     volatilityIndex: Optional[float] = None
     suggestedPositionSize: Optional[str] = None
     stopLossLevel: Optional[str] = None
+    currentPrice: Optional[float] = None
+    atr: Optional[float] = None
+    rsi: Optional[float] = None
 
 
 @app.post("/agent/fusion")
@@ -204,6 +207,89 @@ async def get_fusion(payload: FusionInput):
     confidence = round((agreement * 0.70 + availability * 0.30) * 100)
     confidence = max(10, min(99, confidence))  # clamp to 10-99%
 
+    # --- Actionable Trade Setup ---
+    trade_setup = None
+    if payload.currentPrice is not None and payload.currentPrice > 0:
+        price = payload.currentPrice
+        atr_val = payload.atr if payload.atr and payload.atr > 0 else price * 0.02
+        rsi_val = payload.rsi
+        token_upper = payload.token.upper()
+
+        # Determine direction from verdict
+        if verdict in ("STRONG BUY", "BUY"):
+            direction = "LONG"
+            entry = round(price, 6)
+            sl = round(price - atr_val * 1.5, 6)
+            tp1 = round(price + atr_val * 2.0, 6)
+            tp2 = round(price + atr_val * 3.5, 6)
+        elif verdict in ("STRONG SELL", "SELL"):
+            direction = "SHORT"
+            entry = round(price, 6)
+            sl = round(price + atr_val * 1.5, 6)
+            tp1 = round(price - atr_val * 2.0, 6)
+            tp2 = round(price - atr_val * 3.5, 6)
+        else:
+            direction = "WAIT"
+            entry = round(price, 6)
+            sl = round(price - atr_val * 1.0, 6)
+            tp1 = round(price + atr_val * 1.5, 6)
+            tp2 = round(price + atr_val * 2.5, 6)
+
+        risk = abs(entry - sl)
+        reward = abs(tp1 - entry)
+        rr = round(reward / risk, 2) if risk > 0 else 0
+
+        # Timeframe based on volatility
+        vol_idx = payload.volatilityIndex or 0
+        if vol_idx > 0.05:
+            timeframe = "1-4 Hours (Scalp)"
+        elif vol_idx > 0.02:
+            timeframe = "4-12 Hours (Swing)"
+        else:
+            timeframe = "1-3 Days (Position)"
+
+        # Build human-readable rationale
+        parts = []
+        if direction == "LONG":
+            parts.append(f"AI consensus is {verdict} for {token_upper}.")
+            if rsi_val and rsi_val < 35:
+                parts.append(f"RSI at {rsi_val} signals oversold conditions — potential bounce.")
+            elif rsi_val and rsi_val > 50:
+                parts.append(f"RSI at {rsi_val} confirms bullish momentum.")
+            parts.append(f"Entry at current price ${entry}, stop loss 1.5x ATR below at ${sl}.")
+            parts.append(f"Target 1 at ${tp1} (2x ATR), Target 2 at ${tp2} (3.5x ATR).")
+        elif direction == "SHORT":
+            parts.append(f"AI consensus is {verdict} for {token_upper}.")
+            if rsi_val and rsi_val > 65:
+                parts.append(f"RSI at {rsi_val} signals overbought conditions — potential pullback.")
+            elif rsi_val and rsi_val < 50:
+                parts.append(f"RSI at {rsi_val} confirms bearish pressure.")
+            parts.append(f"Entry at current price ${entry}, stop loss 1.5x ATR above at ${sl}.")
+            parts.append(f"Target 1 at ${tp1} (2x ATR), Target 2 at ${tp2} (3.5x ATR).")
+        else:
+            parts.append(f"AI consensus is NEUTRAL for {token_upper}. No strong conviction either way.")
+            parts.append("Consider waiting for a clearer signal before taking a position.")
+            if rsi_val:
+                parts.append(f"RSI at {rsi_val}.")
+
+        if payload.regime:
+            regime_str = payload.regime.replace('_', ' ').title()
+            parts.append(f"Market regime: {regime_str}.")
+
+        rationale = " ".join(parts)
+
+        trade_setup = {
+            "direction": direction,
+            "entryPrice": str(entry),
+            "stopLoss": str(sl),
+            "takeProfit1": str(tp1),
+            "takeProfit2": str(tp2),
+            "riskReward": f"1:{rr}",
+            "timeframe": timeframe,
+            "confidence": confidence,
+            "rationale": rationale,
+        }
+
     return {
         "compositeScore": composite,
         "verdict": verdict,
@@ -214,6 +300,7 @@ async def get_fusion(payload: FusionInput):
             "ta": round(w_t, 3),
             "regime": round(w_r, 3),
         },
+        "tradeSetup": trade_setup,
     }
 
 
