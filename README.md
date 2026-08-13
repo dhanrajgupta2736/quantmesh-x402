@@ -24,9 +24,9 @@
 
 > **Build an x402-powered pay-per-use DeFi intelligence product** that uses the HTTP 402 Payment Required protocol on the Algorand Virtual Machine (AVM) to gate access to AI-generated market signals behind atomic micropayments.
 
-QuantMesh x402 orchestrates **4 specialized AI worker agents** (Sentiment, On-Chain Analytics, Technical Analysis, Fusion) behind a single HTTP gateway. It exposes two distinct pay-per-use x402 endpoints:
+QuantMesh x402 orchestrates **5 specialized AI worker agents** (Sentiment, On-Chain Analytics, Technical Analysis, Fusion, and Regime Classifier) behind a single HTTP gateway. It exposes two distinct pay-per-use x402 endpoints:
 
-1. **4-Agent Consensus ($0.007 USDC / 7,000 µUSDC)** — Full multi-agent signal fusion with dynamic on-chain payouts across 4 worker wallets.
+1. **5-Agent Consensus ($0.007 USDC / 7,000 µUSDC)** — Full multi-agent signal fusion with dynamic on-chain payouts across 5 worker wallets, including an Actionable Trade Strategy planner.
 2. **FinBERT Sentiment ($0.002 USDC / 2,000 µUSDC)** — Single-agent HuggingFace FinBERT Financial NLP sentiment analysis with a 15-second scoped pre-execution cache.
 
 Every request adheres to a **Zero-Fee Guarantee** — if any worker agent fails pre-execution, HTTP 502 returns and $0 is charged.
@@ -54,7 +54,8 @@ The frontend is built with Next.js 16 (Static Export) featuring the **Midnight A
 - **Hero 3-Column Layout**:
   - **Left**: Interactive Score Gauge with vibrant color thresholds (Emerald for Bullish, Amber Gold `#F59E0B` for Neutral, Rose for Bearish) and SSR-deterministic tick rendering.
   - **Center**: Asset selector pills (9 markets), Multi-Agent Agreement Conviction Bar, 4-Stage Protocol Stepper (`HTTP 402 Probe` → `Wallet Signature` → `Block Settlement` → `Receipt Verified`), and Primary Execute CTA.
-  - **Right**: **Sub-Agent Swarm Radar** — All 4 worker agents (Workers A, B, C, D) run simultaneous SVG processing ring animations during strategy execution.
+  - **Right**: **Sub-Agent Swarm Radar** — All 5 worker agents (Workers A, B, C, D, E) run simultaneous SVG processing ring animations during strategy execution.
+- **Actionable Trade Setup UI**: Dynamically generated trading strategies based on the AI consensus, live price, and ATR, providing precise Entry, Stop Loss, and Take Profit targets with risk/reward ratios.
 - **Dual Theme System**: Seamless toggle between **Cyber Dark** mode (`#0A0E1A` background with electric violet & cyan glow accents) and **Sleek Light** mode (`#F9FAFB` background).
 - **Verifiable Receipt & Dynamic Split Bar**: Displays client payment TxID, GoPlausible verification status, worker payout group TxID, cryptographic attestation hash, and direct links to the Lora Block Explorer.
 
@@ -64,15 +65,16 @@ The frontend is built with Next.js 16 (Static Export) featuring the **Midnight A
 
 QuantMesh implements **Performance-Weighted AI Tokenomics**. Sub-agents that provide higher signal quality and confidence are automatically rewarded on-chain with a larger share of the micropayment pool.
 
-### 1. 4-Agent Consensus Payout Split ($0.0070 USDC / 7,000 µUSDC)
+### 1. 5-Agent Consensus Payout Split ($0.0070 USDC / 7,000 µUSDC)
 
 - **Total Client Payment**: `7,000 µUSDC` ($0.0070)
 - **Dynamic Worker Payout Calculation**:
-  $$\text{Payout}_A = \left( \frac{\text{Weight}_{\text{Sentiment}}}{\text{Weight}_{\text{Sentiment}} + \text{Weight}_{\text{Whales}}} \right) \times 4,000\text{ }\mu\text{USDC}$$
-  $$\text{Payout}_B = 4,000\text{ }\mu\text{USDC} - \text{Payout}_A$$
+  $$\text{Payout}_A = \left( \frac{\text{Weight}_{\text{Sentiment}}}{\text{Weight}_{\text{Sentiment}} + \text{Weight}_{\text{Whales}}} \right) \times 3,200\text{ }\mu\text{USDC}$$
+  $$\text{Payout}_B = 3,200\text{ }\mu\text{USDC} - \text{Payout}_A$$
 - **Worker C (Technicals)**: `1,000 µUSDC` ($0.0010)
-- **Worker D (Consensus Engine)**: `1,000 µUSDC` ($0.0010)
-- 👑 **QuantMesh Gateway Router Profit**: **`1,000 µUSDC` ($0.0010 = 14.3% Margin)** retained in router wallet (`4DTSNS...`).
+- **Worker D (Consensus Engine)**: `500 µUSDC` ($0.0005)
+- **Worker E (Regime Classifier)**: `500 µUSDC` ($0.0005)
+- 👑 **QuantMesh Gateway Router Profit**: **`1,800 µUSDC` ($0.0018 = 25.7% Margin)** retained in router wallet (`4DTSNS...`).
 
 ### 2. FinBERT Sentiment Single-Agent Split ($0.0020 USDC / 2,000 µUSDC)
 
@@ -96,10 +98,12 @@ flowchart TD
         D -->|Parallel| E["Worker A: FinBERT Sentiment<br/>(HuggingFace NLP)"]
         D -->|Parallel| F["Worker B: On-Chain Whale Flow<br/>(Binance 24h Ticker)"]
         D -->|Parallel| G["Worker C: Technical Indicators<br/>(Binance OHLC Klines)"]
+        D -->|Parallel| E2["Worker E: Regime Classifier<br/>(Binance ATR/ADX)"]
         E --> H{"All Workers OK?"}
         F --> H
         G --> H
-        H -->|Yes| I["Phase 2: Fusion Agent D"]
+        E2 --> H
+        H -->|Yes| I["Phase 2: Fusion Agent D<br/>(Computes Trade Strategy)"]
         H -->|No| J["HTTP 502 — Zero Fee Charged"]
         I --> K["Return HTTP 402 Challenge<br/>(x-payment-price: 0.007 / 0.002)"]
     end
@@ -115,8 +119,8 @@ flowchart TD
     subgraph SETTLEMENT["⛓️ GoPlausible Facilitator & Atomic Payout"]
         P --> Q["Indexer Payment Lookup"]
         Q --> R["GoPlausible Facilitator Verification"]
-        R --> S["Dynamic Worker Payout Group<br/>(Workers A, B, C, D)"]
-        S --> T["✅ Return Fused Signal + On-Chain Receipt"]
+        R --> S["Dynamic Worker Payout Group<br/>(Workers A, B, C, D, E)"]
+        S --> T["✅ Return Fused Signal + Trade Setup + On-Chain Receipt"]
     end
 
     style CLIENT fill:#0f172a,stroke:#06b6d4,color:#f1f5f9
@@ -129,7 +133,7 @@ flowchart TD
 
 ## 📡 API Documentation & Endpoints
 
-### 1. `POST /api/v1/orchestrate` — 4-Agent Consensus ($0.007 USDC)
+### 1. `POST /api/v1/orchestrate` — 5-Agent Consensus ($0.007 USDC)
 
 **Request:**
 ```json
@@ -146,17 +150,29 @@ flowchart TD
   "workerPayoutGroupTxId": "7TRNNPJSFBC54W...",
   "totalCostUsdc": "0.0070",
   "dynamicSplit": {
-    "amountA": 2062,
-    "amountB": 1938,
+    "amountA": 1600,
+    "amountB": 1600,
     "amountC": 1000,
-    "amountD": 1000,
-    "weights": { "sentiment": 0.5155, "onchain": 0.4845 }
+    "amountD": 500,
+    "amountE": 500,
+    "weights": {
+      "sentiment": 0.25,
+      "onchain": 0.25,
+      "ta": 0.25,
+      "regime": 0.25
+    }
   },
   "signalFusion": {
     "compositeScore": 51,
     "verdict": "NEUTRAL",
     "confidencePct": 75
   },
+  "tradeSetup": {
+    "entry": 0.1850,
+    "stopLoss": 0.1790,
+    "takeProfit": 0.1980
+  },
+  "regime": "Low Volatility Consolidation",
   "breakdown": {
     "sentimentScore": 66,
     "onChainWhaleFlow": "-0.1% Net Outflow",

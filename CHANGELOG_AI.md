@@ -1282,3 +1282,9 @@ This document tracks all code edits, structural changes, and schema updates made
 - Model: Gemini 3.1 Pro
 - Files changed: deploy-ec2.sh
 - Summary: Fixed production deployment. Added agent-regime-classifier to the PM2 deployment script and started the process on EC2.
+
+## 2026-08-13 12:12:00 UTC
+- Platform: Windows (Algorand QuantMesh)
+- Model: Gemini 3.1 Pro
+- Files changed: README.md
+- Summary: Updated documentation to reflect 5-agent swarm, Worker E Regime Classifier, Trade Strategy planner, and new UI changes.
