@@ -68,21 +68,22 @@ export async function fetchQuantMeshSignal(
     body: JSON.stringify({ tokenSymbol }),
   });
 
+  // Read the body ONCE and reuse the parsed result throughout
+  const probeBody = await probeRes.json().catch(() => ({} as any));
+
   if (probeRes.ok) {
-    const data = await probeRes.json();
-    if (data.status === 'success') return data;
+    if (probeBody.status === 'success') return probeBody;
   }
 
   if (probeRes.status !== 402) {
-    const errBody = await probeRes.json().catch(() => ({}));
-    throw new Error(errBody.message || `Unexpected server response: ${probeRes.status}`);
+    throw new Error(probeBody.message || `Unexpected server response: ${probeRes.status}`);
   }
 
   // ═══════════════════════════════════════════════════════════════════
   // x402 STEP 2: READ 402 CHALLENGE — Extract live payment parameters from server response
   // ═══════════════════════════════════════════════════════════════════
   console.log(`[x402] Step 2: Reading 402 challenge parameters for ${endpointType}...`);
-  const challengeBody = await probeRes.json().catch(() => ({}));
+  const challengeBody = probeBody;
 
   // Read payTo, price, and asset parameters directly from HTTP 402 headers & body (Host compliant pattern)
   const payTo = probeRes.headers.get('x-payment-pay-to') || challengeBody.payTo;

@@ -11,76 +11,156 @@ import {
   ArrowDownRight, Radio, BarChart3, Sliders, Cpu, RotateCcw
 } from 'lucide-react';
 
-// ─── Vector Crypto Logos ────────────────────────────────────────────
+// ─── Polished Vector Crypto Logos ────────────────────────────────────
 function CryptoLogo({ symbol, size = 18 }: { symbol: string; size?: number }) {
+  const id = `crypto-${symbol}-${size}`;
   switch (symbol) {
     case 'ALGO':
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" fill="#1E293B" stroke="#334155" strokeWidth="1" />
-          <path d="M7 17L12 7L14.5 12H9.5" stroke="#F8FAFC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M14.5 12L17 17" stroke="#F8FAFC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id={`${id}-bg`} x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#1E293B" /><stop offset="1" stopColor="#0F172A" />
+            </linearGradient>
+            <radialGradient id={`${id}-glow`} cx="16" cy="14" r="12" gradientUnits="userSpaceOnUse">
+              <stop stopColor="rgba(255,255,255,0.08)" /><stop offset="1" stopColor="transparent" />
+            </radialGradient>
+          </defs>
+          <circle cx="16" cy="16" r="15" fill={`url(#${id}-bg)`} stroke="#334155" strokeWidth="0.8" />
+          <circle cx="16" cy="16" r="15" fill={`url(#${id}-glow)`} />
+          <path d="M20.5 22H18.1L16.8 17.5H12.6L11.2 22H9L14.8 7H17.2L20.5 22ZM16.2 15.5L14.9 11L13.2 15.5H16.2Z" fill="#F8FAFC" />
+          <path d="M22 22L19 13" stroke="#F8FAFC" strokeWidth="1.8" strokeLinecap="round" />
         </svg>
       );
     case 'BTC':
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" fill="#F59E0B" fillOpacity="0.15" stroke="#F59E0B" strokeWidth="1" />
-          <text x="12" y="16" fontSize="12" fontWeight="bold" fill="#F59E0B" textAnchor="middle" fontFamily="sans-serif">₿</text>
+        <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id={`${id}-bg`} x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#F59E0B" /><stop offset="1" stopColor="#D97706" />
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="15" fill={`url(#${id}-bg)`} />
+          <path d="M19.8 13.2C20.4 11.6 19.2 10.8 17.6 10.3L18.2 8L16.7 7.6L16.1 9.9C15.7 9.8 15.3 9.7 14.9 9.6L15.5 7.3L14 6.9L13.4 9.2C13.1 9.1 12.7 9 12.4 9L10.5 8.5L10.1 10.1C10.1 10.1 11.2 10.4 11.2 10.4C11.8 10.5 11.9 10.9 11.9 11.2L11.2 13.9C11.2 13.9 11.3 13.9 11.3 14L11.2 14L10.2 17.6C10.2 17.8 10 18.1 9.5 18L9.5 18C9.5 18 8.4 17.7 8.4 17.7L7.8 19.5L9.6 19.9C10 20 10.3 20.1 10.7 20.2L10.1 22.5L11.6 22.9L12.2 20.6C12.6 20.7 13 20.8 13.4 20.9L12.8 23.2L14.3 23.6L14.9 21.3C17.4 21.8 19.3 21.6 20 19.3C20.6 17.5 19.9 16.5 18.6 15.8C19.5 15.6 20.2 15 20.5 13.9L19.8 13.2ZM17.2 18.4C16.8 20 14 19.1 13.1 18.9L13.9 15.8C14.8 16 17.7 16.7 17.2 18.4ZM17.7 13.2C17.3 14.7 15 13.9 14.2 13.7L14.9 10.9C15.7 11.1 18.1 11.7 17.7 13.2Z" fill="white" />
         </svg>
       );
     case 'ETH':
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" fill="#6366F1" fillOpacity="0.15" stroke="#6366F1" strokeWidth="1" />
-          <path d="M12 4L7 12L12 15L17 12L12 4Z" stroke="#818CF8" strokeWidth="1.5" strokeLinejoin="round" />
-          <path d="M12 15L7 12L12 20L17 12L12 15Z" stroke="#6366F1" strokeWidth="1.5" strokeLinejoin="round" />
+        <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id={`${id}-bg`} x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#1A1F3D" /><stop offset="1" stopColor="#0F1229" />
+            </linearGradient>
+            <linearGradient id={`${id}-top`} x1="16" y1="4" x2="16" y2="18" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#A78BFA" /><stop offset="1" stopColor="#6366F1" />
+            </linearGradient>
+            <linearGradient id={`${id}-bot`} x1="16" y1="18" x2="16" y2="28" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#6366F1" /><stop offset="1" stopColor="#4338CA" />
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="15" fill={`url(#${id}-bg)`} stroke="#334155" strokeWidth="0.6" />
+          <path d="M16 4L9 16.5L16 20L23 16.5L16 4Z" fill={`url(#${id}-top)`} fillOpacity="0.9" />
+          <path d="M16 13.5L9 16.5L16 20L23 16.5L16 13.5Z" fill="#4338CA" fillOpacity="0.5" />
+          <path d="M16 21.5L9 17.5L16 28L23 17.5L16 21.5Z" fill={`url(#${id}-bot)`} fillOpacity="0.9" />
         </svg>
       );
     case 'SOL':
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" fill="#14F195" fillOpacity="0.1" stroke="#14F195" strokeWidth="1" />
-          <path d="M7 8.5H16L17 7.5H8L7 8.5Z" fill="#14F195" />
-          <path d="M8 12.5H17L16 11.5H7L8 12.5Z" fill="#9945FF" />
-          <path d="M7 16.5H16L17 15.5H8L7 16.5Z" fill="#14F195" />
+        <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id={`${id}-bg`} x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#0A0A1A" /><stop offset="1" stopColor="#0D0D24" />
+            </linearGradient>
+            <linearGradient id={`${id}-bar1`} x1="8" y1="9" x2="24" y2="9" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#00FFA3" /><stop offset="1" stopColor="#03E1FF" />
+            </linearGradient>
+            <linearGradient id={`${id}-bar2`} x1="8" y1="16" x2="24" y2="16" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#9945FF" /><stop offset="1" stopColor="#00FFA3" />
+            </linearGradient>
+            <linearGradient id={`${id}-bar3`} x1="8" y1="23" x2="24" y2="23" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#00FFA3" /><stop offset="1" stopColor="#03E1FF" />
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="15" fill={`url(#${id}-bg)`} stroke="#1E293B" strokeWidth="0.6" />
+          <path d="M8.5 11.5L10 9.5H23.5L22 11.5H8.5Z" fill={`url(#${id}-bar1)`} />
+          <path d="M23.5 18L22 16H8.5L10 18H23.5Z" fill={`url(#${id}-bar2)`} />
+          <path d="M8.5 24.5L10 22.5H23.5L22 24.5H8.5Z" fill={`url(#${id}-bar3)`} />
         </svg>
       );
     case 'AVAX':
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" fill="#E84142" fillOpacity="0.15" stroke="#E84142" strokeWidth="1" />
-          <path d="M12 6L6 17H9.5L12 12.5L14.5 17H18L12 6Z" fill="#E84142" />
+        <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id={`${id}-bg`} x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#E84142" /><stop offset="1" stopColor="#C53030" />
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="15" fill={`url(#${id}-bg)`} />
+          <path d="M11.3 21.5C10.8 22.4 11.2 22.8 12.2 22.8H14.8C15.3 22.8 15.6 22.6 15.9 22.1L20.5 13.5C20.8 12.9 20.6 12.5 20 12.5H18C17.6 12.5 17.3 12.7 17.1 13.1L11.3 21.5Z" fill="white" />
+          <path d="M18.8 22.8H21.5C22.1 22.8 22.4 22.4 22.1 21.8L19.8 17.5C19.5 16.9 19 16.9 18.7 17.5L16.4 21.8C16.1 22.4 16.4 22.8 17 22.8H18.8Z" fill="white" />
         </svg>
       );
     case 'PEPE':
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" fill="#10B981" fillOpacity="0.15" stroke="#10B981" strokeWidth="1" />
-          <circle cx="9" cy="10" r="2" fill="#10B981" />
-          <circle cx="15" cy="10" r="2" fill="#10B981" />
-          <path d="M8 15Q12 17 16 15" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" />
+        <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id={`${id}-bg`} x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#4ADE80" /><stop offset="1" stopColor="#16A34A" />
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="15" fill={`url(#${id}-bg)`} />
+          <ellipse cx="11.5" cy="13.5" rx="3" ry="3.5" fill="white" />
+          <ellipse cx="20.5" cy="13.5" rx="3" ry="3.5" fill="white" />
+          <circle cx="12" cy="14" r="1.8" fill="#1A1A2E" />
+          <circle cx="21" cy="14" r="1.8" fill="#1A1A2E" />
+          <circle cx="12.5" cy="13.3" r="0.6" fill="white" />
+          <circle cx="21.5" cy="13.3" r="0.6" fill="white" />
+          <path d="M10 20C12 22.5 20 22.5 22 20" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M13 21C14.5 22 17.5 22 19 21" stroke="white" strokeWidth="0.8" strokeLinecap="round" />
         </svg>
       );
     case 'LINK':
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" fill="#375BD2" fillOpacity="0.15" stroke="#375BD2" strokeWidth="1" />
-          <path d="M12 6L16.5 8.5V13.5L12 16L7.5 13.5V8.5L12 6Z" stroke="#375BD2" strokeWidth="1.5" />
+        <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id={`${id}-bg`} x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#375BD2" /><stop offset="1" stopColor="#2B4AA8" />
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="15" fill={`url(#${id}-bg)`} />
+          <path d="M16 6L22 9.5V16.5L16 20L10 16.5V9.5L16 6Z" fill="none" stroke="white" strokeWidth="1.8" />
+          <path d="M16 10L19.5 12V16L16 18L12.5 16V12L16 10Z" fill="white" fillOpacity="0.2" stroke="white" strokeWidth="0.8" />
         </svg>
       );
     case 'DOGE':
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" fill="#C2A633" fillOpacity="0.15" stroke="#C2A633" strokeWidth="1" />
-          <text x="12" y="16" fontSize="11" fontWeight="bold" fill="#C2A633" textAnchor="middle" fontFamily="sans-serif">Ð</text>
+        <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id={`${id}-bg`} x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#C2A633" /><stop offset="1" stopColor="#BA8B00" />
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="15" fill={`url(#${id}-bg)`} />
+          <path d="M12 9H16C19.9 9 23 12.1 23 16C23 19.9 19.9 23 16 23H12V9Z" fill="none" stroke="white" strokeWidth="2" />
+          <line x1="10" y1="16" x2="18" y2="16" stroke="white" strokeWidth="1.8" />
+          <line x1="14" y1="9" x2="14" y2="23" stroke="white" strokeWidth="1.5" />
         </svg>
       );
     case 'SUI':
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" fill="#4DA2FF" fillOpacity="0.15" stroke="#4DA2FF" strokeWidth="1" />
-          <path d="M12 6C12 6 7 11 7 14.5C7 17.26 9.24 19.5 12 19.5C14.76 19.5 17 17.26 17 14.5C17 11 12 6 12 6Z" fill="#4DA2FF" fillOpacity="0.4" stroke="#4DA2FF" strokeWidth="1.2" />
+        <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id={`${id}-bg`} x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#6FBCF0" /><stop offset="1" stopColor="#4DA2FF" />
+            </linearGradient>
+            <radialGradient id={`${id}-inner`} cx="16" cy="16" r="10" gradientUnits="userSpaceOnUse">
+              <stop stopColor="rgba(255,255,255,0.15)" /><stop offset="1" stopColor="transparent" />
+            </radialGradient>
+          </defs>
+          <circle cx="16" cy="16" r="15" fill={`url(#${id}-bg)`} />
+          <circle cx="16" cy="16" r="15" fill={`url(#${id}-inner)`} />
+          <path d="M16 7C16 7 9 13.5 9 18C9 21.87 12.13 25 16 25C19.87 25 23 21.87 23 18C23 13.5 16 7 16 7Z" fill="white" fillOpacity="0.25" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M13 17C13 15 14.5 13 16 11.5C17.5 13 19 15 19 17C19 18.7 17.7 20 16 20C14.3 20 13 18.7 13 17Z" fill="white" fillOpacity="0.5" />
         </svg>
       );
     default:
@@ -451,8 +531,35 @@ export default function QuantMeshPage() {
         <div className="max-w-[1280px] mx-auto px-4 py-3 flex items-center justify-between gap-4">
           
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[var(--surface-2)] border border-[var(--border)] rounded-xl">
-              <Zap className="w-5 h-5 text-[var(--accent-light)]" />
+            <div className="p-1.5 bg-[var(--surface-2)] border border-[var(--border)] rounded-xl">
+              <svg width="28" height="28" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="qm-grad-1" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#7C3AED" /><stop offset="1" stopColor="#06B6D4" />
+                  </linearGradient>
+                  <linearGradient id="qm-grad-2" x1="20" y1="5" x2="20" y2="35" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#10B981" /><stop offset="1" stopColor="#06B6D4" />
+                  </linearGradient>
+                </defs>
+                {/* Outer mesh hexagon */}
+                <polygon points="20,3 35,11 35,29 20,37 5,29 5,11" fill="none" stroke="url(#qm-grad-1)" strokeWidth="1.5" strokeLinejoin="round" />
+                {/* Inner mesh hexagon */}
+                <polygon points="20,10 29,15 29,25 20,30 11,25 11,15" fill="url(#qm-grad-1)" fillOpacity="0.12" stroke="url(#qm-grad-2)" strokeWidth="1" strokeLinejoin="round" />
+                {/* Center node */}
+                <circle cx="20" cy="20" r="3.5" fill="url(#qm-grad-1)" />
+                <circle cx="20" cy="20" r="2" fill="var(--bg-main)" />
+                {/* Mesh connection lines from center to vertices */}
+                <line x1="20" y1="20" x2="20" y2="10" stroke="var(--accent-light)" strokeWidth="0.8" strokeOpacity="0.5" />
+                <line x1="20" y1="20" x2="29" y2="15" stroke="var(--cyan)" strokeWidth="0.8" strokeOpacity="0.5" />
+                <line x1="20" y1="20" x2="29" y2="25" stroke="var(--accent-light)" strokeWidth="0.8" strokeOpacity="0.5" />
+                <line x1="20" y1="20" x2="20" y2="30" stroke="var(--cyan)" strokeWidth="0.8" strokeOpacity="0.5" />
+                <line x1="20" y1="20" x2="11" y2="25" stroke="var(--accent-light)" strokeWidth="0.8" strokeOpacity="0.5" />
+                <line x1="20" y1="20" x2="11" y2="15" stroke="var(--cyan)" strokeWidth="0.8" strokeOpacity="0.5" />
+                {/* Outer vertex dots */}
+                <circle cx="20" cy="10" r="1.5" fill="#10B981" /><circle cx="29" cy="15" r="1.5" fill="#06B6D4" />
+                <circle cx="29" cy="25" r="1.5" fill="#7C3AED" /><circle cx="20" cy="30" r="1.5" fill="#10B981" />
+                <circle cx="11" cy="25" r="1.5" fill="#06B6D4" /><circle cx="11" cy="15" r="1.5" fill="#7C3AED" />
+              </svg>
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -589,8 +696,8 @@ export default function QuantMeshPage() {
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-[var(--text-muted)]">Lute Wallet:</span>
-                  <span className={`font-bold font-mono-brand ${activeAddress ? 'text-[var(--bull)]' : 'text-[var(--bear)]'}`}>
-                    {activeAddress ? 'Connected ✓' : 'Not Connected'}
+                  <span className={`font-bold font-mono-brand ${mounted ? (activeAddress ? 'text-[var(--bull)]' : 'text-[var(--bear)]') : 'text-[var(--text-muted)]'}`}>
+                    {mounted ? (activeAddress ? 'Connected ✓' : 'Not Connected') : '—'}
                   </span>
                 </div>
               </div>
