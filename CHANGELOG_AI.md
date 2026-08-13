@@ -8,6 +8,13 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-13T13:10:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Added try/catch error handling around x402Client fetch requests to catch network connection failures gracefully.
+1. **Network Fetch Handling** — `x402Client.ts`: Wrapped both Probe (Step 1) and Payment Retry (Step 4) `fetch()` calls in `try...catch` blocks to present clear user-facing error messages when the backend Orchestrator server is unreachable or offline instead of unhandled `TypeError: Failed to fetch`.
+**Files Changed:**
+- `frontend/src/lib/x402Client.ts` — Added try/catch around `fetch` calls.
+- `CHANGELOG_AI.md` — Appended audit log entry.
+
 ### 2026-08-13T12:46:00+05:30 — Antigravity (Claude Opus 4.6 Thinking)
 **Summary:** Fixed 2 critical runtime errors, polished all 9 crypto coin SVG logos, and redesigned the project header logo.
 1. **Hydration Error Fix** — `page.tsx` line 592: `activeAddress` ternary produced different classNames on server vs client. Wrapped in `mounted` guard so server and client render identically.

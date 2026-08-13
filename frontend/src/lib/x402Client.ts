@@ -62,11 +62,16 @@ export async function fetchQuantMeshSignal(
   // x402 STEP 1: PROBE — Send request without payment to get 402 challenge
   // ═══════════════════════════════════════════════════════════════════
   console.log(`[x402] Step 1: Probing ${endpointType} endpoint for 402 payment challenge...`);
-  const probeRes = await fetch(targetGateway, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tokenSymbol }),
-  });
+  let probeRes: Response;
+  try {
+    probeRes = await fetch(targetGateway, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tokenSymbol }),
+    });
+  } catch (fetchErr: any) {
+    throw new Error(`Orchestrator Service Unreachable (${targetGateway}). Please ensure the orchestrator backend server is running.`);
+  }
 
   // Read the body ONCE and reuse the parsed result throughout
   const probeBody = await probeRes.json().catch(() => ({} as any));
@@ -168,17 +173,22 @@ export async function fetchQuantMeshSignal(
   // x402 STEP 4: RETRY — Send request with verified payment transaction ID
   // ═══════════════════════════════════════════════════════════════════
   console.log(`[x402] Step 4: Retrying request to ${endpointType} with verified paymentTxId: ${paymentTxId}...`);
-  const paidRes = await fetch(targetGateway, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-payment-txn-id': paymentTxId,
-    },
-    body: JSON.stringify({
-      tokenSymbol,
-      clientPaymentTxId: paymentTxId,
-    }),
-  });
+  let paidRes: Response;
+  try {
+    paidRes = await fetch(targetGateway, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-payment-txn-id': paymentTxId,
+      },
+      body: JSON.stringify({
+        tokenSymbol,
+        clientPaymentTxId: paymentTxId,
+      }),
+    });
+  } catch (paidErr: any) {
+    throw new Error(`Orchestrator Backend Disconnected during payment verification (${targetGateway}). Payment TxID: ${paymentTxId}`);
+  }
 
   const paidData = await paidRes.json().catch(() => ({}));
 
