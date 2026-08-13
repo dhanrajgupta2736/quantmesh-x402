@@ -365,6 +365,93 @@ function StatusDot({ status }: { status: 'online' | 'offline' | 'degraded' | 'un
   );
 }
 
+// ─── Agent Swarm Neural Visualizer Component ────────────────────────
+function AgentSwarmVisualizer({ loading, token, step }: { loading: boolean; token: string; step: number }) {
+  return (
+    <div className="relative w-full rounded-2xl bg-[var(--surface-1)] border border-[var(--border)] p-4 overflow-hidden shadow-lg transition-all">
+      {/* Background Radial Glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(124,58,237,0.12)_0%,transparent_70%)] pointer-events-none" />
+      {loading && <div className="absolute inset-0 animate-laser-scan bg-gradient-to-b from-transparent via-[rgba(6,182,212,0.15)] to-transparent h-1/2 pointer-events-none" />}
+
+      <div className="relative z-10 flex items-center justify-between pb-2.5 mb-2 border-b border-[var(--border)]">
+        <div className="flex items-center gap-2">
+          <Cpu className={`w-4 h-4 ${loading ? 'text-[var(--cyan)] animate-spin' : 'text-[var(--accent-light)]'}`} />
+          <span className="text-xs font-bold font-heading text-[var(--text-primary)]">
+            {loading ? `Swarm Pre-Execution Live Feed (${token})` : `Swarm Network Topology (${token})`}
+          </span>
+        </div>
+        <span className={`text-[10px] font-mono-brand font-bold px-2 py-0.5 rounded border ${
+          loading ? 'text-[var(--cyan)] bg-[var(--cyan-subtle)] border-[var(--cyan-border)] animate-pulse' 
+          : 'text-[var(--bull)] bg-[var(--bull-bg)] border-[var(--bull-border)]'
+        }`}>
+          {loading ? `PHASE ${step}/4 PROCESSING` : 'STANDBY IDLE'}
+        </span>
+      </div>
+
+      {/* SVG Neural Mesh Network Diagram */}
+      <div className="relative h-36 w-full flex items-center justify-center">
+        <svg viewBox="0 0 380 140" className="w-full h-full">
+          <defs>
+            <linearGradient id="beam-a" x1="50" y1="30" x2="190" y2="70" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#7C3AED" /><stop offset="1" stopColor="#06B6D4" />
+            </linearGradient>
+            <linearGradient id="beam-b" x1="330" y1="30" x2="190" y2="70" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#06B6D4" /><stop offset="1" stopColor="#10B981" />
+            </linearGradient>
+            <linearGradient id="beam-c" x1="190" y1="120" x2="190" y2="70" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#F59E0B" /><stop offset="1" stopColor="#10B981" />
+            </linearGradient>
+          </defs>
+
+          {/* Connection Beams */}
+          <line x1="50" y1="30" x2="190" y2="70" stroke="url(#beam-a)" strokeWidth={loading ? '2.5' : '1'} strokeOpacity={loading ? '0.9' : '0.4'} strokeDasharray="6 4" className={loading ? 'animate-particle-flow' : ''} />
+          <line x1="330" y1="30" x2="190" y2="70" stroke="url(#beam-b)" strokeWidth={loading ? '2.5' : '1'} strokeOpacity={loading ? '0.9' : '0.4'} strokeDasharray="6 4" className={loading ? 'animate-particle-flow' : ''} />
+          <line x1="190" y1="120" x2="190" y2="70" stroke="url(#beam-c)" strokeWidth={loading ? '2.5' : '1'} strokeOpacity={loading ? '0.9' : '0.4'} strokeDasharray="6 4" className={loading ? 'animate-particle-flow' : ''} />
+
+          {/* Center Fusion Hub Node (Worker D) */}
+          <g transform="translate(190, 70)">
+            <circle r="20" fill="var(--surface-2)" stroke={loading ? '#10B981' : '#334155'} strokeWidth="2" />
+            <circle r="14" fill="var(--bg-main)" />
+            {loading && <circle r="23" fill="none" stroke="#10B981" strokeWidth="1.5" strokeDasharray="4 4" className="animate-halo-spin" />}
+            <text textAnchor="middle" dy="4" fill="#10B981" fontSize="10" fontWeight="bold" fontFamily="monospace">D</text>
+          </g>
+
+          {/* Worker A Node */}
+          <g transform="translate(50, 30)">
+            <circle r="16" fill="var(--surface-2)" stroke="#7C3AED" strokeWidth="1.8" />
+            <circle r="11" fill="var(--bg-main)" />
+            {loading && step === 1 && <circle r="19" fill="none" stroke="#7C3AED" strokeWidth="1.2" strokeDasharray="3 3" className="animate-halo-spin" />}
+            <text textAnchor="middle" dy="3.5" fill="#8B5CF6" fontSize="9" fontWeight="bold" fontFamily="monospace">A</text>
+          </g>
+
+          {/* Worker B Node */}
+          <g transform="translate(330, 30)">
+            <circle r="16" fill="var(--surface-2)" stroke="#06B6D4" strokeWidth="1.8" />
+            <circle r="11" fill="var(--bg-main)" />
+            {loading && step === 2 && <circle r="19" fill="none" stroke="#06B6D4" strokeWidth="1.2" strokeDasharray="3 3" className="animate-halo-spin" />}
+            <text textAnchor="middle" dy="3.5" fill="#06B6D4" fontSize="9" fontWeight="bold" fontFamily="monospace">B</text>
+          </g>
+
+          {/* Worker C Node */}
+          <g transform="translate(190, 120)">
+            <circle r="16" fill="var(--surface-2)" stroke="#F59E0B" strokeWidth="1.8" />
+            <circle r="11" fill="var(--bg-main)" />
+            {loading && step === 3 && <circle r="19" fill="none" stroke="#F59E0B" strokeWidth="1.2" strokeDasharray="3 3" className="animate-halo-spin" />}
+            <text textAnchor="middle" dy="3.5" fill="#F59E0B" fontSize="9" fontWeight="bold" fontFamily="monospace">C</text>
+          </g>
+        </svg>
+      </div>
+
+      <div className="grid grid-cols-4 gap-1 pt-2 border-t border-[var(--border)] text-[9px] font-mono-brand text-center">
+        <div className="text-[var(--accent-light)] font-bold">Worker A (NLP)</div>
+        <div className="text-[var(--cyan)] font-bold">Worker B (Whale)</div>
+        <div className="text-[var(--neutral)] font-bold">Worker C (TA)</div>
+        <div className="text-[var(--bull)] font-bold">Worker D (Fusion)</div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Execution Pipeline Stepper ─────────────────────────────────────
 function ExecutionPipeline({ step, loading }: { step: number; loading: boolean }) {
   if (!loading && step === 0) return null;
@@ -385,7 +472,7 @@ function ExecutionPipeline({ step, loading }: { step: number; loading: boolean }
         return (
           <div key={`stage-${i}`} className={`flex items-center gap-2 p-2.5 rounded-xl text-xs font-mono-brand transition-all ${
             done ? 'bg-[var(--bull-bg)] text-[var(--bull)] border border-[var(--bull-border)]' 
-            : active ? 'bg-[var(--accent-subtle)] text-[var(--cyan)] border border-[var(--accent-border-strong)]'
+            : active ? 'bg-[var(--accent-subtle)] text-[var(--cyan)] border border-[var(--accent-border-strong)] animate-pulse-glow'
             : 'bg-[var(--surface-2)] text-[var(--text-muted)] border border-[var(--border)]'
           }`}>
             <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -665,10 +752,10 @@ export default function QuantMeshPage() {
                       <button 
                         key={`token-${token.symbol}`}
                         onClick={() => { setSelectedToken(token.symbol); setSignalData(null); setError(null); setSuccessMsg(null); setCurrentStep(0); }}
-                        className={`p-3 rounded-xl border flex items-center gap-2.5 transition-all cursor-pointer ${
+                        className={`p-3 rounded-xl border flex items-center gap-2.5 transition-all duration-200 cursor-pointer hover:scale-[1.02] ${
                           isSelected 
-                            ? 'bg-[var(--accent-subtle)] border-[var(--accent)] text-[var(--text-primary)] shadow-sm'
-                            : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]'
+                            ? 'bg-[var(--accent-subtle)] border-[var(--accent)] text-[var(--text-primary)] shadow-[0_0_15px_rgba(124,58,237,0.3)] ring-1 ring-[var(--accent)]'
+                            : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)]'
                         }`}>
                         <CryptoLogo symbol={token.symbol} size={20} />
                         <span className={`text-xs font-extrabold font-mono-brand ${isSelected ? 'text-[var(--accent-light)]' : 'text-[var(--text-primary)]'}`}>
@@ -702,11 +789,14 @@ export default function QuantMeshPage() {
                 </div>
               </div>
 
+              {/* Agent Swarm Neural Visualizer */}
+              <AgentSwarmVisualizer loading={loading} token={selectedToken} step={currentStep} />
+
               {/* Big CTA Execute Button */}
               <button 
                 onClick={handleExecuteStrategy} 
                 disabled={loading}
-                className="w-full py-4 rounded-xl btn-primary text-sm flex items-center justify-center gap-2.5 font-heading font-extrabold cursor-pointer">
+                className="w-full py-4 rounded-xl btn-primary text-sm flex items-center justify-center gap-2.5 font-heading font-extrabold cursor-pointer hover:scale-[1.01] hover:shadow-[0_0_25px_rgba(124,58,237,0.45)] transition-all animate-shimmer">
                 {loading ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin text-white" />
@@ -988,12 +1078,12 @@ export default function QuantMeshPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {WORKER_META.map((w, i) => {
                     return (
-                      <div key={w.key} className="fintech-card p-4 space-y-3 animate-stagger" style={{ animationDelay: `${i * 50}ms` }}>
+                      <div key={w.key} className="fintech-card p-4 space-y-3 animate-stagger hover:-translate-y-1 hover:border-[var(--accent-border-strong)] hover:shadow-[0_8px_25px_-5px_rgba(124,58,237,0.25)] transition-all duration-300 group cursor-pointer" style={{ animationDelay: `${i * 50}ms` }}>
                         <div className="flex items-center justify-between">
-                          <WorkerRing active={false} isDone={false} workerIdx={i + 1} />
+                          <WorkerRing active={loading} isDone={false} workerIdx={i + 1} />
                           <div className="flex items-center gap-2">
                             <StatusDot status={healthData?.workers?.[w.key]?.status || 'online'} />
-                            <span className="text-xs font-mono-brand font-bold" style={{ color: w.color }}>
+                            <span className="text-xs font-mono-brand font-bold group-hover:scale-105 transition-transform" style={{ color: w.color }}>
                               {healthData?.workers?.[w.key]?.latencyMs || (12 + i * 4)}ms
                             </span>
                           </div>

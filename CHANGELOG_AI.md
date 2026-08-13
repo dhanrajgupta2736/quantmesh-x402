@@ -8,6 +8,16 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-13T13:45:00+05:30 — Antigravity (Gemini 3.6 Flash)
+**Summary:** Enhanced frontend UI with interactive Agent Swarm Neural Visualizer, laser scanlines, particle flow beams, glowing card FX, and micro-interactions.
+1. **Agent Swarm Neural Visualizer** — Added `AgentSwarmVisualizer` SVG topology component in `page.tsx` displaying real-time connection beams, laser scans, and active worker nodes during strategy execution.
+2. **Trading Theme Animations** — Added `@keyframes laser-scan`, `pulse-glow`, `halo-spin`, `particle-flow`, and `shimmer-slide` in `globals.css`.
+3. **Micro-Interactions & Depth** — Added active glow rings, hover scale effects to target asset buttons, glowing execution steppers, and interactive worker swarm cards.
+**Files Changed:**
+- `frontend/src/app/globals.css` — Added FX keyframes and animation utility classes.
+- `frontend/src/app/page.tsx` — Embedded `AgentSwarmVisualizer`, polished button/card hover glow states.
+- `CHANGELOG_AI.md` — Appended audit log entry.
+
 ### 2026-08-13T13:28:00+05:30 — Antigravity (Gemini 3.1 Pro)
 **Summary:** Started local Python worker agents (Sentiment/Fusion and OnChain/TA) to resolve the "Sub-agent pre-execution failed" error.
 1. **Worker Agents Started** — The orchestrator on port 4000 relies on two sub-agents to fetch data. Started `agent-sentiment-fusion` on port `5001` and `agent-onchain-ta` on port `5002` via `uvicorn main:app` as background daemon tasks.
