@@ -8,6 +8,12 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-13T13:28:00+05:30 — Antigravity (Gemini 3.1 Pro)
+**Summary:** Started local Python worker agents (Sentiment/Fusion and OnChain/TA) to resolve the "Sub-agent pre-execution failed" error.
+1. **Worker Agents Started** — The orchestrator on port 4000 relies on two sub-agents to fetch data. Started `agent-sentiment-fusion` on port `5001` and `agent-onchain-ta` on port `5002` via `uvicorn main:app` as background daemon tasks.
+**Files Changed:**
+- `CHANGELOG_AI.md` — Appended audit log entry.
+
 ### 2026-08-13T13:15:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Started local Orchestrator daemon service and added automatic production endpoint fallback logic to x402Client.
 1. **Orchestrator Service Daemon** — Launched orchestrator service (`quantmesh-orchestrator`) in the background on port `4000` (`http://localhost:4000`).
