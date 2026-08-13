@@ -37,7 +37,12 @@ pm2 start "uvicorn main:app --host 0.0.0.0 --port 5001" --name "sentiment-fusion
 cd "$REPO_DIR/agent-onchain-ta"
 pip3 install --break-system-packages -r requirements.txt
 pm2 delete onchain-ta-worker 2>/dev/null || true
-pm2 start "uvicorn main:app --host 0.0.0.0 --port 5002" --name "onchain-ta-worker"
+pm2 start "python3 -m uvicorn main:app --host 0.0.0.0 --port 5002" --name "onchain-ta-worker"
+
+cd "$REPO_DIR/agent-regime-classifier"
+pip3 install --break-system-packages -r requirements.txt
+pm2 delete regime-classifier-worker 2>/dev/null || true
+pm2 start "python3 -m uvicorn main:app --host 0.0.0.0 --port 5003" --name "regime-classifier-worker"
 
 # 5. Setup Orchestrator Dependencies & Environment
 cd "$REPO_DIR/orchestrator"

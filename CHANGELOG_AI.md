@@ -1276,3 +1276,9 @@ This document tracks all code edits, structural changes, and schema updates made
 - Model: Claude Opus 4.6
 - Files changed: agent-sentiment-fusion/main.py, orchestrator/src/index.ts, frontend/src/app/page.tsx, orchestrator/src/endpoint.config.ts
 - Summary: Added Actionable Trade Strategy feature - Fusion agent now computes entry/SL/TP1/TP2 from live ATR and price. Fixed Data Unavailable bug in all 3 orchestrator breakdown payloads by adding missing regime fields. Added Trade Setup card to frontend UI. Merged to main.
+
+## 2026-08-13 11:09:00 UTC
+- Platform: Windows (Algorand QuantMesh)
+- Model: Gemini 3.1 Pro
+- Files changed: deploy-ec2.sh
+- Summary: Fixed production deployment. Added agent-regime-classifier to the PM2 deployment script and started the process on EC2.
