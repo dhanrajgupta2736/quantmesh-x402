@@ -622,6 +622,8 @@ app.post('/api/v1/orchestrate', async (c) => {
             onChainWhaleFlow: resB.whaleFlow || resB.onChainWhaleFlow || 'Data Unavailable',
             technicalIndicator: resC.taSignal || resC.technicalIndicator || 'Data Unavailable',
             regime: resE.regime,
+            regimeAnalysis: resE.regimeAnalysis,
+            simpleAdvice: resE.simpleAdvice,
             volatilityIndex: resE.volatilityIndex,
             suggestedPositionSize: resE.suggestedPositionSize,
             stopLossLevel: resE.stopLossLevel,
