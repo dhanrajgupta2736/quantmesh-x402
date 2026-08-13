@@ -611,9 +611,9 @@ export default function QuantMeshPage() {
   const isSentimentMode = activeEndpoint === 'sentiment' || signalData?.endpoint === 'sentiment-only';
   const amountA = isSentimentMode ? 2000 : (signalData?.dynamicSplit?.amountA ?? 1600);
   const amountB = isSentimentMode ? 0 : (signalData?.dynamicSplit?.amountB ?? 1600);
-  const amountC = isSentimentMode ? 0 : (signalData?.dynamicSplit?.amountC ?? 900);
-  const amountD = isSentimentMode ? 0 : (signalData?.dynamicSplit?.amountD ?? 900);
-  const amountE = isSentimentMode ? 0 : (signalData?.dynamicSplit?.amountE ?? 800);
+  const amountC = isSentimentMode ? 0 : (signalData?.dynamicSplit?.amountC ?? 1000);
+  const amountD = isSentimentMode ? 0 : (signalData?.dynamicSplit?.amountD ?? 500);
+  const amountE = isSentimentMode ? 0 : (signalData?.dynamicSplit?.amountE ?? 500);
   const totalPool = isSentimentMode ? 2000 : (amountA + amountB + amountC + amountD + amountE || 7000);
   const pctA = ((amountA / totalPool) * 100).toFixed(1);
   const pctB = ((amountB / totalPool) * 100).toFixed(1);
@@ -1031,7 +1031,7 @@ export default function QuantMeshPage() {
                                   {!expandedCard && (
                                     <div className="text-[10px] text-[var(--text-muted)] font-mono-brand mt-1">Volatility Index: {signalData.breakdown?.volatilityIndex ?? 'N/A'}</div>
                                   )}
-                                  {expandedCard === 'E' && signalData.breakdown?.simpleAdvice && (
+                                  {signalData.breakdown?.simpleAdvice && (
                                     <div className="mt-3 p-2.5 bg-[var(--surface-1)] rounded-lg text-xs text-[var(--text-primary)] font-bold border border-[var(--border)] font-heading">
                                       💡 For Beginners: <span className="font-normal text-[var(--text-secondary)] ml-1">{signalData.breakdown.simpleAdvice}</span>
                                     </div>
