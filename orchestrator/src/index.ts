@@ -586,15 +586,15 @@ app.post('/api/v1/orchestrate', async (c) => {
           workerEAddress: WORKER_PAYOUT_ADDRESSES.E,
           amountA,
           amountB,
-          amountC: 900,
-          amountD: 900,
-          amountE: 800,
+          amountC: 1000,
+          amountD: 500,
+          amountE: 500,
           usdcAssetId: Number(process.env.USDC_TESTNET_ASA_ID || USDC_TESTNET_ASA_ID),
         });
         const { workerPayoutGroupTxId: txId, groupHash } = await signAndSubmitAtomicGroup(unsignedGroup, routerSecretKey);
         workerPayoutGroupTxId = txId;
         workerPayoutStatus = 'success';
-          workerPayoutNote = `All 5 workers paid atomically in one group (Dynamic Split: A=${amountA}, B=${amountB}, C=900, D=900, E=800 micro-USDC).`;
+          workerPayoutNote = `All 5 workers paid atomically in one group (Dynamic Split: A=${amountA}, B=${amountB}, C=1000, D=500, E=500 micro-USDC).`;
 
         return c.json({
           status: 'success',
@@ -607,9 +607,9 @@ app.post('/api/v1/orchestrate', async (c) => {
           dynamicSplit: {
             amountA,
             amountB,
-            amountC: 900,
-            amountD: 900,
-            amountE: 800,
+            amountC: 1000,
+            amountD: 500,
+            amountE: 500,
             weights: resD.weights || { sentiment: 0.35, onchain: 0.35, ta: 0.30 },
           },
           signalFusion: {
