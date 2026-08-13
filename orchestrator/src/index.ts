@@ -804,6 +804,8 @@ const port = Number(process.env.PORT) || 4000;
 serve({
   fetch: app.fetch,
   port,
+  hostname: '0.0.0.0',
 });
 
-console.log(`[DeFi QuantMesh Router] Successfully running on http://localhost:${port}`);
+console.log(`[DeFi QuantMesh Router] Successfully running on http://0.0.0.0:${port}`);
+

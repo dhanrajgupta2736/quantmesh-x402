@@ -8,6 +8,129 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-13T06:22:00Z — Antigravity (Gemini 3.6 Flash)
+**Summary:** Configured local network / LAN binding (`0.0.0.0`) and dynamic client API resolution.
+1. `orchestrator/src/index.ts`: Updated `@hono/node-server` options to bind explicitly to `hostname: '0.0.0.0'` on port 4000.
+2. `frontend/package.json`: Updated `dev` script to `next dev -H 0.0.0.0` on port 3000.
+3. `frontend/src/lib/x402Client.ts` & `frontend/src/app/page.tsx`: Added `getOrchestratorBaseUrl()` helper to dynamically route browser API requests to the matching LAN host (e.g. `http://<LAN-IP>:4000`).
+4. Re-verified LAN network access on `http://10.27.42.167:3000` and `http://10.27.42.167:4000` returning HTTP 200 / healthy worker responses.
+**Files Changed:**
+- `orchestrator/src/index.ts` — Bound Hono server to `hostname: '0.0.0.0'`.
+- `frontend/package.json` — Added `-H 0.0.0.0` to dev script.
+- `frontend/src/lib/x402Client.ts` — Added `getOrchestratorBaseUrl()` helper.
+- `frontend/src/app/page.tsx` — Updated `TickerBar` and `checkHealth` to use dynamic base URL.
+- `CHANGELOG_AI.md` — Appended audit log entry.
+
+
+
+### 2026-08-13T06:03:30Z — Antigravity (Gemini 3.6 Flash)
+**Summary:** Redesigned dashboard into an ultra-minimal, effortless 2-column executive layout.
+1. `frontend/src/app/page.tsx`: Restructured dashboard into a side-by-side 2-column layout.
+   - **Left Column**: Strategy Model Segmented Switch (`4-Agent Consensus ($0.007)` vs `FinBERT ($0.002)`), 9-token asset selector grid with vector crypto badges, configuration summary, and 1-click Execute CTA.
+   - **Right Column**: Live Sub-Agent Swarm Health (idle state) & Real-Time Consensus Results / On-Chain Receipt (active state).
+2. Preserved 100% of data displays (Score Gauge, Verdict Badge, Worker Breakdown, Client Tx, Facilitator status, Attestation Hash, Dynamic Payout Split Bar, Lora Explorer links).
+3. Preserved 100% of backend calls, API handlers, wallet connection (`useWallet`), and data fetching.
+4. Confirmed live HTTP 200 response on `http://localhost:3000`.
+**Files Changed:**
+- `frontend/src/app/page.tsx` — Applied ultra-minimal 2-column executive layout.
+- `frontend/src/app/globals.css` — Updated theme tokens and card styling.
+- `CHANGELOG_AI.md` — Appended audit log entry.
+
+
+
+### 2026-08-13T05:59:00Z — Antigravity (Gemini 3.6 Flash)
+**Summary:** Upgraded frontend to an institutional fintech UI design system.
+1. `frontend/src/app/page.tsx`: Replaced all emoji asset icons with custom crisp vector SVG crypto marks (`CryptoLogo`).
+2. `frontend/src/app/globals.css`: Implemented deep slate & violet precision theme (`#090D16`, `#111726`, `#1A2234`, `#7C3AED`) with clean card borders and zero AI-slop decorative fluff.
+3. Enhanced typography hierarchy with Space Grotesk headings, Inter body text, and JetBrains Mono for transaction data and metric values.
+4. Preserved 100% of existing backend calls, state handlers, wallet integration (`useWallet`), and data bindings.
+5. Confirmed live HTTP 200 response on `http://localhost:3000`.
+**Files Changed:**
+- `frontend/src/app/page.tsx` — Applied institutional fintech design overhaul and vector crypto marks.
+- `frontend/src/app/globals.css` — Updated theme tokens, fintech panels, surface cards, and typography roles.
+- `CHANGELOG_AI.md` — Appended audit log entry for visual overhaul.
+
+
+
+### 2026-08-13T05:52:00Z — Antigravity (Gemini 3.6 Flash)
+**Summary:** Launched and verified all 4 QuantMesh x402 microservices.
+1. Executed `agent-sentiment-fusion` microservice on port 5001 (`http://localhost:5001/health`).
+2. Executed `agent-onchain-ta` microservice on port 5002 (`http://localhost:5002/health`).
+3. Executed `orchestrator` Hono gateway router on port 4000 (`http://localhost:4000/api/v1/health`).
+4. Executed `frontend` Next.js development server on port 3000 (`http://localhost:3000`).
+5. Confirmed 100% online status and sub-100ms latency across all 4 worker nodes.
+**Files Changed:**
+- `CHANGELOG_AI.md` — Appended audit log entry for microservice launch.
+
+
+
+### 2026-08-13T05:48:30Z — Antigravity (Gemini 3.6 Flash)
+**Summary:** Redesigned dashboard into a clean, minimal 4-step wizard process flow.
+1. `frontend/src/app/page.tsx`: Restructured main interface into a 4-step wizard (`Step 1: Configure` -> `Step 2: Sub-Agent Swarm` -> `Step 3: Execute Handshake` -> `Step 4: Consensus & Receipt`).
+2. Added interactive top process stepper navigation bar with step status badges and smooth step transition tracking.
+3. `frontend/src/app/globals.css`: Updated design system with generous whitespace, minimal dot-grid background overlay, clean surface cards (`.aurora-panel`, `.aurora-card`), and dark/light mode palette.
+4. Preserved 100% of existing business logic, wallet connections (`useWallet`), API endpoints, data fetching (`fetchQuantMeshSignal`), opt-in logic, and signal history data bindings.
+5. Re-verified Next.js static export build (`✓ Compiled successfully`).
+**Files Changed:**
+- `frontend/src/app/page.tsx` — Complete UI restructuring into 4-step wizard flow.
+- `frontend/src/app/globals.css` — Redesigned design system tokens and minimal wizard styling.
+- `CHANGELOG_AI.md` — Appended audit log entry for UI/UX redesign.
+
+
+
+### 2026-08-13T05:39:00Z — Antigravity (Gemini 3.6 Flash)
+**Summary:** Switched local git branch to `va`.
+1. Executed `git checkout va` to create and switch to local tracking branch `va` tracking `origin/va`.
+2. Verified active working branch is `va`.
+**Files Changed:**
+- `CHANGELOG_AI.md` — Appended audit log entry for branch switch.
+
+
+
+### 2026-08-13T05:37:20Z — Antigravity (Gemini 3.6 Flash)
+**Summary:** Queried updated git branches following remote fetch.
+1. Executed `git branch -a` to count active branches.
+2. Verified 1 local branch (`main`) and 3 remote tracking branches (`origin/main`, `origin/feature/new-agents`, `origin/va`).
+**Files Changed:**
+- `CHANGELOG_AI.md` — Appended audit log entry for branch count query.
+
+
+
+### 2026-08-13T05:37:00Z — Antigravity (Gemini 3.6 Flash)
+**Summary:** Executed `git pull` on `main` branch.
+1. Checked status and executed `git pull` against `origin/main`.
+2. Fetched remote updates: repository is already up to date on `main`; fetched new remote branch reference `origin/va`.
+**Files Changed:**
+- `CHANGELOG_AI.md` — Appended audit log entry for `git pull` execution.
+
+
+
+### 2026-08-13T05:36:30Z — Antigravity (Gemini 3.6 Flash)
+**Summary:** Queried git branches for user request.
+1. Ran `git branch -a` to inspect all local and tracking branches.
+2. Verified 1 local branch (`main`) and 2 remote tracking branches (`origin/main`, `origin/feature/new-agents`).
+**Files Changed:**
+- `CHANGELOG_AI.md` — Appended audit entry for user branch query.
+
+
+
+### 2026-08-13T05:12:00Z — Antigravity (Gemini 3.6 Flash)
+**Summary:** Initialized environment and launched all 4 QuantMesh x402 project microservices.
+1. Installed npm dependencies for `orchestrator` and `frontend`.
+2. Resolved Android/Termux Python build compatibility by configuring FastAPI 0.95.2 and Pydantic v1.
+3. Created environment `.env` files for `orchestrator`, `agent-sentiment-fusion`, and `agent-onchain-ta`.
+4. Executed `agent-sentiment-fusion` on port 5001 and `agent-onchain-ta` on port 5002 via Uvicorn.
+5. Executed `orchestrator` Hono gateway on port 4000 via TSX Node runtime.
+6. Executed `frontend` Next.js dashboard on port 3000 via Webpack engine (`--webpack`).
+7. Confirmed active health responses across all 4 microservices.  
+**Files Changed:**
+- `orchestrator/.env` — Created local environment configuration.
+- `agent-sentiment-fusion/.env` — Created sentiment worker environment configuration.
+- `agent-onchain-ta/.env` — Created on-chain/TA worker environment configuration.
+- `CHANGELOG_AI.md` — This entry.
+
+
+
 ### 2026-08-09T18:02:00+05:30 — Antigravity (Gemini 3.6 Flash)
 **Summary:** Fixed Cloudflare Pages CSS Compilation & Static Export Bundle.
 1. Identified root cause of unstyled static export: `postcss.config.mjs` was unrecognized by Next.js PostCSS loader, preventing Tailwind compilation during Cloudflare Pages builds.

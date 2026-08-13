@@ -31,15 +31,30 @@ export async function optInToUSDCAsset(
   return sendRes.txid;
 }
 
+export function getOrchestratorBaseUrl(): string {
+  if (process.env.NEXT_PUBLIC_ORCHESTRATOR_URL) {
+    return process.env.NEXT_PUBLIC_ORCHESTRATOR_URL.replace(/\/$/, '');
+  }
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1' || host.startsWith('10.') || host.startsWith('192.168.') || host.startsWith('172.') || host.endsWith('.local')) {
+      return `http://${host}:4000`;
+    }
+  }
+  return 'https://api.dhanrajgupta.xyz';
+}
+
 export async function fetchQuantMeshSignal(
   tokenSymbol: string,
   userAddress: string,
   signTransactions: (txns: Uint8Array[], indexesToSign?: number[]) => Promise<Uint8Array[]>,
   endpointType: 'consensus' | 'sentiment' = 'consensus'
 ) {
+  const baseUrl = getOrchestratorBaseUrl();
   const targetGateway = endpointType === 'sentiment'
-    ? 'https://api.dhanrajgupta.xyz/api/v1/sentiment-only'
-    : 'https://api.dhanrajgupta.xyz/api/v1/orchestrate';
+    ? `${baseUrl}/api/v1/sentiment-only`
+    : `${baseUrl}/api/v1/orchestrate`;
+
 
   const algodClient = new algosdk.Algodv2('', 'https://testnet-api.algonode.cloud', 443);
 
