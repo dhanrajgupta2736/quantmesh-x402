@@ -20,6 +20,7 @@ app.add_middleware(
 )
 
 # Standard token pairs on Binance
+BINANCE_PAIRS = {
     "BTC": "BTCUSDT",
     "ETH": "ETHUSDT",
     "SOL": "SOLUSDT",
