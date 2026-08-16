@@ -8,13 +8,14 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
-### 2026-08-16T09:48:00+05:30 — Antigravity (Gemini 3.7 Flash)
-**Summary:** Added root welcome & status route (`GET /`) to Orchestrator gateway and completed Render deployment verification.
-1. **Root API Index Route** — Implemented `GET /` in `orchestrator/src/index.ts` returning JSON service metadata and available endpoint links to prevent plain `404 Not Found` when visited in browsers.
-2. **Verified Live Container Health** — Verified all 5 sub-agents (`sentiment`, `onchain`, `ta`, `fusion`, `regime`) online with 1–2ms internal response times on Render.
+### 2026-08-16T09:52:00+05:30 — Antigravity (Gemini 3.7 Flash)
+**Summary:** Successfully completed Render deployment, custom domain verification (`api.dhanrajgupta.xyz`), and live health validation.
+1. **Domain & SSL Verified** — Verified `api.dhanrajgupta.xyz` custom domain routing with active Let's Encrypt TLS certificate managed by Render.
+2. **Live Production Validation** — Verified `GET /` (API Index) and `GET /api/v1/health` responding with `status: healthy` and all 5 worker agents (`sentiment`, `onchain`, `ta`, `fusion`, `regime`) online.
 **Files Changed:**
 - `orchestrator/src/index.ts`
 - `CHANGELOG_AI.md` — Appended audit log entry.
+
 
 
 
