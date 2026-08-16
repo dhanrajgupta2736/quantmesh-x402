@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: quantmesh-backend
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 4000
+      - key: ALGORAND_NETWORK
+        value: testnet
+      - key: ALGOD_SERVER
+        value: https://testnet-api.algonode.cloud
+      - key: ALGOD_PORT
+        value: 443
+      - key: ROUTER_ADDRESS
+        value: 4DTSNS35EP24IFWIGXSG5NSD3GDDTPHNVGEXSHG67JDEHUHUNFR3KJGPO4
+      - key: USDC_TESTNET_ASA_ID
+        value: 10458941
+      - key: FACILITATOR_URL
+        value: https://facilitator.goplausible.xyz
+      - key: WORKER_A_URL
+        value: http://localhost:5001/agent/sentiment
+      - key: WORKER_B_URL
+        value: http://localhost:5002/agent/onchain
+      - key: WORKER_C_URL
+        value: http://localhost:5002/agent/ta
+      - key: WORKER_D_URL
+        value: http://localhost:5001/agent/fusion
+      - key: WORKER_E_URL
+        value: http://localhost:5003/agent/regime
+      # Sensitive keys to set in Render Dashboard:
+      - key: ROUTER_MNEMONIC
+        sync: false
+      - key: HF_API_TOKEN
+        sync: false

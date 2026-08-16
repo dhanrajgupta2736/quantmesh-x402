@@ -8,6 +8,34 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
+### 2026-08-16T09:12:00+05:30 — Antigravity (Gemini 3.7 Flash)
+**Summary:** Prepared repository for immediate Render free-tier deployment following hackathon completion and EC2 decommission.
+1. **Optimized Build & Run Pipeline** — Configured `supervisord.conf` to execute production-compiled `node dist/index.js` for minimal RAM overhead (~40MB) to comfortably fit within Render's 512MB RAM free limit.
+2. **Robust Container Init** — Added `/var/log/supervisor` and `/var/run` directory creation in `Dockerfile` to guarantee clean container startup.
+3. **Verified TypeScript Production Compilation** — Ran and verified `tsc` compilation across orchestrator modules.
+**Files Changed:**
+- `Dockerfile`
+- `supervisord.conf`
+- `CHANGELOG_AI.md` — Appended audit log entry.
+
+
+
+### 2026-08-14T05:45:00+05:30 — Antigravity (Gemini 3.7 Flash)
+**Summary:** Created unified multi-service container deployment configurations for Render Free Tier (100% lifetime free hosting).
+1. **Unified Dockerfile** — Created multi-runtime Dockerfile packaging Node.js 20 LTS orchestrator + 3 Python FastAPI microservices under `supervisord`.
+2. **Supervisor Configuration** — Added `supervisord.conf` managing all 4 backend microservices (`agent-sentiment-fusion`, `agent-onchain-ta`, `agent-regime-classifier`, `orchestrator`) within a single container to stay within Render's free 750 hours/month quota.
+3. **Container Build Optimization** — Added `.dockerignore` excluding unnecessary frontend/asset files.
+4. **Render Blueprint** — Created `render.yaml` defining free web service specs, health check path (`/api/v1/health`), and environment variable bindings.
+5. **Post-Hackathon Migration Guide** — Authored `RENDER_DEPLOY_GUIDE.md` documenting step-by-step instructions to migrate from EC2 to Render, map `api.dhanrajgupta.xyz`, and safely terminate AWS EC2 after results are announced.
+**Files Changed:**
+- `Dockerfile` (New)
+- `supervisord.conf` (New)
+- `.dockerignore` (New)
+- `render.yaml` (New)
+- `RENDER_DEPLOY_GUIDE.md` (New)
+- `CHANGELOG_AI.md` — Appended audit log entry.
+
+
 ### 2026-08-13T15:05:00+05:30 — Antigravity (Gemini Pro)
 **Summary:** Implemented Worker E (Regime Classifier) on the `va` branch.
 1. **Python FastAPI Backend** — Created Worker E (ATR/ADX calculations, position sizing, volatility index) in `agent-regime-classifier`.
