@@ -164,6 +164,20 @@ app.use('*', cors({
   exposeHeaders: ['x-payment-pay-to', 'x-payment-price', 'x-payment-network', 'x-payment-scheme', 'x-payment-txn-id'],
 }));
 
+// Root welcome & status endpoint
+app.get('/', (c) => {
+  return c.json({
+    name: 'QuantMesh x402 Orchestrator Gateway',
+    status: 'healthy',
+    network: 'algorand:testnet',
+    endpoints: {
+      health: '/api/v1/health',
+      orchestrate: 'POST /api/v1/orchestrate',
+      sentimentOnly: 'POST /api/v1/sentiment-only',
+    },
+  });
+});
+
 // Clean environment variables
 const rawFacilitatorUrl = process.env.FACILITATOR_URL || 'https://facilitator.goplausible.xyz';
 const cleanFacilitatorUrl = rawFacilitatorUrl.replace(/[\[\]]/g, '').trim();

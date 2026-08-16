@@ -8,15 +8,14 @@ This document tracks all code edits, structural changes, and schema updates made
 
 ## Log Entries
 
-### 2026-08-16T09:12:00+05:30 — Antigravity (Gemini 3.7 Flash)
-**Summary:** Prepared repository for immediate Render free-tier deployment following hackathon completion and EC2 decommission.
-1. **Optimized Build & Run Pipeline** — Configured `supervisord.conf` to execute production-compiled `node dist/index.js` for minimal RAM overhead (~40MB) to comfortably fit within Render's 512MB RAM free limit.
-2. **Robust Container Init** — Added `/var/log/supervisor` and `/var/run` directory creation in `Dockerfile` to guarantee clean container startup.
-3. **Verified TypeScript Production Compilation** — Ran and verified `tsc` compilation across orchestrator modules.
+### 2026-08-16T09:48:00+05:30 — Antigravity (Gemini 3.7 Flash)
+**Summary:** Added root welcome & status route (`GET /`) to Orchestrator gateway and completed Render deployment verification.
+1. **Root API Index Route** — Implemented `GET /` in `orchestrator/src/index.ts` returning JSON service metadata and available endpoint links to prevent plain `404 Not Found` when visited in browsers.
+2. **Verified Live Container Health** — Verified all 5 sub-agents (`sentiment`, `onchain`, `ta`, `fusion`, `regime`) online with 1–2ms internal response times on Render.
 **Files Changed:**
-- `Dockerfile`
-- `supervisord.conf`
+- `orchestrator/src/index.ts`
 - `CHANGELOG_AI.md` — Appended audit log entry.
+
 
 
 
